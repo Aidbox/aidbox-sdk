@@ -693,7 +693,6 @@
 
 (defn get-directory-files [path]
   (->> path
-       io/file
        file-seq
        (remove #(.isDirectory %))))
 
@@ -722,21 +721,24 @@
        (map (fn [[_url same-url-schemas]]
               (apply merge same-url-schemas)))))
 
-(defn retrieve-schemas' [source]
-  (->>
-   (fetch-packages source)
-   (map parse-ndjson-gz)
-   (flatten)
-   (remove #(nil? (:package-meta %)))
-   (map (fn [schema]
-          (assoc schema :package (get-in schema [:package-meta :name]))))
-   (merge-duplicates)))
+(defmulti retrieve-schemas class)
 
-(defn retrieve-search-params [source])
+(defmethod retrieve-schemas java.io.File
+  [source]
+  (->> (fetch-packages source)
+       (map parse-ndjson-gz)
+       (flatten)
+       (remove #(nil? (:package-meta %)))
+       (map (fn [schema]
+              (assoc schema :package (get-in schema [:package-meta :name]))))
+       (merge-duplicates)))
 
-(defn build-all! [source-dir target-dir]
-  (let [search-parameters-dir (io/file target-dir "search")
-        all-schemas           (retrieve-schemas' source-dir)
+(defmethod retrieve-schemas java.net.URL
+  [source] (do "something"))
+
+(defn build-all! [input output]
+  (let [search-parameters-dir (io/file output "search")
+        all-schemas           (retrieve-schemas input)
         ;; search-params-schemas (retrieve-search-params source-dir)
         search-params-schemas all-schemas
         constraints           (->> all-schemas
@@ -744,7 +746,7 @@
                                              (constraint? %)
                                              (not (from-extension? %)))))]
 
-    (prepare-target-directory! target-dir)
+    (prepare-target-directory! output)
 
     ;; create base namespace (all FHIR datatypes) file
     (->> all-schemas
@@ -753,7 +755,7 @@
          (sort-by :base)
          (generate-base-namespace)
          (save-to-file!
-          (io/file target-dir "Base.cs")))
+          (io/file output "Base.cs")))
 
     ;; create spezialization files
     (doseq [item (->> all-schemas
@@ -766,7 +768,7 @@
                                      (update schema :base #(str % ", IResource"))))))))]
 
       (save-to-file!
-       (io/file target-dir (package->directory (:package item)) (str (:name item) ".cs"))
+       (io/file output (package->directory (:package item)) (str (:name item) ".cs"))
        (generate-resource-namespace item)))
 
     ;; create resource map file
@@ -784,7 +786,7 @@
                 :name (->pascal-case (url->resource-type (:url %)))))
          (generate-utils-namespace)
          (save-to-file!
-          (io/file target-dir "ResourceMap.cs")))
+          (io/file output "ResourceMap.cs")))
 
     ;; create search parameters classes
     (doseq [item (search-parameters-classes search-params-schemas
@@ -810,8 +812,8 @@
                                          (assoc schema
                                                 :url name'))})))]
       (save-to-file!
-       (io/file target-dir (package->directory (:package schema)) (str (->pascal-case (url->resource-type name)) ".cs"))
+       (io/file output (package->directory (:package schema)) (str (->pascal-case (url->resource-type name)) ".cs"))
        file-content))
 
     (doseq [file dotnettpl/files]
-      (spit (io/file target-dir (:name file)) (:content file)))))
+      (spit (io/file output (:name file)) (:content file)))))
