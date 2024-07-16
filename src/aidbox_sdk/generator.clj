@@ -1,6 +1,7 @@
 (ns aidbox-sdk.generator
   (:refer-clojure :exclude [namespace])
   (:require
+   [cheshire.core :as json]
    [aidbox-sdk.generator.dotnet.templates :as dotnettpl]
    [aidbox-sdk.generator.helpers :refer [->pascal-case safe-conj
                                          uppercase-first-letter vector-to-map]]
@@ -551,31 +552,33 @@
        (conj parent-schema)
        (apply-patterns (:url constraint) (filter #(contains? (last %) :pattern) (:elements constraint)))))
 
-(defn apply-constraints [constraint-schemas result base-schemas]
-  (if (not= (count constraint-schemas) (count result))
-    (apply-constraints
-     constraint-schemas
-     (reduce (fn [acc constraint-schema]
-               (if (and (contains? result (:base constraint-schema))
-                        (not (contains? result (:url constraint-schema))))
-                 (conj acc (hash-map
-                            (:url constraint-schema)
-                            (assoc (apply-single-constraint constraint-schema
-                                                            (get result (:base constraint-schema)))
-                                   :package (:package constraint-schema))))
+(defn apply-constraints [constraint-schemas base-schemas]
+  (loop [result {}]
+    (if (= (count constraint-schemas) (count result))
+      result
+      (recur (reduce (fn [acc constraint-schema]
+                       (cond
+                         (contains? result (:url constraint-schema))
+                         acc
 
-                 (if (and (contains? base-schemas (:base constraint-schema))
-                          (not (contains? result (:url constraint-schema))))
-                   (conj acc (hash-map
-                              (:url constraint-schema)
-                              (assoc (apply-single-constraint constraint-schema
-                                                              (get base-schemas (:base constraint-schema)))
-                                     :package (:package constraint-schema))))
-                   acc)))
-             result
-             constraint-schemas)
-     base-schemas)
-    result))
+                         (contains? result (:base constraint-schema))
+                         (assoc acc
+                                (:url constraint-schema)
+                                (assoc (apply-single-constraint constraint-schema
+                                                                (get result (:base constraint-schema)))
+                                       :package (:package constraint-schema)))
+
+                         (contains? base-schemas (:base constraint-schema))
+                         (assoc acc
+                                (:url constraint-schema)
+                                (assoc (apply-single-constraint constraint-schema
+                                                                (get base-schemas (:base constraint-schema)))
+                                       :package (:package constraint-schema)))
+
+                         :else acc))
+
+                     result
+                     constraint-schemas)))))
 
 ;;
 ;; Search Parameters
@@ -688,14 +691,54 @@
               (conj schema {:backbone-elements
                             (flat-backbones (:backbone-elements schema) [])})))))
 
-(defn retrieve-schemas' [source])
+(defn get-directory-files [path]
+  (->> path
+       io/file
+       file-seq
+       (remove #(.isDirectory %))))
+
+(defn fetch-packages [source-path]
+  (->> source-path
+       (get-directory-files)
+       (remove #(.isDirectory %))
+       (filter #(str/includes? (.getName %) "hl7.fhir"))))
+
+(defn create-gzip-reader [path]
+  (-> path
+      (io/input-stream)
+      (java.util.zip.GZIPInputStream.)
+      (io/reader)))
+
+(defn parse-ndjson-gz [path]
+  (with-open [rdr (create-gzip-reader path)]
+    (->> rdr
+         line-seq
+         (mapv (fn [line]
+                 (json/parse-string line keyword))))))
+
+(defn merge-duplicates [schemas]
+  (->> schemas
+       (group-by :url)
+       (map (fn [[_url same-url-schemas]]
+              (apply merge same-url-schemas)))))
+
+(defn retrieve-schemas' [source]
+  (->>
+   (fetch-packages source)
+   (map parse-ndjson-gz)
+   (flatten)
+   (remove #(nil? (:package-meta %)))
+   (map (fn [schema]
+          (assoc schema :package (get-in schema [:package-meta :name]))))
+   (merge-duplicates)))
 
 (defn retrieve-search-params [source])
 
 (defn build-all! [source-dir target-dir]
   (let [search-parameters-dir (io/file target-dir "search")
         all-schemas           (retrieve-schemas' source-dir)
-        search-params-schemas (retrieve-search-params source-dir)
+        ;; search-params-schemas (retrieve-search-params source-dir)
+        search-params-schemas all-schemas
         constraints           (->> all-schemas
                                    (filter #(and
                                              (constraint? %)
@@ -754,9 +797,7 @@
     (doseq [{:keys [name schema file-content]}
             (->> (apply-constraints
                   constraints
-                  {}
                   (->> all-schemas
-                       (filter base-schema?)
                        (prepared-schemas)
                        (map (fn [schema]
                               (conj schema {:backbone-elements
