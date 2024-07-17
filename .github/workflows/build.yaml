@@ -86,14 +86,14 @@ jobs:
 
       - name: Compile to native binary
         run: |
-          mv aidbox-sdk.jar source.jar
-          native-image -jar ./source.jar -march=native --no-fallback --features=clj_easy.graal_build_time.InitClojureClasses -H:ReflectionConfigurationFiles=./reflect-config.json aidbox-sdk-${{ matrix.os }}
+          make compile_native_image project_dir=${{ github.workspace }} jar_path=aidbox-sdk.jar image_name=aidbox-sdk-${{ matrix.os }}
+          chmod +x aidbox-sdk-${{ matrix.os }}
 
       - name: Upload amd64 binary artifact
         uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.os }}
-          path: ./aidbox-sdk*
+          path: ./aidbox-sdk-*
 
   # -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- #
 
