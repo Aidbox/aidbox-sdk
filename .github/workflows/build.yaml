@@ -68,6 +68,8 @@ jobs:
           - macos-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Download jar artifact
         uses: actions/download-artifact@v4
         with:
@@ -85,7 +87,7 @@ jobs:
       - name: Compile to native binary
         run: |
           mv aidbox-sdk.jar source.jar
-          native-image -jar ./source.jar --no-fallback --no-server aidbox-sdk-${{ matrix.os }}
+          native-image -jar ./source.jar -march=native --no-fallback --features=clj_easy.graal_build_time.InitClojureClasses -H:ReflectionConfigurationFiles=./reflect-config.json aidbox-sdk-${{ matrix.os }}
 
       - name: Upload amd64 binary artifact
         uses: actions/upload-artifact@v4
