@@ -40,11 +40,10 @@ jobs:
           restore-keys: cljdeps-
 
       - name: Run tests
-        run: echo "TODO"
+        run: clojure -M:test -m kaocha.runner
 
       - name: Build uberjar
-        run: |
-          clojure -T:build uberjar :jar-name aidbox-sdk
+        run: clojure -T:build uberjar :jar-name aidbox-sdk
 
       - name: Upload jar artifact
         uses: actions/upload-artifact@v4
