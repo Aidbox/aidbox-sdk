@@ -4,6 +4,8 @@
    [clojure.java.io :as io]
    [aidbox-sdk.generator :as generator]))
 
+(set! *warn-on-reflection* true)
+
 (defn url
   "Safe version of as-url function"
   [s]

@@ -1,7 +1,7 @@
 (ns aidbox-sdk.generator
   (:refer-clojure :exclude [namespace])
   (:require
-   [cheshire.core :as json]
+   [clojure.data.json :as json]
    [aidbox-sdk.generator.dotnet.templates :as dotnettpl]
    [aidbox-sdk.generator.helpers :refer [->pascal-case safe-conj
                                          uppercase-first-letter vector-to-map]]
@@ -713,7 +713,7 @@
     (->> rdr
          line-seq
          (mapv (fn [line]
-                 (json/parse-string line keyword))))))
+                 (json/read-str line :key-fn keyword))))))
 
 (defn merge-duplicates [schemas]
   (->> schemas

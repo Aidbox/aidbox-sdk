@@ -2,10 +2,11 @@ pom.xml
 pom.xml.asc
 *.jar
 *.class
-/lib/
-/classes/
-/target/
-/checkouts/
+lib/
+classes/
+target/
+out/
+checkouts/
 .lein-deps-sum
 .lein-repl-history
 .lein-plugins/
@@ -14,6 +15,9 @@ pom.xml.asc
 .cpcache/
 .DS_Store
 
-/.lsp/
-/.clj-kondo/
-/.schemas/
+.lsp/
+.clj-kondo/
+.schemas/
+
+META/*
+!META/.gitkeep

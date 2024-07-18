@@ -8,18 +8,20 @@
   (b/delete {:path "target"}))
 
 (defn uberjar [{:keys [jar-name]
-                :or {jar-name "aidbox-sdk"}}]
-
+                :or   {jar-name "aidbox-sdk"}}]
   (clean nil)
 
-  (b/copy-dir {:src-dirs ["src" "resources"]
+  (b/copy-dir {:src-dirs   ["src" "resources"]
                :target-dir class-dir})
 
-  (b/compile-clj {:basis basis
+  (b/compile-clj {:basis      basis
                   :ns-compile '[aidbox-sdk.core]
-                  :class-dir class-dir})
+                  :class-dir  class-dir})
 
-  (b/uber {:class-dir class-dir
-           :uber-file (str "target/" jar-name ".jar")
-           :basis basis
-           :main 'aidbox-sdk.core}))
+  (let [jar-path (str "target/" jar-name ".jar")]
+    (b/uber {:class-dir class-dir
+             :uber-file jar-path
+             :basis     basis
+             :main      'aidbox-sdk.core})
+
+    (println "Building complete. Uberjar is available at:" jar-path)))
