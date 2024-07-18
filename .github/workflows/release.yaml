@@ -1,0 +1,39 @@
+name: Release an SDK Generator
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yaml
+    secrets: inherit
+
+  create-release:
+    name: Release new version
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'release' }}
+    needs: [build]
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-*
+          path: release/
+          merge-multiple: true
+
+      - name: Upload release assets
+        uses: AButler/upload-release-assets@v3.0
+        with:
+          files: "release/*"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          release-id: ${{ github.event.release.id }}
