@@ -1,7 +1,7 @@
 build-jar:
 	clj -T:build uberjar
 
-test:
+run-tests:
 	clj -M:test -m kaocha.runner
 
 PATH_TO_JAR := $(project_dir)/$(jar_path)

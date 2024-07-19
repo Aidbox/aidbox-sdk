@@ -8,7 +8,7 @@
  :aliases
  {:dev {:extra-paths ["dev"]}
 
-  :test {:extra-paths ["tests"]
+  :test {:extra-paths ["test"]
          :exec-fn     kaocha.runner/exec-fn
          :extra-deps  {com.health-samurai/matcho {:mvn/version "0.3.11"}
                        lambdaisland/kaocha       {:mvn/version "1.91.1392"}}}

@@ -5,13 +5,13 @@
 
 (def source' (io/file "resources/schemas"))
 
-(def target (io/file "/tmp/sdk"))
+(def target (io/file "out/"))
 
 (defn vector-to-map [v]
   (->> (map (fn [item] (hash-map (:url item) item)) v)
        (into {})))
 
-(apply merge [{:a 1 :b 2} {:a 3 :c 4}])
+;; (apply merge [{:a 1 :b 2} {:a 3 :c 4}])
 
 (comment
 
