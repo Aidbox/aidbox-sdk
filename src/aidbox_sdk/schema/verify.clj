@@ -44,9 +44,13 @@
    In case of failure will return a vec of failed dependencies."
   [packages {:keys [dependencies]}]
   (reduce (fn [mismatch dependency]
-            (let [[dep-name dep-version]
-                  (-> (subs dependency 1)
-                      (str/split #"#"))
+            (let [dependency
+                  (if (str/starts-with? dependency ":")
+                    (subs dependency 1)
+                    dependency)
+
+                  [dep-name dep-version]
+                  (str/split dependency #"#")
 
                   found
                   (->> packages
