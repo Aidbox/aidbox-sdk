@@ -8,10 +8,11 @@
  :aliases
  {:dev {:extra-paths ["dev"]}
 
-  :test {:extra-paths ["tests"]
+  :test {:extra-paths ["test"]
          :exec-fn     kaocha.runner/exec-fn
-         :extra-deps  {com.health-samurai/matcho {:mvn/version "0.3.11"}
-                       lambdaisland/kaocha       {:mvn/version "1.91.1392"}}}
+         :extra-deps  {com.health-samurai/matcho  {:mvn/version "0.3.11"}
+                       lambdaisland/kaocha        {:mvn/version "1.91.1392"}
+                       nubank/matcher-combinators {:mvn/version "3.9.1"}}}
 
   :build {:deps       {io.github.clojure/tools.build {:mvn/version "0.10.5"}}
           :ns-default build}}}

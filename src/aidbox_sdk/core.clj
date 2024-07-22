@@ -30,6 +30,8 @@
         (println "Error: please provide an output argument"))
 
       :else
-      (generator/build-all!
-       (resource input)
-       (io/as-file output)))))
+      (do
+        (println "Building FHIR SDK...")
+        (generator/build-all!
+         (resource input)
+         (io/as-file output))))))

@@ -1,16 +1,15 @@
 (ns aidbox-sdk.generator
   (:refer-clojure :exclude [namespace])
-  (:require
-   [clojure.data.json :as json]
-   [aidbox-sdk.generator.dotnet.templates :as dotnettpl]
-   [aidbox-sdk.generator.helpers :refer [->pascal-case safe-conj
-                                         uppercase-first-letter vector-to-map]]
-   [clojure.java.io :as io]
-   [clojure.set :as set]
-   [clojure.string :as str]
-   [clojure.walk])
-  (:import
-   [java.util.zip ZipEntry ZipOutputStream]))
+  (:require [aidbox-sdk.generator.dotnet.templates :as dotnettpl]
+            [aidbox-sdk.generator.helpers :refer [->pascal-case safe-conj
+                                                  uppercase-first-letter
+                                                  vector-to-map]]
+            [aidbox-sdk.schema :as schema]
+            [clojure.java.io :as io]
+            [clojure.set :as set]
+            [clojure.string :as str]
+            [clojure.walk])
+  (:import [java.util.zip ZipEntry ZipOutputStream]))
 
 ;;
 ;; FHIR
@@ -646,6 +645,7 @@
   (delete-directory! dir)
   (create-directory! dir))
 
+;; FIXME do we need it?
 (defn zip-dir! [path zip-name]
   (with-open [zip (ZipOutputStream. (io/output-stream zip-name))]
     (doseq [f (file-seq (io/file path)) :when (.isFile f)]
@@ -654,6 +654,7 @@
       (.closeEntry zip)))
   (io/file zip-name))
 
+;; FIXME do we need it?
 (defn copy-files! [src-dir target-dir]
   (doseq [file (remove #(.isDirectory %) (file-seq src-dir))]
     (io/copy file (io/file target-dir (.getName file)))))
@@ -691,61 +692,15 @@
               (conj schema {:backbone-elements
                             (flat-backbones (:backbone-elements schema) [])})))))
 
-(defn get-directory-files [path]
-  (->> path
-       file-seq
-       (remove #(.isDirectory %))))
-
-(defn fetch-packages [source-path]
-  (->> source-path
-       (get-directory-files)
-       (remove #(.isDirectory %))
-       (filter #(str/includes? (.getName %) "hl7.fhir"))))
-
-(defn create-gzip-reader [path]
-  (-> path
-      (io/input-stream)
-      (java.util.zip.GZIPInputStream.)
-      (io/reader)))
-
-(defn parse-ndjson-gz [path]
-  (with-open [rdr (create-gzip-reader path)]
-    (->> rdr
-         line-seq
-         (mapv (fn [line]
-                 (json/read-str line :key-fn keyword))))))
-
-(defn merge-duplicates [schemas]
-  (->> schemas
-       (group-by :url)
-       (map (fn [[_url same-url-schemas]]
-              (apply merge same-url-schemas)))))
-
-(defmulti retrieve-schemas class)
-
-(defmethod retrieve-schemas java.io.File
-  [source]
-  (->> (fetch-packages source)
-       (map parse-ndjson-gz)
-       (flatten)
-       (remove #(nil? (:package-meta %)))
-       (map (fn [schema]
-              (assoc schema :package (get-in schema [:package-meta :name]))))
-       (merge-duplicates)))
-
-(defmethod retrieve-schemas java.net.URL
-  [source] (do "something"))
-
 (defn build-all! [input output]
   (let [search-parameters-dir (io/file output "search")
-        all-schemas           (retrieve-schemas input)
+        all-schemas           (schema/retrieve input)
         ;; search-params-schemas (retrieve-search-params source-dir)
         search-params-schemas all-schemas
         constraints           (->> all-schemas
                                    (filter #(and
                                              (constraint? %)
                                              (not (from-extension? %)))))]
-
     (prepare-target-directory! output)
 
     ;; create base namespace (all FHIR datatypes) file
