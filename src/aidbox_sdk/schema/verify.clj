@@ -1,6 +1,22 @@
 (ns aidbox-sdk.schema.verify
   (:require [clojure.string :as str]))
 
+(def fhir-version-pattern
+  #"^(0|[1-9]\d*)\.(0|[1-9]\d*)(?:\.(0|[1-9]\d*))?(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))?)?$")
+
+(defn versions-match? [v1 v2]
+  (let [->groups (fn [v] (->> v (re-matcher fhir-version-pattern) re-find))
+        ->map    (fn [[_ major minor patch label]]
+                   {:major major, :minor minor, :patch patch, :label label})
+
+        v1-groups (-> v1 ->groups ->map)
+        v2-groups (-> v2 ->groups ->map)]
+
+    (if (and v1-groups v2-groups)
+      (and (= (:major v1-groups) (:major v2-groups))
+           (= (:minor v1-groups) (:minor v2-groups)))
+      false)))
+
 ;; FIXME: is it reliable to use first element of the list?
 ;; ! seems like it's not for original packages (without Aidbox processing).
 (defn extract-meta-from-package
@@ -34,9 +50,15 @@
   "Finds packages which do not support a core package version."
   [version packages]
   (->> packages
-       (mapv    #(assoc % :match-with-core? (-> (hash-set version)
-                                                (some (:fhirVersions %))
-                                                (boolean))))
+       (mapv    (fn [package]
+                  (assoc package :match-with-core?
+                         (if (> (count (:fhirVersions package)) 0)
+                           (->> (:fhirVersions package)
+                                (map #(versions-match? version %))
+                                (some #{true})
+                                (boolean))
+                           true))))
+
        (filterv #(not (:match-with-core? %)))))
 
 (defn- find-failed-dependencies

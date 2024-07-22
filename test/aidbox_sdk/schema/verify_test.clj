@@ -27,7 +27,17 @@
    :dependencies [":hl7.fhir.r4.core#4.0.1"
                   ":hl7.terminology.r4#5.0.0"]})
 
-(deftest extract-meta-from-package
+(deftest versions-match?-test
+  (testing "version match according to semver"
+    (is (sut/versions-match? "1.0.0" "1.0.0"))
+    (is (sut/versions-match? "1.0.1" "1.0"))
+
+    (is (not (sut/versions-match? "1.1" "1.0")))
+    (is (not (sut/versions-match? "2.0" "1.0")))
+
+    (is (not (sut/versions-match? "2" "2.0.0")))))
+
+(deftest extract-meta-from-package-test
   (testing "TODO"
     (is true)))
 
@@ -58,8 +68,21 @@
                                                    us-mcode-package])
                   [(assoc us-mcode-package :match-with-core? false)]))))
 
+  (testing "returns an empty vec when fhirVersions is not specified"
+    (let [us-mcode-package (assoc us-mcode-package :fhirVersions [])]
+      (is (match? (sut/find-core-package-mismatch "4.0.1"
+                                                  [us-core-package
+                                                   us-mcode-package])
+                  []))))
+
   (testing "returns an empty vec when all matched"
     (is (match? (sut/find-core-package-mismatch "4.0.1"
+                                                [us-core-package
+                                                 us-mcode-package])
+                [])))
+
+  (testing "returns an empty vec when major and minor match"
+    (is (match? (sut/find-core-package-mismatch "4.0"
                                                 [us-core-package
                                                  us-mcode-package])
                 []))))
