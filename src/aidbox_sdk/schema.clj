@@ -12,9 +12,8 @@
   (let [packages (->> path
                       file-seq
                       (remove #(.isDirectory %))
-                      ;; FIXME is this really good approach to determine packages?
-                      (filter #(str/includes? (.getName %) "hl7.fhir"))
                       ;; FIXME only gzip, but there is no problem to accept unpacked ndjson
+                      ;; see https://github.com/Aidbox/aidbox-sdk/issues/11
                       (filter #(str/ends-with? (.getName %) ".gz")))]
     (println "✅ Found packages:" (count packages))
     packages))
@@ -25,6 +24,8 @@
       (java.util.zip.GZIPInputStream.)
       (io/reader)))
 
+;; TODO derive some criteria to determine whether it's a package (is it valid?)
+;; see https://github.com/Aidbox/aidbox-sdk/issues/10
 (defn parse-package [path]
   (println "Parsing package:" (str path))
   (with-open [rdr (create-gzip-reader path)]
