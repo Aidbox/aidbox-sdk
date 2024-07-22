@@ -17,6 +17,10 @@
            (= (:minor v1-groups) (:minor v2-groups)))
       false)))
 
+(defn simplify-package-meta [package]
+  (select-keys package [:name :version]))
+
+
 ;; FIXME: is it reliable to use first element of the list?
 ;; ! seems like it's not for original packages (without Aidbox processing).
 (defn extract-meta-from-package
@@ -36,14 +40,30 @@
 
       (> (count cores) 1)
       (throw (ex-info "Found more then one core package"
-                      {:packages (mapv :name cores)}))
+                      {:packages (mapv #(simplify-package-meta %) cores)}))
 
       :else
       core)))
 
 (defn find-extra-packages
-  "Finds extra packages in the list of packages."
+  "Finds extra packages in the list of packages.
+   Throws an exception if there are a few packages with same name."
   [packages]
+  (let [extra      (remove #(= "fhir.core" (:type %)) packages)
+
+        duplicates (reduce (fn [duplicates [k v]]
+                             (if (= (count v) 1)
+                               duplicates
+                               (assoc duplicates k v)))
+                           {} (group-by :name extra))]
+    (cond
+      (> (count duplicates) 0)
+      (throw (ex-info "Found more then one package with same name"
+                      {:packages (keys duplicates)}))
+
+      :else
+      extra))
+
   (remove #(= "fhir.core" (:type %)) packages))
 
 (defn find-core-package-mismatch
@@ -77,7 +97,7 @@
                   found
                   (->> packages
                        (filterv #(= (:name %) dep-name))
-                       (mapv #(select-keys % [:name :version])))]
+                       (mapv #(simplify-package-meta %)))]
 
               (if (and (= (count found) 1)
                        (every? #(= (:version %) dep-version) found))
@@ -104,7 +124,7 @@
   (let [all   (map extract-meta-from-package packages)
         core  (find-core-package   all)
         extra (find-extra-packages all)]
-    (println "✅ Core package found:" (:name core))
+    (println "✅ Core package found:" (simplify-package-meta core))
 
     (println "Checking core version match...")
     (let [core-mismatch (find-core-package-mismatch (:version core) extra)]

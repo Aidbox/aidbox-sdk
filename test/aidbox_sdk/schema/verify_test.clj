@@ -1,5 +1,5 @@
 (ns aidbox-sdk.schema.verify-test
-  (:require [aidbox-sdk.schema.verify :as sut]
+  (:require [aidbox-sdk.schema.verify :as sut :refer [simplify-package-meta]]
             [matcher-combinators.test :refer [match? thrown-match?]]
             [clojure.test :refer [deftest is testing]]))
 
@@ -48,17 +48,33 @@
                        (sut/find-core-package [us-core-package]))))
 
   (testing "throws an exception if more then one core package found"
-    (is (thrown-match? clojure.lang.ExceptionInfo
-                       {:packages [(:name r4-core-package) "hl7.fhir.r5.core"]}
-                       (sut/find-core-package [r4-core-package
-                                               {:name    "hl7.fhir.r5.core"
-                                                :version "5.0.0"
-                                                :type    "fhir.core"}]))))
+    (let [r5-core-package {:name    "hl7.fhir.r5.core"
+                           :version "5.0.0"
+                           :type    "fhir.core"}]
+      (is (thrown-match? clojure.lang.ExceptionInfo
+                         {:packages [(simplify-package-meta r4-core-package)
+                                     (simplify-package-meta r5-core-package)]}
+                         (sut/find-core-package [r4-core-package
+                                                 r5-core-package])))))
 
   (testing "returns a core package iff there is only one"
     (is (match? (sut/find-core-package [r4-core-package
                                         us-core-package])
                 r4-core-package))))
+
+(deftest find-extra-packages-test
+  (testing "throws an exception if there is duplicate"
+    (let [us-core-package' (assoc us-core-package :version "5.1.0")]
+      (is (thrown-match? clojure.lang.ExceptionInfo
+                         {:packages [(:name us-core-package)]}
+                         (sut/find-extra-packages [r4-core-package
+                                                   us-core-package
+                                                   us-core-package'])))))
+
+  (testing "returns extra packages if there is no duplicates"
+    (is (match? (sut/find-extra-packages [r4-core-package
+                                          us-core-package])
+                [us-core-package]))))
 
 (deftest find-core-package-mismatch-test
   (testing "returns a vec with mismatched names"
@@ -88,9 +104,7 @@
                 []))))
 
 (deftest find-dependencies-mismatch-test
-  (let [format-dep-for-check #(select-keys % [:name :version])
-
-        us-vsac-package {:name "us.nlm.vsac", :version "0.3.0"}
+  (let [us-vsac-package {:name "us.nlm.vsac", :version "0.3.0"}
         uv-sdc-package  {:name "hl7.fhir.uv.sdc", :version "2.7.0"}
         term-package    {:name "hl7.terminology.r4", :version "5.0.0"}]
     (testing "returns a vec with mismatched names and version"
@@ -99,13 +113,13 @@
                                                      us-core-package
                                                      us-mcode-package])
                     [(assoc us-core-package :failed-dependencies
-                            [{:required (format-dep-for-check us-vsac-package)
+                            [{:required (simplify-package-meta us-vsac-package)
                               :found    []}
-                             {:required (format-dep-for-check uv-sdc-package)
+                             {:required (simplify-package-meta uv-sdc-package)
                               :found    []}])
 
                      (assoc us-mcode-package :failed-dependencies
-                            [{:required (format-dep-for-check term-package)
+                            [{:required (simplify-package-meta term-package)
                               :found    []}])])))
 
       (testing "when required package is found, but version do not match"
@@ -118,12 +132,12 @@
                                                        uv-sdc-package'
                                                        term-package'])
                       [(assoc us-core-package :failed-dependencies
-                              [{:required (format-dep-for-check uv-sdc-package)
-                                :found    [(format-dep-for-check uv-sdc-package')]}])
+                              [{:required  (simplify-package-meta uv-sdc-package)
+                                :found    [(simplify-package-meta uv-sdc-package')]}])
 
                        (assoc us-mcode-package :failed-dependencies
-                              [{:required (format-dep-for-check term-package)
-                                :found    [(format-dep-for-check term-package')]}])])))))
+                              [{:required  (simplify-package-meta term-package)
+                                :found    [(simplify-package-meta term-package')]}])])))))
 
     (testing "returns an empty vec when no dependencies"
       (is (match? (sut/find-dependencies-mismatch [r4-core-package])

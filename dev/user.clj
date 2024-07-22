@@ -1,7 +1,9 @@
 (ns user
   (:require [aidbox-sdk.generator :as gen]
+            [aidbox-sdk.schema.verify :refer [fhir-version-pattern]]
             [clojure.data]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.string :as str]))
 
 (def source' (io/file "resources/schemas"))
 
@@ -71,5 +73,4 @@
 
   (gen/build-all! source' target)
 
-  ;;
-  )
+  :rcf)
