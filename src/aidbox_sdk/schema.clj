@@ -1,5 +1,6 @@
 (ns aidbox-sdk.schema
-  (:require [clojure.data.json :as json]
+  (:require [aidbox-sdk.schema.verify :as verify]
+            [clojure.data.json :as json]
             [clojure.java.io :as io]
             [clojure.string :as str]))
 
@@ -8,13 +9,15 @@
    NOTE: right now it'll filter out all files which do not contains hl7.fhir
    in their name."
   [path]
-  (->> path
-       file-seq
-       (remove #(.isDirectory %))
-       ;; FIXME is this really good approach to determine packages?
-       (filter #(str/includes? (.getName %) "hl7.fhir"))
-       ;; FIXME only gzip, but there is no problem to accept unpacked ndjson
-       (filter #(str/ends-with? (.getName %) ".gz"))))
+  (let [packages (->> path
+                      file-seq
+                      (remove #(.isDirectory %))
+                      ;; FIXME is this really good approach to determine packages?
+                      (filter #(str/includes? (.getName %) "hl7.fhir"))
+                      ;; FIXME only gzip, but there is no problem to accept unpacked ndjson
+                      (filter #(str/ends-with? (.getName %) ".gz")))]
+    (println "✅ Found packages:" (count packages))
+    packages))
 
 (defn create-gzip-reader [path]
   (-> path
@@ -23,6 +26,7 @@
       (io/reader)))
 
 (defn parse-package [path]
+  (println "Parsing package:" (str path))
   (with-open [rdr (create-gzip-reader path)]
     (->> rdr
          line-seq
@@ -51,8 +55,10 @@
 ;; ! it's possible to create a File instance from url, which may lead to bugs
 (defmethod retrieve java.io.File
   [source]
+  (println "Retrieving packages from: " (str source))
   (->> (get-packages-from-directory source)
-       (map parse-package)
+       (mapv parse-package)
+       (verify/check-compatibility!)
        (flatten)
        (remove-invalid-schemas)
        (prepare-schemas)
