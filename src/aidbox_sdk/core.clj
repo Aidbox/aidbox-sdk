@@ -34,4 +34,6 @@
         (println "Building FHIR SDK...")
         (generator/build-all!
          (resource input)
-         (io/as-file output))))))
+         (io/as-file output))
+        (println "Finished succesfully!")
+        (System/exit 0)))))

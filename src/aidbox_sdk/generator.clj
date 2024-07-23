@@ -1,15 +1,16 @@
 (ns aidbox-sdk.generator
   (:refer-clojure :exclude [namespace])
-  (:require [aidbox-sdk.generator.dotnet.templates :as dotnettpl]
-            [aidbox-sdk.generator.helpers :refer [->pascal-case safe-conj
-                                                  uppercase-first-letter
-                                                  vector-to-map]]
-            [aidbox-sdk.schema :as schema]
-            [clojure.java.io :as io]
-            [clojure.set :as set]
-            [clojure.string :as str]
-            [clojure.walk])
-  (:import [java.util.zip ZipEntry ZipOutputStream]))
+  (:require
+   [aidbox-sdk.generator.dotnet.templates :as dotnettpl]
+   [aidbox-sdk.generator.helpers :refer [->pascal-case
+                                         safe-conj
+                                         uppercase-first-letter
+                                         vector-to-map]]
+   [aidbox-sdk.schema :as schema]
+   [clojure.java.io :as io]
+   [clojure.set :as set]
+   [clojure.string :as str]
+   [clojure.walk]))
 
 ;;
 ;; FHIR
@@ -645,20 +646,6 @@
   (delete-directory! dir)
   (create-directory! dir))
 
-;; FIXME do we need it?
-(defn zip-dir! [path zip-name]
-  (with-open [zip (ZipOutputStream. (io/output-stream zip-name))]
-    (doseq [f (file-seq (io/file path)) :when (.isFile f)]
-      (.putNextEntry zip (ZipEntry. (str/replace-first (.getPath f) path "")))
-      (io/copy f zip)
-      (.closeEntry zip)))
-  (io/file zip-name))
-
-;; FIXME do we need it?
-(defn copy-files! [src-dir target-dir]
-  (doseq [file (remove #(.isDirectory %) (file-seq src-dir))]
-    (io/copy file (io/file target-dir (.getName file)))))
-
 ;;
 ;; main
 ;;
@@ -703,7 +690,9 @@
                                              (not (from-extension? %)))))]
     (prepare-target-directory! output)
 
+    (println "---")
     ;; create base namespace (all FHIR datatypes) file
+    (println "Generating base namespace")
     (->> all-schemas
          (filter base-schema?)
          (prepared-schemas)
@@ -713,6 +702,7 @@
           (io/file output "Base.cs")))
 
     ;; create spezialization files
+    (println "Generating resource classes")
     (doseq [item (->> all-schemas
                       (filter base-schema?)
                       (filter domain-resource?)
@@ -727,6 +717,7 @@
        (generate-resource-namespace item)))
 
     ;; create resource map file
+    (println "Generating resource map")
     (->> all-schemas
          (filter base-schema?)
          (filter domain-resource?)
@@ -751,6 +742,7 @@
        (:class-file-content item)))
 
     ;; create constraints
+    (println "Generating constraints classes")
     (doseq [{:keys [name schema file-content]}
             (->> (apply-constraints
                   constraints
@@ -767,8 +759,11 @@
                                          (assoc schema
                                                 :url name'))})))]
       (save-to-file!
-       (io/file output (package->directory (:package schema)) (str (->pascal-case (url->resource-type name)) ".cs"))
+       (io/file output
+                (package->directory (:package schema))
+                (str (->pascal-case (url->resource-type name)) ".cs"))
        file-content))
 
+    (println "Generating common SDK files")
     (doseq [file dotnettpl/files]
       (spit (io/file output (:name file)) (:content file)))))

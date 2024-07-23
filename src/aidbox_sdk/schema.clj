@@ -1,13 +1,12 @@
 (ns aidbox-sdk.schema
   (:require [aidbox-sdk.schema.verify :as verify]
-            [clojure.data.json :as json]
+            [aidbox-sdk.generator.helpers :refer [rand-int-between parse-json]]
+            [clj-http.client :as http.client]
             [clojure.java.io :as io]
             [clojure.string :as str]))
 
 (defn get-packages-from-directory
-  "Returns all packages in the given directory, including files in subdirectories.
-   NOTE: right now it'll filter out all files which do not contains hl7.fhir
-   in their name."
+  "Returns all packages in the given directory, including files in subdirectories. "
   [path]
   (let [packages (->> path
                       file-seq
@@ -28,11 +27,10 @@
 ;; see https://github.com/Aidbox/aidbox-sdk/issues/10
 (defn parse-package [path]
   (println "Parsing package:" (str path))
-  (with-open [rdr (create-gzip-reader path)]
-    (->> rdr
+  (with-open [reader (create-gzip-reader path)]
+    (->> reader
          line-seq
-         (mapv (fn [line]
-                 (json/read-str line :key-fn keyword))))))
+         (mapv parse-json))))
 
 (defn remove-invalid-schemas [schemas]
   (remove #(nil? (:package-meta %)) schemas))
@@ -47,7 +45,6 @@
   (map #(->> (get-in % [:package-meta :name])
              (assoc  %  :package))
        schemas))
-
 
 (defmulti retrieve class)
 
@@ -65,6 +62,50 @@
        (prepare-schemas)
        (merge-duplicates)))
 
+(defn- next-timeout
+  "Timeout calculation for retrying like in kafka.
+  https://kafka.js.org/docs/retry-detailed"
+  [timeout]
+  (let [factor 0.2
+        multiplier 2]
+    (* (rand-int-between
+        (* timeout (- 1 factor))
+        (* timeout (+ 1 factor)))
+       multiplier)))
+
+(defn- retry [f & {:keys [timeout trials]
+                   :or   {timeout 3000
+                          trials  3}}]
+  (if (zero? (dec trials))
+    (f)
+    (try
+      (f)
+      (catch Throwable _
+        (Thread/sleep timeout)
+        (retry f {:timeout (next-timeout timeout)
+                  :trials  (dec trials)})))))
+
+(defn fetch-n-parse [url]
+  (let [url-string (if (instance? java.net.URL url)
+                     (.toString url)
+                     url)
+        result     (retry #(http.client/get url-string))]
+    (some-> result :body parse-json)))
+
+(defn skip-root-package [packages]
+  (rest packages))
+
 (defmethod retrieve java.net.URL
   [source]
-  (do "something"))
+  (let [extract-link (fn [package] (-> package :href io/as-url))
+        extract-name (fn [package] (str (:name package) "#" (:version package)))
+        fhir-packages (do
+                        (println "Downloading list of dependencies from:" (.toString source))
+                        (-> (fetch-n-parse source)
+                            (skip-root-package)))]
+
+    (->> fhir-packages
+         (pmap (fn [package]
+                 (println "Downloading schemas for:" (extract-name package))
+                 (fetch-n-parse (extract-link package))))
+         (flatten))))
