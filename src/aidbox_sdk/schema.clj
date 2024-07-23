@@ -1,7 +1,7 @@
 (ns aidbox-sdk.schema
   (:require [aidbox-sdk.schema.verify :as verify]
             [aidbox-sdk.generator.helpers :refer [rand-int-between parse-json]]
-            [clj-http.client :as http.client]
+            [clj-http.lite.client :as http.client]
             [clojure.java.io :as io]
             [clojure.string :as str]))
 
