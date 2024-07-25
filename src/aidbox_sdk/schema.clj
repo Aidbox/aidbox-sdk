@@ -46,10 +46,10 @@
              (assoc  %  :package))
        schemas))
 
-(defmulti retrieve :type)
+(defmulti retrieve (fn [resource _] (:type resource)))
 
 (defmethod retrieve :file
-  [{:keys [source]}]
+  [{:keys [source]} opts]
   (println "Retrieving packages from: " (str source))
   (->> (get-packages-from-directory (io/as-file source))
        (mapv parse-package)
@@ -82,24 +82,24 @@
         (retry f {:timeout (next-timeout timeout)
                   :trials  (dec trials)})))))
 
-(defn fetch-n-parse [url]
-  (let [result (retry #(http.client/get url))]
+(defn fetch-n-parse [url opts]
+  (let [result (retry #(http.client/get url {:headers {"Authorization" (str "Basic " (:auth opts))}}))]
     (some-> result :body parse-json)))
 
 (defn skip-root-package [packages]
   (rest packages))
 
 (defmethod retrieve :url
-  [{:keys [source]}]
+  [{:keys [source]} opts]
   (let [extract-link (fn [package] (-> package :href))
         extract-name (fn [package] (str (:name package) "#" (:version package)))
         fhir-packages (do
                         (println "Downloading list of dependencies from:" source)
-                        (-> (fetch-n-parse source)
+                        (-> (fetch-n-parse source opts)
                             (skip-root-package)))]
 
     (->> fhir-packages
          (pmap (fn [package]
                  (println "Downloading schemas for:" (extract-name package))
-                 (fetch-n-parse (extract-link package))))
+                 (fetch-n-parse (extract-link package) opts)))
          (flatten))))

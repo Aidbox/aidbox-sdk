@@ -21,7 +21,6 @@
     {:type :url :source path}
     {:type :file :source path}))
 
-
 (def cli-options
   [["-a" "--auth BASE64_string" "Base64 of username:password"
     :validate [(complement nil?) "auth token is required"]]
@@ -53,14 +52,8 @@
       (do
         (println "Building FHIR SDK...")
         (generator/build-all!
+         options
          (resource input)
          (io/as-file output))
         (println "Finished succesfully!")
         (System/exit 0)))))
-
-(comment
-  (-main "http://localhost:8765/sdk/fhir-packages" "disteee")
-
-  (-main "-h")
-
-  )

@@ -679,9 +679,9 @@
               (conj schema {:backbone-elements
                             (flat-backbones (:backbone-elements schema) [])})))))
 
-(defn build-all! [input output]
+(defn build-all! [ctx input output]
   (let [search-parameters-dir (io/file output "search")
-        all-schemas           (schema/retrieve input)
+        all-schemas           (schema/retrieve input {:auth (:auth ctx)})
         ;; search-params-schemas (retrieve-search-params source-dir)
         search-params-schemas all-schemas
         constraints           (->> all-schemas
