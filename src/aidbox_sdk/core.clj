@@ -6,17 +6,19 @@
 
 (set! *warn-on-reflection* true)
 
-(defn url
+(defn url?
   "Safe version of as-url function"
   [s]
   (try
-    (io/as-url s)
-    (catch java.net.MalformedURLException _ nil)
-    (catch java.net.URISyntaxException _ nil)))
+    (let [_ (io/as-url s)]
+      true)
+    (catch java.net.MalformedURLException _ false)
+    (catch java.net.URISyntaxException _ false)))
 
 (defn resource [path]
-  (or (url path)
-      (io/as-file path)))
+  (if (url? path)
+    {:type :url :source path}
+    {:type :file :source path}))
 
 (defn -main [& args]
   (let [[input output] args]

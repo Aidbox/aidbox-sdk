@@ -688,10 +688,11 @@
                                    (filter #(and
                                              (constraint? %)
                                              (not (from-extension? %)))))]
+
     (prepare-target-directory! output)
 
-    (println "---")
     ;; create base namespace (all FHIR datatypes) file
+    (println "---")
     (println "Generating base namespace")
     (->> all-schemas
          (filter base-schema?)

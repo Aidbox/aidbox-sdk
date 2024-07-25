@@ -46,15 +46,12 @@
              (assoc  %  :package))
        schemas))
 
-(defmulti retrieve class)
+(defmulti retrieve :type)
 
-;; ! According to an example here:
-;; ! https://clojuredocs.org/clojure.java.io/file
-;; ! it's possible to create a File instance from url, which may lead to bugs
-(defmethod retrieve java.io.File
-  [source]
+(defmethod retrieve :file
+  [{:keys [source]}]
   (println "Retrieving packages from: " (str source))
-  (->> (get-packages-from-directory source)
+  (->> (get-packages-from-directory (io/as-file source))
        (mapv parse-package)
        (verify/check-compatibility!)
        (flatten)
@@ -81,26 +78,23 @@
     (try
       (f)
       (catch Throwable _
-        (Thread/sleep timeout)
+        (Thread/sleep ^long timeout)
         (retry f {:timeout (next-timeout timeout)
                   :trials  (dec trials)})))))
 
 (defn fetch-n-parse [url]
-  (let [url-string (if (instance? java.net.URL url)
-                     (.toString url)
-                     url)
-        result     (retry #(http.client/get url-string))]
+  (let [result (retry #(http.client/get url))]
     (some-> result :body parse-json)))
 
 (defn skip-root-package [packages]
   (rest packages))
 
-(defmethod retrieve java.net.URL
-  [source]
-  (let [extract-link (fn [package] (-> package :href io/as-url))
+(defmethod retrieve :url
+  [{:keys [source]}]
+  (let [extract-link (fn [package] (-> package :href))
         extract-name (fn [package] (str (:name package) "#" (:version package)))
         fhir-packages (do
-                        (println "Downloading list of dependencies from:" (.toString source))
+                        (println "Downloading list of dependencies from:" source)
                         (-> (fetch-n-parse source)
                             (skip-root-package)))]
 

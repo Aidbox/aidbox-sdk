@@ -14,6 +14,7 @@ generate_reflect_config:
 COMPILE_OPTS := \
   --no-fallback \
   --features=clj_easy.graal_build_time.InitClojureClasses \
+	--enable-url-protocols=http,https \
   -H:ReflectionConfigurationFiles=$(project_dir)/META/reflect-config.json \
   -H:Name=aidbox-sdk
 compile_native_image: generate_reflect_config
