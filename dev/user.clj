@@ -61,7 +61,6 @@
   (count (gen/apply-constraints mcodes
                                 bases))
 
-  (vec (gen/retrieve-schemas' source'))
   (contains? (->> (gen/retrieve-schemas' source')
                   (filter gen/base-schema?)
                   (gen/prepared-schemas)
@@ -71,6 +70,6 @@
                   (vector-to-map))
              "http://hl7.org/fhir/StructureDefinition/Observation")
 
-  (gen/build-all! source' target)
+  (gen/build-all! (io/as-url "http://localhost:8765/sdk/fhir-packages")  target)
 
   :rcf)

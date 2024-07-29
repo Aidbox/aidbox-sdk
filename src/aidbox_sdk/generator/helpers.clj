@@ -1,5 +1,6 @@
 (ns aidbox-sdk.generator.helpers
   (:require
+   [clojure.data.json :as json]
    [clojure.string :as str]))
 
 (defn words
@@ -24,3 +25,9 @@
        (into {})))
 
 (defn safe-conj [a b] (conj a (or b {})))
+
+(defn rand-int-between [min max]
+  (int (+ min (Math/floor (rand (- max min))))))
+
+(defn parse-json [s]
+  (json/read-str s :key-fn keyword))
