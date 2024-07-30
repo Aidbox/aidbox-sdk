@@ -19,5 +19,6 @@ checkouts/
 .clj-kondo/
 .schemas/
 
+.env
 META/*
 !META/.gitkeep
