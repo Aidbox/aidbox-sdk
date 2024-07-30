@@ -20,7 +20,6 @@
 (defn simplify-package-meta [package]
   (select-keys package [:name :version]))
 
-
 ;; FIXME: is it reliable to use first element of the list?
 ;; ! seems like it's not for original packages (without Aidbox processing).
 (defn extract-meta-from-package
@@ -28,11 +27,16 @@
   [package]
   (first package))
 
+(defn core-package? [package]
+  (or
+   (= "Core" (:type package))
+   (= "fhir.core" (:type package))))
+
 (defn find-core-package
   "Finds core package in the list of packages.
    Throws an exception if there are more then one core package."
   [packages]
-  (let [cores (filter #(= "fhir.core" (:type %)) packages)
+  (let [cores (filter core-package? packages)
         core  (first cores)]
     (cond
       (= (count cores) 0)
@@ -49,7 +53,7 @@
   "Finds extra packages in the list of packages.
    Throws an exception if there are a few packages with same name."
   [packages]
-  (let [extra      (remove #(= "fhir.core" (:type %)) packages)
+  (let [extra      (remove core-package? packages)
 
         duplicates (reduce (fn [duplicates [k v]]
                              (if (= (count v) 1)
@@ -64,7 +68,7 @@
       :else
       extra))
 
-  (remove #(= "fhir.core" (:type %)) packages))
+  (remove core-package? packages))
 
 (defn find-core-package-mismatch
   "Finds packages which do not support a core package version."
