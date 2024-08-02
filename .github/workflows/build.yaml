@@ -80,7 +80,7 @@ jobs:
 
       - name: Compile to native binary
         run: |
-          make compile_native_image project_dir=${{ github.workspace }} jar_path=aidbox-sdk.jar image_name=aidbox-sdk-${{ matrix.os }}
+          make compile-native-image project_dir=${{ github.workspace }} jar_path=aidbox-sdk.jar image_name=aidbox-sdk-${{ matrix.os }}
           chmod +x aidbox-sdk-${{ matrix.os }}
 
       - name: Upload amd64 binary artifact
