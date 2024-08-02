@@ -19,6 +19,9 @@
 (defn primitive-type? [schema]
   (= (:kind schema) "primitive-type"))
 
+(defn resource? [schema]
+  (= (:kind schema) "resource"))
+
 (defn backbone-element? [schema]
   (= (:base schema) "http://hl7.org/fhir/StructureDefinition/BackboneElement"))
 
@@ -32,14 +35,14 @@
       (= (:url schema) "http://hl7.org/fhir/StructureDefinition/Element")
       (= (:derivation schema) "specialization")))
 
+(defn structure-definition? [schema]
+  (= (:resourceType schema) "StructureDefinition"))
+
 (defn search-parameter? [schema]
   (= (:resourceType schema) "SearchParameter"))
 
 (defn search-parameter-from-extension? [search-parameter]
   (str/includes? (:id search-parameter) "-extensions-"))
-
-(defn resource? [schema]
-  (= (:kind schema) "resource"))
 
 (defn domain-resource?
   "Is derived from DomainResource?"
@@ -354,7 +357,7 @@
          (when-not (str/blank? class-properties) "\n")
          class-properties
          (when (and inner-classes
-                    (not (empty? inner-classes)))
+                    (seq inner-classes))
            "\n\n")
          (str/join "\n\n" inner-classes)
          "\n}")))
@@ -425,7 +428,7 @@
      :classes resource-class)))
 
 (defn generate-constraint-namespace [schema]
-  (let [backbone-elements-classes (->> (schema :backbone-elements)
+  (let [backbone-elements-classes (->> (:backbone-elements schema)
                                        (map #(assoc % :base "BackboneElement"))
                                        (mapv generate-class-from-schema))
         resource-class (generate-class-from-schema schema backbone-elements-classes)]
@@ -502,10 +505,12 @@
   (filter (fn [field-schema]
             (not (some #(= % (:name field-schema)) excluded))) schema))
 
-(defn apply-required [required schema]
-  (map (fn [field-schema]
-         (if (some #(= % (:name field-schema)) required)
-           (conj field-schema (hash-map :required true)) field-schema)) schema))
+(defn apply-required [required elements]
+  (->> elements
+       (map (fn [element]
+              (if (contains? (set required) (:name element))
+                (assoc element :required true)
+                element)))))
 
 (defn apply-choices [choises schema]
   (->> (map (fn [[key, item]] (set/difference (set (:choices (first (filter #(= (:name %) (name key)) schema)))) (set (:choices item)))) choises)
@@ -553,8 +558,10 @@
        (apply-patterns (:url constraint) (filter #(contains? (last %) :pattern) (:elements constraint)))))
 
 (defn apply-constraints [constraint-schemas base-schemas]
-  (loop [result {}]
-    (if (= (count constraint-schemas) (count result))
+  (loop [result {}
+         i      0]
+    (if (or (= (count constraint-schemas) (count result))
+            (> i (count constraint-schemas)))
       result
       (recur (reduce (fn [acc constraint-schema]
                        (cond
@@ -578,7 +585,8 @@
                          :else acc))
 
                      result
-                     constraint-schemas)))))
+                     constraint-schemas)
+             (inc i)))))
 
 ;;
 ;; Search Parameters
@@ -622,6 +630,7 @@
                 (map #(hash-map :value "string" :name %) fields)
                 (when base-resource-type
                   (str base-resource-type "SearchParameters"))))}))
+
 ;;
 ;; I/O Helpers
 ;;
@@ -679,21 +688,45 @@
               (conj schema {:backbone-elements
                             (flat-backbones (:backbone-elements schema) [])})))))
 
-(defn build-all! [ctx input output]
-  (let [search-parameters-dir (io/file output "search")
-        all-schemas           (schema/retrieve input {:auth (:auth ctx)})
-        ;; search-params-schemas (retrieve-search-params source-dir)
-        search-params-schemas all-schemas
+(defn generate-constraints [schemas]
+  (let [base-schemas (->> schemas
+                          (prepared-schemas)
+                          (map (fn [schema]
+                                 (conj schema {:backbone-elements
+                                               (flat-backbones (:backbone-elements schema) [])})))
+                          (vector-to-map))
+        constraints (filter #(and
+                              (constraint? %)
+                              (not (from-extension? %)))
+                            schemas)]
+    (->> (apply-constraints
+          constraints
+          base-schemas)
+         (mapv (fn [[name' schema]]
+                 {:name name'
+                  :schema schema
+                  :file-content (generate-constraint-namespace
+                                 (assoc schema
+                                        :url name'))})))))
+
+(defn build-all! [& {:keys [auth input output]}]
+  (let [output                (io/file output)
+        search-parameters-dir (io/file output "search")
+        all-schemas           (schema/retrieve
+                               (schema/resource input)
+                               {:auth auth})
+        search-params-schemas (filter search-parameter? all-schemas)
         constraints           (->> all-schemas
                                    (filter #(and
                                              (constraint? %)
                                              (not (from-extension? %)))))]
 
+
     (prepare-target-directory! output)
 
     ;; create base namespace (all FHIR datatypes) file
     (println "---")
-    (println "Generating base namespace")
+    (println "Generating Datatypes")
     (->> all-schemas
          (filter base-schema?)
          (prepared-schemas)

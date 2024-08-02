@@ -46,10 +46,25 @@
              (assoc  %  :package))
        schemas))
 
-(defmulti retrieve (fn [resource _] (:type resource)))
+(defn- url?
+  "Safe version of as-url function"
+  [s]
+  (try
+    (let [_ (io/as-url s)]
+      true)
+    (catch java.net.MalformedURLException _ false)
+    (catch java.net.URISyntaxException _ false)))
+
+(defn resource [path]
+  (if (url? path)
+    {:type :url :source path}
+    {:type :file :source path}))
+
+
+(defmulti retrieve (fn [& args] (:type (first args))))
 
 (defmethod retrieve :file
-  [{:keys [source]} opts]
+  [{:keys [source]} _]
   (println "Retrieving packages from: " (str source))
   (->> (get-packages-from-directory (io/as-file source))
        (mapv parse-package)
