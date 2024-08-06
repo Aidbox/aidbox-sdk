@@ -14,10 +14,11 @@
 (def structure-definition? (resource-type-pred "StructureDefinition"))
 (def search-parameter?     (resource-type-pred "SearchParameter"))
 (def value-set?            (resource-type-pred "ValueSet"))
+(def fhir-schema?          (resource-type-pred "FHIRSchema"))
 
 ;; Derivations
 (defn constraint?     [schema] (= (:derivation schema) "constraint"))
-(defn specialization? [schema] (= (:derivation schema) "constraint"))
+(defn specialization? [schema] (= (:derivation schema) "specialization"))
 
 ;; Misc
 (defn extension? [schema] (= (:type schema) "Extension"))

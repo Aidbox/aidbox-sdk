@@ -3,7 +3,7 @@
              [matcho.core :as matcho]
              [aidbox-sdk.generator :as sut]))
 
-(deftest apply-constraints-test
+(deftest test-apply-constraints
   (testing "base schema is a specialization schema"
 
     (def constraints [{:package "hl7.fhir.r4.core",

@@ -6,6 +6,7 @@
                                          safe-conj
                                          uppercase-first-letter
                                          vector-to-map]]
+   [aidbox-sdk.fhir :as fhir]
    [aidbox-sdk.schema :as schema]
    [clojure.java.io :as io]
    [clojure.set :as set]
@@ -558,35 +559,33 @@
        (apply-patterns (:url constraint) (filter #(contains? (last %) :pattern) (:elements constraint)))))
 
 (defn apply-constraints [constraint-schemas base-schemas]
-  (loop [result {}
-         i      0]
-    (if (or (= (count constraint-schemas) (count result))
-            (> i (count constraint-schemas)))
+  (loop [result {}]
+    (if (= (count constraint-schemas) (count result))
       result
-      (recur (reduce (fn [acc constraint-schema]
-                       (cond
-                         (contains? result (:url constraint-schema))
-                         acc
+      (recur
+       (reduce (fn [acc constraint-schema]
+                 (cond
+                   (contains? result (:url constraint-schema))
+                   acc
 
-                         (contains? result (:base constraint-schema))
-                         (assoc acc
-                                (:url constraint-schema)
-                                (assoc (apply-single-constraint constraint-schema
-                                                                (get result (:base constraint-schema)))
-                                       :package (:package constraint-schema)))
+                   (contains? result (:base constraint-schema))
+                   (assoc acc
+                          (:url constraint-schema)
+                          (assoc (apply-single-constraint constraint-schema
+                                                          (get result (:base constraint-schema)))
+                                 :package (:package constraint-schema)))
 
-                         (contains? base-schemas (:base constraint-schema))
-                         (assoc acc
-                                (:url constraint-schema)
-                                (assoc (apply-single-constraint constraint-schema
-                                                                (get base-schemas (:base constraint-schema)))
-                                       :package (:package constraint-schema)))
+                   (contains? base-schemas (:base constraint-schema))
+                   (assoc acc
+                          (:url constraint-schema)
+                          (assoc (apply-single-constraint constraint-schema
+                                                          (get base-schemas (:base constraint-schema)))
+                                 :package (:package constraint-schema)))
 
-                         :else acc))
+                   :else acc))
 
-                     result
-                     constraint-schemas)
-             (inc i)))))
+               result
+               constraint-schemas)))))
 
 ;;
 ;; Search Parameters
@@ -688,26 +687,6 @@
               (conj schema {:backbone-elements
                             (flat-backbones (:backbone-elements schema) [])})))))
 
-(defn generate-constraints [schemas]
-  (let [base-schemas (->> schemas
-                          (prepared-schemas)
-                          (map (fn [schema]
-                                 (conj schema {:backbone-elements
-                                               (flat-backbones (:backbone-elements schema) [])})))
-                          (vector-to-map))
-        constraints (filter #(and
-                              (constraint? %)
-                              (not (from-extension? %)))
-                            schemas)]
-    (->> (apply-constraints
-          constraints
-          base-schemas)
-         (mapv (fn [[name' schema]]
-                 {:name name'
-                  :schema schema
-                  :file-content (generate-constraint-namespace
-                                 (assoc schema
-                                        :url name'))})))))
 
 (defn build-all! [& {:keys [auth input output]}]
   (let [output                (io/file output)
@@ -720,7 +699,6 @@
                                    (filter #(and
                                              (constraint? %)
                                              (not (from-extension? %)))))]
-
 
     (prepare-target-directory! output)
 
@@ -779,7 +757,7 @@
     (println "Generating constraints classes")
     (doseq [{:keys [name schema file-content]}
             (->> (apply-constraints
-                  constraints
+                  (remove fhir/structure-definition? constraints)
                   (->> all-schemas
                        (prepared-schemas)
                        (map (fn [schema]
