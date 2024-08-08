@@ -6,16 +6,27 @@
 
   (testing "validate-args"
     (is (= (sut/validate-args [])
-           ["Please provide input argument"
-            "Please provide output argument"]))
+
+           ["Please provide one of the supported commands: generate"
+            "Please provide one of the supported target languages: dotnet, java, typescript, python"
+            "Please provide input argument"]))
 
     (is (= (sut/validate-args ["resource/schemas"])
-           ["Please provide output argument"]))
 
-    (is (= (sut/validate-args ["resource/schemas" "distee"])
-           []))
+           ["Please provide one of the supported commands: generate"
+            "Please provide one of the supported target languages: dotnet, java, typescript, python"
+            "Please provide input argument"]))
 
-    (is (= (sut/validate-args ["resource/schemas" "distee" "-h"])
+    (is (= (sut/validate-args ["generate"])
+
+           ["Please provide one of the supported target languages: dotnet, java, typescript, python"
+            "Please provide input argument"]))
+
+    (is (= (sut/validate-args ["generate" "dotnet"])
+
+           ["Please provide input argument"]))
+
+    (is (= (sut/validate-args ["generate" "dotnet" "http://localhost:8765/api/sdk/fhir-packages"])
            []))
 
     #_(is (= (sut/validate-args ["resource/schemas" "-h"])
