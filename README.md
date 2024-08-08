@@ -21,7 +21,9 @@ Download latest version from [the release page](https://github.com/Aidbox/aidbox
 
 ### Usage
 
-To generate an SDK, use the following command:
+You have two options for generating an SDK: using the precompiled binary files or the Java version with the JAR file.
+
+To generate an SDK with the binary files version, use the following command:
 
 ```bash
 aidbox-sdk generate <target-language> <input-source> --auth-token <aidbox-client-token>
@@ -30,7 +32,9 @@ aidbox-sdk generate <target-language> <input-source> --auth-token <aidbox-client
 Example:
 
 ```bash
-aidbox-sdk generate dotnet http://localhost:8765/api/sdk/fhir-packages ---auth-token YmFzaWM6c2VjcmV0
+aidbox-sdk generate dotnet http://localhost:8765/api/sdk/fhir-packages \
+--auth-token YmFzaWM6c2VjcmV0 \
+--output-dir aidbox-sdk-dotnet
 ```
 
 
