@@ -1,75 +1,73 @@
 (ns user
-  (:require [aidbox-sdk.generator :as gen]
-            [aidbox-sdk.schema.verify :refer [fhir-version-pattern]]
-            [clojure.data]
-            [clojure.java.io :as io]
-            [clojure.string :as str]))
+  (:require
+   [aidbox-sdk.fhir :as fhir]
+   [aidbox-sdk.generator :as gen]
+   [aidbox-sdk.schema :as import]
+   [aidbox-sdk.cli :as cli]
+   [clojure.data]
+   [clojure.java.io :as io]
+   [clojure.string :as str]))
 
-(def source' (io/file "resources/schemas"))
+(def r4-schemas  (import/retrieve (import/resource "resources/schemas") {}))
+(def r4b-schemas (import/retrieve (import/resource "resources/r4b-schemas") {}))
+(def r5-schemas  (import/retrieve (import/resource "resources/r5-schemas") {}))
+
+(def aidbox-schemas (import/retrieve
+                     (import/resource "http://localhost:8765/api/sdk/fhir-packages")
+                     {:auth "YmFzaWM6c2VjcmV0"}))
 
 (def target (io/file "out/"))
 
-(defn vector-to-map [v]
-  (->> (map (fn [item] (hash-map (:url item) item)) v)
-       (into {})))
-
-;; (apply merge [{:a 1 :b 2} {:a 3 :c 4}])
+(defn kinds          [schemas] (distinct (map :kind schemas)))
+(defn resource-types [schemas] (distinct (map :resourceType schemas)))
+(defn packages       [schemas] (distinct (map :package schemas)))
 
 (comment
 
-  (io/file "../resources/schemas")
 
-  (->> (gen/retrieve-schemas' source')
-       (filter #(= "hl7.fhir.us.mcode" (:package %))))
+  (kinds r4-schemas)
+  ;; => (nil "complex-type" "resource" "primitive-type" "logical")
 
-  (->> (gen/retrieve-schemas' source')
-       (filter #(= "hl7.fhir.us.mcode" (:name %))))
+  (resource-types r4b-schemas)
+  ;; => ("SearchParameter" "ValueSet" "StructureDefinition" "CompartmentDefinition")
 
-  (->> (gen/retrieve-schemas' source')
-       (filter #(= (:type %) "Patient"))
-       (gen/prepared-schemas)
-       (map (fn [schema]
-              (conj schema {:backbone-elements
-                            (gen/flat-backbones (:backbone-elements schema) [])})))
-       (vector-to-map))
+  (resource-types r5-schemas)
+  ;; => ("SearchParameter" "ValueSet" "StructureDefinition" "CompartmentDefinition")
 
-  (->> (gen/retrieve-schemas' source')
-       (filter #(= (:base %) "http://hl7.org/fhir/StructureDefinition/Patient")))
+  (resource-types r4-schemas)
+  ;; => ("ValueSet" "SearchParameter" nil "StructureDefinition")
 
-  (->> (gen/retrieve-schemas' source')
-       (filter gen/base-schema?)
-       (gen/prepared-schemas)
-       (map (fn [schema]
-              (conj schema {:backbone-elements
-                            (gen/flat-backbones (:backbone-elements schema) [])})))
-       (vector-to-map))
+  (resource-types aidbox-schemas)
+  ;; => ("FHIRSchema"
+  ;;     "StructureDefinition")
 
-  (def mcodes (->> (gen/retrieve-schemas' source')
-                   (filterv #(= "constraint" (:derivation %)))
-                   (vec)))
+  (->> aidbox-schemas
+       (filter #(= "Patient" (:id %))))
 
-  (def bases (->> (gen/retrieve-schemas' source')
-                  #_(filter gen/base-schema?)
-                  (gen/prepared-schemas)
-                  (map (fn [schema]
-                         (conj schema {:backbone-elements
-                                       (gen/flat-backbones (:backbone-elements schema) [])})))
-                  (vector-to-map)))
+  (->> aidbox-schemas
+       (filter #(= "Patient" (:id %))))
 
-  (get bases "http://hl7.org/fhir/StructureDefinition/Extension")
+  (->> r4-schemas
+       (filter #(= "Patient" (:id %))))
 
-  (count (gen/apply-constraints mcodes
-                                bases))
+  (->> r4-schemas
+       (filter #(= nil (:resourceType %)))
+       (filter fhir/constraint?))
 
-  (contains? (->> (gen/retrieve-schemas' source')
-                  (filter gen/base-schema?)
-                  (gen/prepared-schemas)
-                  (map (fn [schema]
-                         (conj schema {:backbone-elements
-                                       (gen/flat-backbones (:backbone-elements schema) [])})))
-                  (vector-to-map))
-             "http://hl7.org/fhir/StructureDefinition/Observation")
+  (gen/build-all!
+   :input "resources/schemas"
+   :target-language "dotnet"
+   :output "dist")
 
-  (gen/build-all! (io/as-url "http://localhost:8765/sdk/fhir-packages")  target)
+  (gen/build-all!
+   :auth "YmFzaWM6c2VjcmV0"
+   :target-language "dotnet"
+   :input "http://localhost:8765/api/sdk/fhir-packages"
+   :output "dist1")
+
+
+  (cli/app {:exit (fn [s])} ["-h"])
+
+  (cli/parse-args ["generate" "dotnet" "-h"])
 
   :rcf)
