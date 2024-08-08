@@ -671,10 +671,10 @@
 (defn resolve-reference [schemas]
   (clojure.walk/postwalk
    (fn [x]
-     (if-let [ref' (:elementReference x)]
+     (if-let [reference (:elementReference x)]
        (-> x
            (dissoc :elementReference)
-           (merge (find-element-by-reference schemas ref')))
+           (merge (find-element-by-reference schemas reference)))
        x))
    schemas))
 
@@ -687,8 +687,9 @@
               (conj schema {:backbone-elements
                             (flat-backbones (:backbone-elements schema) [])})))))
 
+(defmulti build-all! (fn [& {:keys [target-language]}] target-language))
 
-(defn build-all! [& {:keys [auth input output]}]
+(defmethod build-all! "dotnet" [& {:keys [auth input output]}]
   (let [output                (io/file output)
         search-parameters-dir (io/file output "search")
         all-schemas           (schema/retrieve
@@ -760,9 +761,7 @@
                   (remove fhir/structure-definition? constraints)
                   (->> all-schemas
                        (prepared-schemas)
-                       (map (fn [schema]
-                              (conj schema {:backbone-elements
-                                            (flat-backbones (:backbone-elements schema) [])})))
+                       (map #(assoc % :backbone-elements (flat-backbones (:backbone-elements %) [])))
                        (vector-to-map)))
                  (mapv (fn [[name' schema]]
                          {:name name'
@@ -779,3 +778,6 @@
     (println "Generating common SDK files")
     (doseq [file dotnettpl/files]
       (spit (io/file output (:name file)) (:content file)))))
+
+(defmethod build-all! :default [_]
+  (println "SDK generation for this language is not implemented yet"))

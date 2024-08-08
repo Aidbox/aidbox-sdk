@@ -1,17 +1,32 @@
 (ns aidbox-sdk.cli
   (:require
    [clojure.tools.cli :as cli]
+   [clojure.string :as str]
    [aidbox-sdk.generator :as generator]))
 
 (def cli-options
-  [["-a" "--auth BASE64_string" "Base64 of username:password"
+  [["-a" "--auth-token BASE64_string" "Base64 of username:password"
     :validate [(complement nil?) "auth token is required"]]
+   ["-o" "--output-dir Output directory" "Output directory"
+    :default "out"]
    ["-h" "--help"]])
 
-(defn validate-args [[input output]]
-  (cond-> []
-    (nil? input)  (conj "Please provide input argument")
-    (nil? output) (conj "Please provide output argument")))
+(def supported-commands #{"generate"})
+(def supported-languages #{"dotnet" "java" "typescript" "python"})
+
+(defn validate-args [args]
+  (let [[command target-language input] args]
+    (cond-> []
+      (not= "generate" command)
+      (conj (str "Please provide one of the supported commands: "
+                 (str/join ", " supported-commands)))
+
+      (not (contains? supported-languages target-language))
+      (conj (str "Please provide one of the supported target languages: "
+                 (str/join ", " supported-languages)))
+
+      (nil? input)
+      (conj "Please provide input argument"))))
 
 (defn print-errors [errors]
   (binding [*out* *err*]
@@ -22,38 +37,44 @@
   (println "Generate Aidbox SDK from FHIR schemas")
   (println)
   (println "USAGE")
-  (println "aidbox-sdk <input-source> <output-dir> [options]")
+  (println "aidbox-sdk generate <target-language> <input-source> [options]")
   (println)
   (println "OPTIONS")
   (println summary))
 
-(defn build [options arguments]
-  (let [[input output] arguments]
-    (println "Building FHIR SDK...")
-    (generator/build-all! :auth  (:auth options)
-                          :input input
-                          :output output)
-    (println "Finished succesfully!")))
+(defn generate [target-language input options]
+  (println "Building FHIR SDK...")
+  (generator/build-all! :input            input
+                        :target-language  target-language
+                        :auth             (:auth-token options)
+                        :output           (:output-dir options))
+  (println "Finished succesfully!"))
 
 (defn app [{:keys [exit]} args]
   (let [{:keys [options arguments summary errors]} (cli/parse-opts args cli-options)
-        errors (into errors
-                     (validate-args args))]
+        errors (into errors (validate-args args))
+        [command target-language input] arguments]
     (cond
       (:help options)
       (do (help summary)
           (exit 0))
 
-      (seq errors)
+      (and
+       (seq arguments)
+       (seq errors))
       (do
         (print-errors errors)
         (exit 1))
 
-      :else
+      (= command "generate")
       (try
-        (build options arguments)
+        (generate target-language input options)
         (exit 0)
 
         (catch Throwable e
-          (print-errors [e])
-          (exit 1))))))
+          (print-errors e)
+          (exit 1)))
+
+      :else
+      (do (help summary)
+          (exit 0)))))
