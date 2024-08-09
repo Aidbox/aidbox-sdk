@@ -758,8 +758,8 @@
     (println "Generating constraints classes")
     (doseq [{:keys [name schema file-content]}
             (->> (apply-constraints
-                  (remove fhir/structure-definition? constraints)
-                  (->> all-schemas
+                  (filter fhir/fhir-schema? constraints)
+                  (->> (filter fhir/fhir-schema? all-schemas)
                        (prepared-schemas)
                        (map #(assoc % :backbone-elements (flat-backbones (:backbone-elements %) [])))
                        (vector-to-map)))
