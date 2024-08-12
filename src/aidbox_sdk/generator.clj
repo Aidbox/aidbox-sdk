@@ -6,6 +6,7 @@
                                          safe-conj
                                          uppercase-first-letter
                                          vector-to-map]]
+   [aidbox-sdk.converter :as converter]
    [aidbox-sdk.fhir :as fhir]
    [aidbox-sdk.schema :as schema]
    [clojure.java.io :as io]
@@ -17,14 +18,8 @@
 ;; FHIR
 ;;
 
-(defn primitive-type? [schema]
-  (= (:kind schema) "primitive-type"))
-
 (defn resource? [schema]
   (= (:kind schema) "resource"))
-
-(defn backbone-element? [schema]
-  (= (:base schema) "http://hl7.org/fhir/StructureDefinition/BackboneElement"))
 
 (defn datatype-schema? [definition]
   (not= (:base definition)
@@ -35,9 +30,6 @@
       (= (:url schema) "http://hl7.org/fhir/StructureDefinition/Resource")
       (= (:url schema) "http://hl7.org/fhir/StructureDefinition/Element")
       (= (:derivation schema) "specialization")))
-
-(defn structure-definition? [schema]
-  (= (:resourceType schema) "StructureDefinition"))
 
 (defn search-parameter? [schema]
   (= (:resourceType schema) "SearchParameter"))
@@ -56,134 +48,12 @@
 (defn from-extension? [schema]
   (= (:type schema) "Extension"))
 
-(def primitives #{"dateTime" "xhtml" "Distance" "time" "date" "string" "uuid" "oid" "id" "Dosage" "Duration" "instant" "Count" "decimal" "code" "base64Binary" "unsignedInt" "url" "markdown" "uri" "positiveInt"  "canonical" "Age" "Timing"})
-
 ;;
 ;; Generator
 ;;
-(defn escape-keyword [word]
-  (if (contains? #{"class", "from", "assert", "global", "for", "import"} word)
-    (str word "_")
-    word))
 
 (defn url->resource-type [reference]
   (last (str/split (str reference) #"/")))
-
-(defn get-type [name type]
-  (cond
-    (= type "Expression")       "Base.ResourceExpression"
-    (= type "Reference")        "Base.ResourceReference"
-    (= type "BackboneElement")  (str "" (uppercase-first-letter name))
-    (= type "boolean")          "bool"
-    (= type "integer")          "int"
-    (= type "unsignedInt")      "uint"
-    (= type "")                 "string"
-    (.contains primitives type) "string"
-    :else (if type (str "Base." type) "string")))
-
-(defn derive-basic-type [name element]
-  (get-type name (url->resource-type (:type element))))
-
-(defn transform-element [name element required]
-  (->> (derive-basic-type name element)
-       #_((if (:array element) wrap-vector str))
-       #_((if (and (not required) (not (:array element))) wrap-optional str))
-       #_((if (and (not required) (not (:array element))) append-default-none str))
-       #_((if (and (not required) (:array element)) append-default-vector str))))
-
-(defn collect-types [parent-name required [k v]]
-  (if (contains? v :choices)
-    {:name    (escape-keyword (name k))
-     :choices (:choices v)}
-    {:name     (escape-keyword (name k))
-     :base     parent-name
-     :array    (boolean (:array v))
-     :required (.contains required (name k))
-     :value    (transform-element
-                (str (url->resource-type parent-name) "_" (uppercase-first-letter (name k))) v (.contains required (name k)))}))
-
-(defn resolve-backbone-elements [[k, v]]
-  (if (= (url->resource-type (:type v)) "BackboneElement") (vector k, v) (vector)))
-
-(defn get-typings-and-imports [parent-name required data]
-  (reduce (fn [acc item]
-            {:elements (conj (:elements acc)
-                             (collect-types parent-name required item))
-             :backbone-elements (conj (:backbone-elements acc) (resolve-backbone-elements item))
-             :name parent-name})
-          {:elements [] :backbone-elements []}
-          data))
-
-(defn compile-backbone [parent-name property-name schema]
-  (let [name (str parent-name "_" (->pascal-case (name property-name)))
-        data (get-typings-and-imports
-              name
-              (or (:required schema) [])
-              (seq (:elements schema)))
-        backbone-elements (remove empty? (:backbone-elements data))]
-    (conj data
-          {:backbone-elements
-           (if (empty? backbone-elements)
-             []
-             (map (fn [[k, v]] (compile-backbone name k v)) backbone-elements))})))
-
-(defn clear-backbone-elements [resource-type schema]
-  (->> (:backbone-elements schema)
-       (remove empty?)
-       (map (fn [[k v]] (compile-backbone resource-type k v)))
-       (hash-map :backbone-elements)
-       (conj schema)))
-
-(defn compile-elements [schemas]
-  (for [schema schemas]
-    (->> (get-typings-and-imports
-          (:type schema)
-          (or (:required schema) [])
-          (seq (:elements schema)))
-         (clear-backbone-elements
-          (url->resource-type (:url schema)))
-         (safe-conj
-          (hash-map :base (get schema :base)
-                    :package (get schema :package)
-                    :url (get schema :url)
-                    :type (get schema :type)
-                    :derivation (get schema :derivation))))))
-
-;;;;
-
-(defn concat-elements-circulary [schemas parent-name elements]
-  (if (not (nil? parent-name))
-    (->> (concat elements (get-in schemas [parent-name :elements] []))
-         (concat-elements-circulary schemas (get-in schemas [parent-name :base])))
-    elements))
-
-(defn concat-backbones-circulary [schemas parent-name backbones]
-  (if (not (nil? parent-name))
-    (->> (concat backbones (get-in schemas [parent-name :backbone-elements] []))
-         (concat-backbones-circulary schemas (get-in schemas [parent-name :base])))
-    backbones))
-
-(defn mix-parents-elements-circular [schemas schema]
-  (if (:base schema)
-    (->> (concat-elements-circulary schemas (:base schema) [])
-         (concat (:elements schema))
-         (hash-map :elements)
-         (conj schema))
-    schema))
-
-(defn mix-parents-backbones-circular [schemas definition]
-  (if (not (nil? (get definition :base nil)))
-    (->> (concat-backbones-circulary schemas (get definition :base) [])
-         (concat (:backbone-elements definition))
-         (hash-map :backbone-elements)
-         (conj definition))
-    definition))
-
-(defn combine-elements [schemas]
-  (for [schema schemas]
-    (->> schema
-         (mix-parents-elements-circular schemas)
-         (mix-parents-backbones-circular schemas))))
 
 (defn flat-backbones [backbone-elements accumulator]
   (reduce (fn [acc item]
@@ -658,35 +528,6 @@
 ;; main
 ;;
 
-(defn find-element-by-reference [schemas reference]
-  (let [[schema & path] reference
-        element (get-in
-                 (->> schemas
-                      (filter (fn [s] (= (:url s) schema)))
-                      (first))
-                 (map keyword path))]
-
-    (or element {})))
-
-(defn resolve-reference [schemas]
-  (clojure.walk/postwalk
-   (fn [x]
-     (if-let [reference (:elementReference x)]
-       (-> x
-           (dissoc :elementReference)
-           (merge (find-element-by-reference schemas reference)))
-       x))
-   schemas))
-
-(defn prepared-schemas [schemas]
-  (->> schemas
-       (resolve-reference)
-       (compile-elements)
-       (combine-elements)
-       (map (fn [schema]
-              (conj schema {:backbone-elements
-                            (flat-backbones (:backbone-elements schema) [])})))))
-
 (defmulti build-all! (fn [& {:keys [target-language]}] target-language))
 
 (defmethod build-all! "dotnet" [& {:keys [auth input output]}]
@@ -708,7 +549,7 @@
     (println "Generating Datatypes")
     (->> all-schemas
          (filter base-schema?)
-         (prepared-schemas)
+         (converter/convert)
          (sort-by :base)
          (generate-base-namespace)
          (save-to-file!
@@ -719,7 +560,7 @@
     (doseq [item (->> all-schemas
                       (filter base-schema?)
                       (filter domain-resource?)
-                      (prepared-schemas)
+                      (converter/convert)
                       ((fn [schemas]
                          (->> schemas
                               (map (fn [schema]
@@ -737,7 +578,7 @@
          (into constraints)
          (remove (fn [schema]
                    (= (:base schema) "http://hl7.org/fhir/StructureDefinition/Bundle")))
-         (prepared-schemas)
+         (converter/convert)
          (map #(hash-map
                 :type (str (package->namespace (:package %))
                            "."
@@ -760,7 +601,7 @@
             (->> (apply-constraints
                   (filter fhir/fhir-schema? constraints)
                   (->> (filter fhir/fhir-schema? all-schemas)
-                       (prepared-schemas)
+                       (converter/convert)
                        (map #(assoc % :backbone-elements (flat-backbones (:backbone-elements %) [])))
                        (vector-to-map)))
                  (mapv (fn [[name' schema]]
