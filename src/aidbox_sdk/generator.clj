@@ -1,13 +1,11 @@
 (ns aidbox-sdk.generator
   (:refer-clojure :exclude [namespace])
   (:require
-   [aidbox-sdk.generator.dotnet.templates :as dotnettpl]
-   [aidbox-sdk.generator.helpers :refer [->pascal-case
-                                         safe-conj
-                                         uppercase-first-letter
-                                         vector-to-map]]
    [aidbox-sdk.converter :as converter]
    [aidbox-sdk.fhir :as fhir]
+   [aidbox-sdk.generator.dotnet.templates :as dotnettpl]
+   [aidbox-sdk.generator.helpers :refer [->pascal-case uppercase-first-letter
+                                         vector-to-map]]
    [aidbox-sdk.schema :as schema]
    [clojure.java.io :as io]
    [clojure.set :as set]
@@ -31,9 +29,6 @@
       (= (:url schema) "http://hl7.org/fhir/StructureDefinition/Element")
       (= (:derivation schema) "specialization")))
 
-(defn search-parameter? [schema]
-  (= (:resourceType schema) "SearchParameter"))
-
 (defn search-parameter-from-extension? [search-parameter]
   (str/includes? (:id search-parameter) "-extensions-"))
 
@@ -42,25 +37,12 @@
   [schema]
   (= (:base schema) "http://hl7.org/fhir/StructureDefinition/DomainResource"))
 
-(defn constraint? [schema]
-  (= (:derivation schema) "constraint"))
-
-(defn from-extension? [schema]
-  (= (:type schema) "Extension"))
-
 ;;
 ;; Generator
 ;;
 
 (defn url->resource-type [reference]
   (last (str/split (str reference) #"/")))
-
-(defn flat-backbones [backbone-elements accumulator]
-  (reduce (fn [acc item]
-            (concat (flat-backbones (:backbone-elements item) acc)
-                    [(dissoc item :backbone-elements)]))
-          accumulator
-          backbone-elements))
 
 (defn get-class-name [url]
   (let [n (apply str (map uppercase-first-letter (str/split (url->resource-type url) #"-")))]
@@ -463,7 +445,7 @@
 
 (defn search-parameters-for [schemas resource-name]
   (->> schemas
-       (filter search-parameter?)
+       (filter fhir/search-parameter?)
        (remove search-parameter-from-extension?)
        (filter #(contains? (set (:base %)) resource-name))))
 
@@ -536,11 +518,11 @@
         all-schemas           (schema/retrieve
                                (schema/resource input)
                                {:auth auth})
-        search-params-schemas (filter search-parameter? all-schemas)
+        search-params-schemas (filter fhir/search-parameter? all-schemas)
         constraints           (->> all-schemas
                                    (filter #(and
-                                             (constraint? %)
-                                             (not (from-extension? %)))))]
+                                             (fhir/constraint? %)
+                                             (not (fhir/extension? %)))))]
 
     (prepare-target-directory! output)
 
@@ -602,7 +584,6 @@
                   (filter fhir/fhir-schema? constraints)
                   (->> (filter fhir/fhir-schema? all-schemas)
                        (converter/convert)
-                       (map #(assoc % :backbone-elements (flat-backbones (:backbone-elements %) [])))
                        (vector-to-map)))
                  (mapv (fn [[name' schema]]
                          {:name name'

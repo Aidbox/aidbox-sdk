@@ -9,15 +9,14 @@
 
 (def primitives #{"dateTime" "xhtml" "Distance" "time" "date" "string" "uuid" "oid" "id" "Dosage" "Duration" "instant" "Count" "decimal" "code" "base64Binary" "unsignedInt" "url" "markdown" "uri" "positiveInt"  "canonical" "Age" "Timing"})
 
-(defn- url->resource-type [url]
+(defn url->resource-name
+  "There are :id and :name in schemas but they are not reliable source."
+  [url]
   (last (str/split (str url) #"/")))
 
-
-;; flatten backbones
-
-(defn flat-backbones [backbone-elements accumulator]
+(defn flatten-backbones [backbone-elements accumulator]
   (reduce (fn [acc item]
-            (concat (flat-backbones (:backbone-elements item) acc)
+            (concat (flatten-backbones (:backbone-elements item) acc)
                     [(dissoc item :backbone-elements)]))
           accumulator
           backbone-elements))
@@ -58,7 +57,6 @@
          (mix-parents-elements-circular schemas)
          (mix-parents-backbones-circular schemas))))
 
-
 ;;; compile elements
 
 (defn- escape-keyword [word]
@@ -79,13 +77,13 @@
     :else (if type (str "Base." type) "string")))
 
 (defn- derive-basic-type [name element]
-  (get-type name (url->resource-type (:type element))))
+  (get-type name (url->resource-name (:type element))))
 
 (defn- transform-element [name element required]
   (->> (derive-basic-type name element)))
 
 (defn- resolve-backbone-elements [[k, v]]
-  (if (= (url->resource-type (:type v)) "BackboneElement") (vector k, v) (vector)))
+  (if (= (url->resource-name (:type v)) "BackboneElement") (vector k, v) (vector)))
 
 (defn- collect-types [parent-name required [k v]]
   (if (contains? v :choices)
@@ -96,7 +94,7 @@
      :array    (boolean (:array v))
      :required (.contains required (name k))
      :value    (transform-element
-                (str (url->resource-type parent-name) "_" (uppercase-first-letter (name k))) v (.contains required (name k)))}))
+                (str (url->resource-name parent-name) "_" (uppercase-first-letter (name k))) v (.contains required (name k)))}))
 
 (defn- get-typings-and-imports [parent-name required data]
   (reduce (fn [acc item]
@@ -134,7 +132,7 @@
           (or (:required schema) [])
           (seq (:elements schema)))
          (clear-backbone-elements
-          (url->resource-type (:url schema)))
+          (url->resource-name (:url schema)))
          (safe-conj
           (hash-map :base (get schema :base)
                     :package (get schema :package)
@@ -142,17 +140,16 @@
                     :type (get schema :type)
                     :derivation (get schema :derivation))))))
 
-
 ;; resolve references
 
 (defn- find-schema-by-url [schemas url]
   (->> schemas
-       (filter (fn [s] (= (:url s) url)))
+       (filter #(= url (:url %)))
        (first)))
 
-(defn- find-element-by-reference [schemas reference]
-  (let [[url & path] reference
-        schema (find-schema-by-url schemas url)
+(defn- find-element-by-reference [schemas element-reference]
+  (let [[schema-url & path] element-reference
+        schema (find-schema-by-url schemas schema-url)
         element (get-in schema (map keyword path))]
     (or element {})))
 
@@ -160,9 +157,8 @@
   (walk/postwalk
    (fn [x]
      (if-let [reference (:elementReference x)]
-       (do (prn reference)
-           (merge (dissoc x :elementReference)
-                  (find-element-by-reference schemas reference)))
+       (merge (dissoc x :elementReference)
+              (find-element-by-reference schemas reference))
        x))
    schemas))
 
@@ -171,6 +167,5 @@
        (resolve-references)
        (compile-elements)
        (combine-elements)
-       (map (fn [schema]
-              (conj schema {:backbone-elements
-                            (flat-backbones (:backbone-elements schema) [])})))))
+       (map (fn [schema] (update schema
+                                 :backbone-elements #(flatten-backbones % []))))))
