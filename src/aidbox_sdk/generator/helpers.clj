@@ -16,9 +16,10 @@
   (str/join (map str/capitalize (words s))))
 
 (defn uppercase-first-letter
-  "NOTE: Do not confuse with capitalize function."
+  "NOTE: Do not confuse with capitalize function. Capitalize function lowercasing all letters after first"
   [string]
   (str (str/upper-case (first string)) (subs string 1)))
+
 
 (defn vector-to-map [v]
   (->> (map (fn [item] (hash-map (:url item) item)) v)
