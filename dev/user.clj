@@ -1,12 +1,14 @@
 (ns user
   (:require
+   [aidbox-sdk.core :as sdk]
    [aidbox-sdk.fhir :as fhir]
+   [aidbox-sdk.converter :as converter]
+   [aidbox-sdk.fixtures.schemas :as fixtures]
    [aidbox-sdk.generator :as gen]
    [aidbox-sdk.schema :as import]
    [aidbox-sdk.cli :as cli]
    [clojure.data]
-   [clojure.java.io :as io]
-   [clojure.string :as str]))
+   [clojure.java.io :as io]))
 
 (def r4-schemas  (import/retrieve (import/resource "resources/schemas") {}))
 (def r4b-schemas (import/retrieve (import/resource "resources/r4b-schemas") {}))
@@ -23,7 +25,6 @@
 (defn packages       [schemas] (distinct (map :package schemas)))
 
 (comment
-
 
   (kinds r4-schemas)
   ;; => (nil "complex-type" "resource" "primitive-type" "logical")
@@ -42,13 +43,17 @@
   ;;     "StructureDefinition")
 
   (->> aidbox-schemas
-       (filter #(= "Patient" (:id %))))
+       (filter #(= "Patient" (:id %)))
+       (converter/convert))
 
   (->> aidbox-schemas
-       (filter #(= "Patient" (:id %))))
+       (filter fhir/fhir-schema?)
+       (converter/convert))
 
-  (->> r4-schemas
-       (filter #(= "Patient" (:id %))))
+  (->> aidbox-schemas
+       (filter fhir/fhir-schema?)
+       (filter fhir/constraint?)
+       (converter/convert))
 
   (->> r4-schemas
        (filter #(= nil (:resourceType %)))
@@ -65,9 +70,18 @@
    :input "http://localhost:8765/api/sdk/fhir-packages"
    :output "dist1")
 
+  (sdk/generate :dotnet "http://localhost:8765/api/sdk/fhir-packages"
+                {:auth-token "YmFzaWM6c2VjcmV0"
+                 :output-dir "dist-new"})
 
   (cli/app {:exit (fn [s])} ["-h"])
 
   (cli/parse-args ["generate" "dotnet" "-h"])
+
+  (clojure.walk/postwalk (fn [x] (prn x)
+
+                           x)
+
+                         fixtures/unflattened-backbone-elements)
 
   :rcf)

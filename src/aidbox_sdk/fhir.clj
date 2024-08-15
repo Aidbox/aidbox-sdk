@@ -50,3 +50,17 @@
 (defn data-types        [schemas] (filter data-type? schemas))
 (defn resources         [schemas] (filter resource? schemas))
 (defn backbone-elements [schemas] (filter backbone-element? schemas))
+
+
+;;
+
+(defn base-schema? [schema]
+  (or (= (:url schema) "http://hl7.org/fhir/StructureDefinition/BackboneElement")
+      (= (:url schema) "http://hl7.org/fhir/StructureDefinition/Resource")
+      (= (:url schema) "http://hl7.org/fhir/StructureDefinition/Element")
+      (= (:derivation schema) "specialization")))
+
+(defn domain-resource?
+  "Is derived from DomainResource?"
+  [schema]
+  (= (:base schema) "http://hl7.org/fhir/StructureDefinition/DomainResource"))

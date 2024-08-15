@@ -1,12 +1,10 @@
 (ns aidbox-sdk.generator
   (:refer-clojure :exclude [namespace])
   (:require
-   [aidbox-sdk.converter :as converter]
    [aidbox-sdk.fhir :as fhir]
    [aidbox-sdk.generator.dotnet.templates :as dotnettpl]
    [aidbox-sdk.generator.helpers :refer [->pascal-case uppercase-first-letter
                                          vector-to-map]]
-   [aidbox-sdk.schema :as schema]
    [clojure.java.io :as io]
    [clojure.set :as set]
    [clojure.string :as str]
@@ -50,27 +48,26 @@
       (= n "Expression")  "ResourceExpression"
       (= n "Reference")   "ResourceReference" :else n)))
 
-(defn resolve-choices [elements']
-  (map (fn [el]
-         (if (:choices el)
-           (assoc el :choices
-                  (->> elements'
-                       (filter #(contains? (set (:choices el))
-                                           (:name %)))))
-           el))
-       elements'))
+(defn resolve-choices [elements]
+  (->> elements
+       (map (fn [el]
+              (if (:choices el)
+                (assoc el :choices
+                       (->> elements
+                            (filter #(contains? (set (:choices el))
+                                                (:name %)))))
+                el)))))
 
 ;;
 ;; C# Specific Templates
 ;;
 
 (defn package->directory
-  "Convert package name to directory name.
+  "Generate directory name from package name.
   hl7.fhir.r4.core#4.0.1 -> hl7-fhir-r4-core"
   [x]
   (-> x
-      (str/replace #"[\.#]" "-")
-      #_(str/replace #"hl7-" "")))
+      (str/replace #"[\.#]" "-")))
 
 (defn package->namespace
   "Convert package name to namespace.
@@ -510,21 +507,28 @@
 ;; main
 ;;
 
+(defmulti generate-resource-module (fn [target-language _schema] target-language))
+
 (defmulti build-all! (fn [& {:keys [target-language]}] target-language))
 
-(defmethod build-all! "dotnet" [& {:keys [auth input output]}]
+
+
+(defmethod build-all! :default [_]
+  (println "SDK generation for this language is not implemented yet"))
+
+#_
+(defmethod build-all! :dotnet [& {:keys [auth input output]}]
   (let [output                (io/file output)
         search-parameters-dir (io/file output "search")
         all-schemas           (schema/retrieve
                                (schema/resource input)
                                {:auth auth})
+        fhir-schemas          (filter fhir/fhir-schema? all-schemas)
         search-params-schemas (filter fhir/search-parameter? all-schemas)
-        constraints           (->> all-schemas
-                                   (filter #(and
-                                             (fhir/constraint? %)
-                                             (not (fhir/extension? %)))))]
+        constraints           (filter #(and (fhir/constraint? %)
+                                            (not (fhir/extension? %))) all-schemas)]
 
-    (prepare-target-directory! output)
+    (gen/prepare-target-directory! output)
 
     ;; create base namespace (all FHIR datatypes) file
     (println "---")
@@ -539,7 +543,7 @@
 
     ;; create spezialization files
     (println "Generating resource classes")
-    (doseq [item (->> all-schemas
+    (doseq [item (->> fhir-schemas
                       (filter base-schema?)
                       (filter domain-resource?)
                       (converter/convert)
@@ -591,7 +595,7 @@
                           :file-content (generate-constraint-namespace
                                          (assoc schema
                                                 :url name'))})))]
-      (save-to-file!
+      (gen/save-to-file!
        (io/file output
                 (package->directory (:package schema))
                 (str (->pascal-case (url->resource-type name)) ".cs"))
@@ -600,6 +604,3 @@
     (println "Generating common SDK files")
     (doseq [file dotnettpl/files]
       (spit (io/file output (:name file)) (:content file)))))
-
-(defmethod build-all! :default [_]
-  (println "SDK generation for this language is not implemented yet"))

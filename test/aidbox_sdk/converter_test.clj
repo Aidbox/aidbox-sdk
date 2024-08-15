@@ -26,6 +26,10 @@
   (is (= (sut/resolve-references fixtures/schemas-with-element-reference)
          fixtures/schemas-with-element-reference-resolved)))
 
+(deftest test-resolve-choices
+  (is (= (sut/resolve-choices fixtures/schemas-with-element-choices)
+         fixtures/schemas-with-element-choices-resolved)))
+
 (deftest test-backbones-flattening
   (is (= (sut/flatten-backbones fixtures/unflattened-backbone-elements [])
          fixtures/flattened-backbone-elements)))
@@ -33,6 +37,7 @@
 (deftest test-convert
   (testing "convert resource"
     (is (= (sut/convert [fixtures/patient-fhir-schema])
+
            [fixtures/patient-ir-schema])))
 
   (testing "convert constraint"

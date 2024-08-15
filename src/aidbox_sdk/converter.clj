@@ -147,20 +147,40 @@
        (filter #(= url (:url %)))
        (first)))
 
-(defn- find-element-by-reference [schemas element-reference]
+(defn- find-element-by-reference [element-reference schemas]
   (let [[schema-url & path] element-reference
         schema (find-schema-by-url schemas schema-url)
         element (get-in schema (map keyword path))]
     (or element {})))
+
+(defn find-elements-by-names [element-names schema]
+  (filter #(contains?
+            (set element-names)
+            (:name %))
+          (:elements schema)))
 
 (defn resolve-references [schemas]
   (walk/postwalk
    (fn [x]
      (if-let [reference (:elementReference x)]
        (merge (dissoc x :elementReference)
-              (find-element-by-reference schemas reference))
+              (find-element-by-reference reference schemas))
        x))
    schemas))
+
+(defn resolve-element-choices [schema el]
+  (if (:choices el)
+    (update el :choices find-elements-by-names schema)
+    el))
+
+(defn resolve-schema-choices [schema]
+  (-> schema
+      (update :elements
+              (fn [elements]
+                (map #(resolve-element-choices schema %) elements)))))
+
+(defn resolve-choices [schemas]
+  (map resolve-schema-choices schemas))
 
 (defn convert [schemas]
   (->> schemas
@@ -168,4 +188,5 @@
        (compile-elements)
        (combine-elements)
        (map (fn [schema] (update schema
-                                 :backbone-elements #(flatten-backbones % []))))))
+                                :backbone-elements #(resolve-choices (flatten-backbones % [])))))
+       (resolve-choices)))

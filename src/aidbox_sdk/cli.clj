@@ -2,6 +2,7 @@
   (:require
    [clojure.tools.cli :as cli]
    [clojure.string :as str]
+   [aidbox-sdk.schema :as import]
    [aidbox-sdk.generator :as generator]))
 
 (def cli-options
@@ -42,15 +43,7 @@
   (println "OPTIONS")
   (println summary))
 
-(defn generate [target-language input options]
-  (println "Building FHIR SDK...")
-  (generator/build-all! :input            input
-                        :target-language  target-language
-                        :auth             (:auth-token options)
-                        :output           (:output-dir options))
-  (println "Finished succesfully!"))
-
-(defn app [{:keys [exit]} args]
+(defn app [{:keys [exit generate]} args]
   (let [{:keys [options arguments summary errors]} (cli/parse-opts args cli-options)
         errors (into errors (validate-args args))
         [command target-language input] arguments]

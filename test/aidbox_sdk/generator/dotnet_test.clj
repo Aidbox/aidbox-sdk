@@ -1,7 +1,7 @@
-(ns aidbox-sdk.generator.dotnet.core-test
+(ns aidbox-sdk.generator.dotnet-test
   (:require
    [clojure.test :refer [deftest is testing]]
-   [aidbox-sdk.generator.dotnet.core :as sut]))
+   [aidbox-sdk.generator.dotnet :as sut]))
 
 (deftest test-generate-property
   (testing "simple case"
@@ -40,7 +40,9 @@
     ;; TODO
     ))
 
+#_
 (deftest test-generate-class
 
+  (testing "")
 
   )
