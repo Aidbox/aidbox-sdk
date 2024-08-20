@@ -8,6 +8,9 @@
   "Default 4 spaces C# indentation."
   "    ")
 
+(defn add-indent [s]
+  (str indent s))
+
 (defn using [& nss]
   (->> nss
        (map #(str "using " % ";"))

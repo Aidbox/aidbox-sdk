@@ -1,30 +1,7 @@
 using Aidbox.FHIR.Base;
 using Aidbox.FHIR.Utils;
 
-namespace Aidbox.FHIR.Resource;
-
-
-[AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
-sealed class DatePartAttribute : Attribute
-{
-    public enum DatePartType
-    {
-        Year,
-        YearMonth,
-        Date,
-        DateTime
-    }
-
-    public DatePartType PartType { get; }
-
-    public DatePartAttribute(DatePartType partType)
-    {
-        PartType = partType;
-    }
-}
-
-
-
+namespace Aidbox.FHIR.R4.Core;
 
 public class Patient : DomainResource, IResource
 {
@@ -34,8 +11,6 @@ public class Patient : DomainResource, IResource
     public Base.ResourceReference? ManagingOrganization { get; set; }
     public bool? DeceasedBoolean { get; set; }
     public Base.HumanName[]? Name { get; set; }
-    
-    [DatePart(DatePartAttribute.DatePartType.Year)]
     public string? BirthDate { get; set; }
     public int? MultipleBirthInteger { get; set; }
     public object? MultipleBirth    

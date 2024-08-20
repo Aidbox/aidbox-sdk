@@ -2,7 +2,6 @@
   (:require
    [clojure.string :as str]
    [aidbox-sdk.generator.utils :as u]
-   [aidbox-sdk.fhir :as fhir]
    [aidbox-sdk.generator :as gen]
    [clojure.java.io :as io]
    [aidbox-sdk.generator.helpers :refer [->pascal-case uppercase-first-letter]]))
@@ -109,12 +108,46 @@
 (defn class-name
   "Generate class name from schema url."
   [url]
-  (let [n (->pascal-case
+  (let [n (uppercase-first-letter
            (url->resource-type url))]
     (cond
       (= n "Expression")  "ResourceExpression"
       (= n "Reference")   "ResourceReference"
       :else n)))
+
+(defn generate-class [schema & [inner-classes]]
+  (let [base-class (url->resource-type (:base schema))
+        schema-name (or (:url schema) (:name schema))
+        generic (when (= (:type schema) "Bundle") "<T>")
+        class-name' (class-name (str schema-name generic))
+        elements (->> (:elements schema)
+                      (map #(if (and (= (:base %) "Bundle_Entry")
+                                     (= (:name %) "resource"))
+                              (assoc % :value "T")
+                              %)))
+
+        properties (try (->> elements
+                             (map generate-property)
+                             (map u/add-indent)
+                             (str/join "\n"))
+                        (catch Exception _
+                          (prn schema)))
+
+        base-class (cond (= base-class "Resource") "Base.Resource"
+                         (= base-class "DomainResource") "DomainResource, IResource"
+                         :else base-class)
+        base-class-name (when-not (str/blank? base-class)
+                          (str " : " (uppercase-first-letter base-class)))]
+
+    (str "public class " class-name' base-class-name "\n{"
+         (when-not (str/blank? properties)
+           "\n")
+         properties
+         (when (and inner-classes
+                    (seq inner-classes))
+           "\n\n")
+         (str/join "\n\n" (map #(->> % str/split-lines (map u/add-indent) (str/join "\n")) inner-classes))
+         "\n}")))
 
 (defn generate-module
   [& {name' :name
@@ -136,38 +169,6 @@
              delegates)
        (flatten)
        (str/join "\n\n")))
-
-(defn generate-class [schema & [inner-classes]]
-  (let [base-class (url->resource-type (:base schema))
-        schema-name (or (:url schema) (:name schema))
-        generic (when (= (:type schema) "Bundle") "<T>")
-        class-name' (class-name (str schema-name generic))
-        elements (->> (:elements schema)
-                      (map #(if (and (= (:base %) "Bundle_Entry")
-                                     (= (:name %) "resource"))
-                              (assoc % :value "T")
-                              %)))
-
-        properties (try (->> elements
-                             (map generate-property)
-                             (map #(str u/indent %))
-                             (str/join "\n"))
-                        (catch Exception _
-                          (prn schema)))
-
-        base-class (if (= base-class "Resource") "Base.Resource" base-class)
-        base-class-name (when-not (str/blank? base-class)
-                          (str " : " (uppercase-first-letter base-class)))]
-
-    (str "public class " class-name' base-class-name "\n{"
-         (when-not (str/blank? properties)
-           "\n")
-         properties
-         (when (and inner-classes
-                    (seq inner-classes))
-           "\n\n")
-         (str/join "\n\n" inner-classes)
-         "\n}")))
 
 (defn package->directory
   "Generate directory name from package name.
@@ -200,30 +201,3 @@
                                                          (map generate-class)))])]
     {:path file-path
      :content module}))
-
-#_(defmethod gen/build-all! :dotnet [& {:keys [output schemas]}]
-    (let [output                (io/file output)
-          all-schemas           schemas
-          fhir-schemas          (filter fhir/fhir-schema? all-schemas)
-
-          search-params-schemas (filter fhir/search-parameter? all-schemas)
-          search-parameters-dir (io/file output "search")
-          constraints           (filter #(and (fhir/constraint? %)
-                                              (not (fhir/extension? %))) all-schemas)]
-
-      (gen/prepare-target-directory! output)
-
-    ;; create spezialization files
-      (println "Generating resource classes")
-      (doseq [item (->> fhir-schemas
-                        (filter gen/base-schema?)
-                        (filter gen/domain-resource?)
-                        (converter/convert)
-                        ((fn [schemas]
-                           (->> schemas
-                                (map (fn [schema]
-                                       (update schema :base #(str % ", IResource"))))))))]
-
-        (save-to-file!
-         (io/file output (package->directory (:package item)) (str (:name item) ".cs"))
-         (generate-resource-namespace item)))))

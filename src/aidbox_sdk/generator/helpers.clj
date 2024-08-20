@@ -16,7 +16,9 @@
   (str/join (map str/capitalize (words s))))
 
 (defn uppercase-first-letter
-  "NOTE: Do not confuse with capitalize function. Capitalize function lowercasing all letters after first"
+  "NOTE: Do not confuse with `capitalize` and `->pascal-case` functions.
+  Capitalize function lowercasing all letters after first.
+  Pascal case removes all _ and - characters"
   [string]
   (str (str/upper-case (first string)) (subs string 1)))
 

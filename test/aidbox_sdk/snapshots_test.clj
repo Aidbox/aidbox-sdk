@@ -12,6 +12,8 @@
    (importer/resource "http://localhost:8765/api/sdk/fhir-packages")
    {:auth "YmFzaWM6c2VjcmV0"}))
 
+(def m-load-r4-schemas (memoize load-r4-schemas))
+
 (defn make-path
   [ns-kw]
   (str "test/aidbox_sdk/snapshots/" (namespace ns-kw) "/" (name ns-kw)))
@@ -42,4 +44,19 @@
     (match-snapshot (->> path .getPath keyword) content))
 
 ;
+  )
+
+
+
+(comment
+(->> (m-load-r4-schemas)
+               (filter fhir/fhir-schema?)
+               (filter fhir/base-schema?)
+               (filter fhir/domain-resource?)
+               converter/convert
+               (map #(gen/generate-resource-module :dotnet %))
+               first
+               :content
+               )
+
   )

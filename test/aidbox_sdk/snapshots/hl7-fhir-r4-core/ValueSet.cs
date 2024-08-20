@@ -1,7 +1,7 @@
 using Aidbox.FHIR.Base;
 using Aidbox.FHIR.Utils;
 
-namespace Aidbox.FHIR.Resource;
+namespace Aidbox.FHIR.R4.Core;
 
 public class ValueSet : DomainResource, IResource
 {
