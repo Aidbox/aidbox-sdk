@@ -35,7 +35,7 @@ jobs:
           restore-keys: cljdeps-
 
       - name: Run tests
-        run: clojure -M:test -m kaocha.runner
+        run: clojure -M:test -m kaocha.runner --skip-meta :snapshot
 
       - name: Build uberjar
         run: clojure -T:build uberjar :jar-name aidbox-sdk
