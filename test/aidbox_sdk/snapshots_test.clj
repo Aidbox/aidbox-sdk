@@ -2,6 +2,8 @@
   (:require
    [clojure.test :refer [deftest is]]
    [clojure.java.io :as io]
+   [clojure.string :as str]
+   [matcho.core :as matcho]
    [aidbox-sdk.schema :as importer]
    [aidbox-sdk.converter :as converter]
    [aidbox-sdk.fhir :as fhir]
@@ -27,7 +29,10 @@
         file (io/file file-name)]
     (if (.exists file)
       (let [snapshot (slurp file)]
-        (is (= snapshot v) (str "Using snapshot at " file-name)))
+        ;; TODO show string diff instead of matcho
+        (matcho/match
+         (str/split-lines snapshot)
+          (str/split-lines v)))
       (do
         (io/make-parents file-name)
         (spit file-name v)))))
@@ -45,18 +50,12 @@
 
 ;
   )
-
-
-
 (comment
-(->> (m-load-r4-schemas)
-               (filter fhir/fhir-schema?)
-               (filter fhir/base-schema?)
-               (filter fhir/domain-resource?)
-               converter/convert
-               (map #(gen/generate-resource-module :dotnet %))
-               first
-               :content
-               )
-
-  )
+  (->> (m-load-r4-schemas)
+       (filter fhir/fhir-schema?)
+       (filter fhir/base-schema?)
+       (filter fhir/domain-resource?)
+       converter/convert
+       (map #(gen/generate-resource-module :dotnet %))
+       first
+       :content))
