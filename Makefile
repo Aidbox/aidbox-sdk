@@ -1,8 +1,11 @@
 build-jar:
 	clj -T:build uberjar
 
-run-tests:
-	clj -M:test -m kaocha.runner
+test:
+	clj -M:test -m kaocha.runner --skip-meta :snapshot
+
+test-snapshots:
+	clj -M:test -m kaocha.runner --focus-meta :snapshot
 
 PATH_TO_JAR := $(project_dir)/$(jar_path)
 
