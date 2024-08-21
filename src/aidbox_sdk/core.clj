@@ -61,6 +61,5 @@
 (def system {:exit (fn [status] (System/exit status))
              :generate generate})
 
-#_
 (defn -main [& args]
   (cli/app system args))
