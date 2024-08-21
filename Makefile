@@ -1,6 +1,7 @@
 build-jar:
 	clj -T:build uberjar
 
+.PHONY: test
 test:
 	clj -M:test -m kaocha.runner --skip-meta :snapshot
 

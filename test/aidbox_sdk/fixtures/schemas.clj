@@ -867,8 +867,26 @@
      :required false,
      :value "int"}
     {:name "multipleBirth",
-     :choices ["multipleBirthBoolean" "multipleBirthInteger"]}
-    {:name "deceased", :choices ["deceasedBoolean" "deceasedDateTime"]}
+     :choices [{:name "multipleBirthBoolean",
+                :base "Patient",
+                :array false,
+                :required false,
+                :value "bool"}
+               {:name "multipleBirthInteger",
+                :base "Patient",
+                :array false,
+                :required false,
+                :value "int"}]}
+    {:name "deceased", :choices [{:name "deceasedDateTime",
+                                  :base "Patient",
+                                  :array false,
+                                  :required false,
+                                  :value "string"}
+                                 {:name "deceasedBoolean",
+                                  :base "Patient",
+                                  :array false,
+                                  :required false,
+                                  :value "bool"}]}
     {:name "photo",
      :base "Patient",
      :array true,
@@ -1019,7 +1037,11 @@
      :array false,
      :required false,
      :value "string"}
-    {:name "value", :choices ["valueBoolean"]}
+    {:name "value", :choices [{:name "valueBoolean",
+                               :base "Extension",
+                               :array false,
+                               :required false,
+                               :value "bool"}]}
     {:name "valueBoolean",
      :base "Extension",
      :array false,
