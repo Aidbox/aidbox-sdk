@@ -22,8 +22,7 @@
   [string]
   (str (str/upper-case (first string)) (subs string 1)))
 
-
-(defn vector-to-map [v]
+(defn vector->map [v]
   (->> (map (fn [item] (hash-map (:url item) item)) v)
        (into {})))
 

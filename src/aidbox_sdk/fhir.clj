@@ -1,4 +1,5 @@
-(ns aidbox-sdk.fhir)
+(ns aidbox-sdk.fhir
+  (:require [clojure.string :as str]))
 
 ;; Predicates
 (defn resource-type-pred [rt]   (fn [schema] (= rt (:resourceType schema))))
@@ -23,12 +24,12 @@
 ;; Misc
 (defn extension? [schema] (= (:type schema) "Extension"))
 
-(defmulti  data-type? :package)
-(defmethod data-type? "hl7.fhir.r4.core"  [schema] (= (:base schema) "http://hl7.org/fhir/StructureDefinition/Element"))
-(defmethod data-type? "hl7.fhir.r4b.core" [schema] (= (:base schema) "http://hl7.org/fhir/StructureDefinition/Element"))
-(defmethod data-type? "hl7.fhir.r5.core"  [schema] (or (= (:base schema) "http://hl7.org/fhir/StructureDefinition/DataType")
-                                                       (= (:base schema) "http://hl7.org/fhir/StructureDefinition/PrimitiveType")))
-(defmethod data-type? :default [_] false)
+(defmulti  datatype? :package)
+(defmethod datatype? "hl7.fhir.r4.core"  [schema] (= (:base schema) "http://hl7.org/fhir/StructureDefinition/Element"))
+(defmethod datatype? "hl7.fhir.r4b.core" [schema] (= (:base schema) "http://hl7.org/fhir/StructureDefinition/Element"))
+(defmethod datatype? "hl7.fhir.r5.core"  [schema] (or (= (:base schema) "http://hl7.org/fhir/StructureDefinition/DataType")
+                                                      (= (:base schema) "http://hl7.org/fhir/StructureDefinition/PrimitiveType")))
+(defmethod datatype? :default [_] false)
 
 (defmulti  backbone-element? :package)
 (defmethod backbone-element? "hl7.fhir.r4.core"  [schema] (= (:base schema) "http://hl7.org/fhir/StructureDefinition/BackboneElement"))
@@ -47,10 +48,9 @@
 
 (defn primitive-types   [schemas] (filter primitive-type? schemas))
 (defn complex-types     [schemas] (filter complex-type? schemas))
-(defn data-types        [schemas] (filter data-type? schemas))
+(defn datatypes         [schemas] (filter datatype? schemas))
 (defn resources         [schemas] (filter resource? schemas))
 (defn backbone-elements [schemas] (filter backbone-element? schemas))
-
 
 ;;
 
@@ -64,3 +64,6 @@
   "Is derived from DomainResource?"
   [schema]
   (= (:base schema) "http://hl7.org/fhir/StructureDefinition/DomainResource"))
+
+(defn search-parameter-from-extension? [search-parameter]
+  (str/includes? (:id search-parameter) "-extensions-"))

@@ -60,7 +60,6 @@
     {:type :url :source path}
     {:type :file :source path}))
 
-
 (defmulti retrieve (fn [& args] (:type (first args))))
 
 (defmethod retrieve :file
@@ -112,8 +111,8 @@
                         (println "Downloading list of dependencies from:" source)
                         (-> (fetch-n-parse source opts)
                             (skip-root-package)))]
-
     (->> fhir-packages
+         ;; TODO using pmap for side effects is questionable
          (pmap (fn [package]
                  (println "Downloading schemas for:" (extract-name package))
                  (fetch-n-parse (extract-link package) opts)))
