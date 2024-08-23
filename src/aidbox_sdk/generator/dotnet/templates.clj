@@ -349,7 +349,7 @@ public class Client
 (def files
   [{:path "Aidbox.csproj"
     :content aidbox-csproj}
-   {:path "Api.cs"
+   {:name "Api.cs"
     :content api-cs}
-   {:path "Client.cs"
+   {:name "Client.cs"
     :content client-cs}])
