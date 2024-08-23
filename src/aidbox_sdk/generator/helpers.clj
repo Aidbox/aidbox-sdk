@@ -15,6 +15,9 @@
 (defn ->pascal-case [s]
   (str/join (map str/capitalize (words s))))
 
+(defn ->snake-case [s]
+  (str/join "_" (map str/lower-case (words s))))
+
 (defn uppercase-first-letter
   "NOTE: Do not confuse with `capitalize` and `->pascal-case` functions.
   Capitalize function lowercasing all letters after first.

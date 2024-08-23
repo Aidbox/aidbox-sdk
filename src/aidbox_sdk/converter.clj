@@ -98,6 +98,7 @@
                 (.contains required (name k)))
      :type (:type v)}))
 
+
 (defn- get-typings-and-imports [parent-name required data]
   (reduce (fn [acc item]
             {:elements (conj (:elements acc)
@@ -190,5 +191,5 @@
        (compile-elements)
        (combine-elements)
        (map (fn [schema] (update schema
-                                :backbone-elements #(resolve-choices (flatten-backbones % [])))))
+                                 :backbone-elements #(resolve-choices (flatten-backbones % [])))))
        (resolve-choices)))
