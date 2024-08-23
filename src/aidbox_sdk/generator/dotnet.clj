@@ -61,6 +61,8 @@
                               u/indent
                               (u/x2 u/indent)
                               (->pascal-case (:name choice)) " = (" (:value choice) ")value;"
+                              "\n"
+                              (u/x3 u/indent)
                               "return;"
                               "\n"
                               (u/x2 u/indent)

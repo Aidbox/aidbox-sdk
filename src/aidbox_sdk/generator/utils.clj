@@ -3,6 +3,7 @@
 
 
 (defn x2 [s] (apply str (repeat 2 s)))
+(defn x3 [s] (apply str (repeat 3 s)))
 
 (def indent
   "Default 4 spaces C# indentation."
