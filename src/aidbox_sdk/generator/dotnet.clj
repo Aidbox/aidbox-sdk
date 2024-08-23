@@ -6,7 +6,8 @@
    [aidbox-sdk.generator.utils :as u]
    [clojure.java.io :as io]
    [clojure.set :as set]
-   [clojure.string :as str])
+   [clojure.string :as str]
+   [aidbox-sdk.generator :as gen])
   (:import
    [aidbox_sdk.generator CodeGenerator]))
 
@@ -238,19 +239,6 @@
                         (str/replace base #"http://hl7.org/fhir/StructureDefinition/" "")))
                :elements (resolve-elements search-parameters-schemas (:id schema))}))
        (remove #(empty? (:elements %)))))
-
-(defn search-parameters-classes [search-parameters-schemas schemas]
-  (for [{:keys [name base elements]}
-        (search-parameters-structures search-parameters-schemas schemas)]
-    {:path (io/file "search" (str name ".cs"))
-     :content
-     (generate-module
-      :name "Aidbox.FHIR.Search"
-      :classes (search-param-class
-                (str name "SearchParameters")
-                (map #(hash-map :value "string" :name %) elements)
-                (when base
-                  (str base "SearchParameters"))))}))
 
 ;;
 ;; Constraints

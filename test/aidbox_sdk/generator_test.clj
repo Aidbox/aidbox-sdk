@@ -1,7 +1,7 @@
 (ns aidbox-sdk.generator-test
   (:require  [clojure.test :refer [deftest testing]]
              [matcho.core :as matcho]
-             [aidbox-sdk.generator :as sut]))
+             [aidbox-sdk.generator.dotnet :as sut]))
 
 (deftest test-apply-constraints
   (testing "base schema is a specialization schema"

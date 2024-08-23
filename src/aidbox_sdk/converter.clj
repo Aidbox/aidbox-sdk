@@ -4,8 +4,7 @@
    [clojure.string :as str]
    [aidbox-sdk.generator.helpers :refer [->pascal-case
                                          safe-conj
-                                         uppercase-first-letter
-                                         vector-to-map]]))
+                                         uppercase-first-letter]]))
 
 (def primitives #{"dateTime" "xhtml" "Distance" "time" "date" "string" "uuid" "oid" "id" "Dosage" "Duration" "instant" "Count" "decimal" "code" "base64Binary" "unsignedInt" "url" "markdown" "uri" "positiveInt"  "canonical" "Age" "Timing"})
 

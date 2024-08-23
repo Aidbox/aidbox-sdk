@@ -22,7 +22,6 @@
   [string]
   (str (str/upper-case (first string)) (subs string 1)))
 
-;; TODO use group-by instead
 (defn vector->map [v]
   (update-vals (group-by :url v) first))
 

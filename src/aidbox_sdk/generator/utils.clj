@@ -1,6 +1,6 @@
 (ns aidbox-sdk.generator.utils
+  (:refer-clojure :exclude [namespace])
   (:require [clojure.string :as str]))
-
 
 (defn x2 [s] (apply str (repeat 2 s)))
 (defn x3 [s] (apply str (repeat 3 s)))
