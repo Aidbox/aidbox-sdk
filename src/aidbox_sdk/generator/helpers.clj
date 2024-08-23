@@ -22,9 +22,9 @@
   [string]
   (str (str/upper-case (first string)) (subs string 1)))
 
+;; TODO use group-by instead
 (defn vector->map [v]
-  (->> (map (fn [item] (hash-map (:url item) item)) v)
-       (into {})))
+  (update-vals (group-by :url v) first))
 
 (defn safe-conj [a b] (conj a (or b {})))
 
