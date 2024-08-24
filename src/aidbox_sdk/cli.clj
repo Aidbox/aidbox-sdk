@@ -13,7 +13,7 @@
    ["-h" "--help"]])
 
 (def supported-commands #{"generate"})
-(def supported-languages #{"dotnet" "java" "typescript" "python"})
+(def supported-languages #{"dotnet"})
 
 (defn validate-args [args]
   (let [[command target-language input] args]
@@ -27,7 +27,7 @@
                  (str/join ", " supported-languages)))
 
       (nil? input)
-      (conj "Please provide input argument"))))
+      (conj "Please provide a source of fhir packages"))))
 
 (defn print-errors [errors]
   (binding [*out* *err*]

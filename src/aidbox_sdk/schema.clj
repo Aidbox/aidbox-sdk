@@ -107,10 +107,15 @@
   [{:keys [source]} opts]
   (let [extract-link (fn [package] (-> package :href))
         extract-name (fn [package] (str (:name package) "#" (:version package)))
-        fhir-packages (do
+        fhir-packages (try
                         (println "Downloading list of dependencies from:" source)
                         (-> (fetch-n-parse source opts)
-                            (skip-root-package)))]
+                            (skip-root-package))
+
+                        (catch Exception _
+                          (println
+                           "ERROR: Cannot download FHIR packages. You might have provided the wrong source or forgotten to provide an authentication token.")
+                          []))]
     (->> fhir-packages
          ;; TODO using pmap for side effects is questionable
          (pmap (fn [package]
