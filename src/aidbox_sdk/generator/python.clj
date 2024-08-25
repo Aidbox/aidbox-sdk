@@ -130,14 +130,17 @@
         base-class-name (when-not (str/blank? base-class)
                           (uppercase-first-letter base-class))]
     (str
-     (str/join "\n\n" (map #(->> % str/split-lines (map u/add-indent) (str/join "\n")) inner-classes))
+     (when (and inner-classes
+                (seq inner-classes))
+       (str
+        (str/join "\n\n" inner-classes)
+        "\n\n"))
+
      "class " class-name' "(" base-class-name "):"
      (when-not (str/blank? properties)
        "\n")
      properties
-     (when (and inner-classes
-                (seq inner-classes))
-       "\n\n"))))
+     )))
 
 (defn generate-module
   [& {:keys [deps classes]
