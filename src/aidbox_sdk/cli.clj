@@ -1,9 +1,7 @@
 (ns aidbox-sdk.cli
   (:require
    [clojure.tools.cli :as cli]
-   [clojure.string :as str]
-   [aidbox-sdk.schema :as import]
-   [aidbox-sdk.generator :as generator]))
+   [clojure.string :as str]))
 
 (def cli-options
   [["-a" "--auth-token BASE64_string" "Base64 of username:password"
