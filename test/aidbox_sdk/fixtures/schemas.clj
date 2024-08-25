@@ -830,113 +830,138 @@
      :base "Patient",
      :array false,
      :required false,
-     :value "bool"}
+     :value "bool",
+     :type "boolean"}
     {:name "address",
      :base "Patient",
      :array true,
      :required false,
-     :value "Base.Address"}
+     :value "Base.Address",
+     :type "Address"}
     {:name "deceasedDateTime",
      :base "Patient",
      :array false,
      :required false,
-     :value "string"}
+     :value "string",
+     :type "dateTime"}
     {:name "managingOrganization",
      :base "Patient",
      :array false,
      :required false,
-     :value "Base.ResourceReference"}
+     :value "Base.ResourceReference",
+     :type "Reference"}
     {:name "deceasedBoolean",
      :base "Patient",
      :array false,
      :required false,
-     :value "bool"}
+     :value "bool",
+     :type "boolean"}
     {:name "name",
      :base "Patient",
      :array true,
      :required false,
-     :value "Base.HumanName"}
+     :value "Base.HumanName",
+     :type "HumanName"}
     {:name "birthDate",
      :base "Patient",
      :array false,
      :required false,
-     :value "string"}
+     :value "string",
+     :type "date"}
     {:name "multipleBirthInteger",
      :base "Patient",
      :array false,
      :required false,
-     :value "int"}
+     :value "int",
+     :type "integer"}
     {:name "multipleBirth",
-     :choices [{:name "multipleBirthBoolean",
-                :base "Patient",
-                :array false,
-                :required false,
-                :value "bool"}
-               {:name "multipleBirthInteger",
-                :base "Patient",
-                :array false,
-                :required false,
-                :value "int"}]}
-    {:name "deceased", :choices [{:name "deceasedDateTime",
-                                  :base "Patient",
-                                  :array false,
-                                  :required false,
-                                  :value "string"}
-                                 {:name "deceasedBoolean",
-                                  :base "Patient",
-                                  :array false,
-                                  :required false,
-                                  :value "bool"}]}
+     :choices
+     [{:name "multipleBirthBoolean",
+       :base "Patient",
+       :array false,
+       :required false,
+       :value "bool",
+       :type "boolean"}
+      {:name "multipleBirthInteger",
+       :base "Patient",
+       :array false,
+       :required false,
+       :value "int",
+       :type "integer"}]}
+    {:name "deceased",
+     :choices
+     [{:name "deceasedDateTime",
+       :base "Patient",
+       :array false,
+       :required false,
+       :value "string",
+       :type "dateTime"}
+      {:name "deceasedBoolean",
+       :base "Patient",
+       :array false,
+       :required false,
+       :value "bool",
+       :type "boolean"}]}
     {:name "photo",
      :base "Patient",
      :array true,
      :required false,
-     :value "Base.Attachment"}
+     :value "Base.Attachment",
+     :type "Attachment"}
     {:name "link",
      :base "Patient",
      :array true,
      :required false,
-     :value "Patient_Link"}
+     :value "Patient_Link",
+     :type "BackboneElement"}
     {:name "active",
      :base "Patient",
      :array false,
      :required false,
-     :value "bool"}
+     :value "bool",
+     :type "boolean"}
     {:name "communication",
      :base "Patient",
      :array true,
      :required false,
-     :value "Patient_Communication"}
+     :value "Patient_Communication",
+     :type "BackboneElement"}
     {:name "identifier",
      :base "Patient",
      :array true,
      :required false,
-     :value "Base.Identifier"}
+     :value "Base.Identifier",
+     :type "Identifier"}
     {:name "telecom",
      :base "Patient",
      :array true,
      :required false,
-     :value "Base.ContactPoint"}
+     :value "Base.ContactPoint",
+     :type "ContactPoint"}
     {:name "generalPractitioner",
      :base "Patient",
      :array true,
      :required false,
-     :value "Base.ResourceReference"}
+     :value "Base.ResourceReference",
+     :type "Reference"}
     {:name "gender",
      :base "Patient",
      :array false,
      :required false,
-     :value "string"}
+     :value "string",
+     :type "code"}
     {:name "maritalStatus",
      :base "Patient",
      :array false,
      :required false,
-     :value "Base.CodeableConcept"}
+     :value "Base.CodeableConcept",
+     :type "CodeableConcept"}
     {:name "contact",
      :base "Patient",
      :array true,
      :required false,
-     :value "Patient_Contact"}],
+     :value "Patient_Contact",
+     :type "BackboneElement"}],
    :url "http://hl7.org/fhir/StructureDefinition/Patient",
    :backbone-elements
    [{:elements
@@ -944,61 +969,72 @@
        :base "Patient_Link",
        :array false,
        :required true,
-       :value "string"}
+       :value "string",
+       :type "code"}
       {:name "other",
        :base "Patient_Link",
        :array false,
        :required true,
-       :value "Base.ResourceReference"}],
+       :value "Base.ResourceReference",
+       :type "Reference"}],
      :name "Patient_Link"}
     {:elements
      [{:name "language",
        :base "Patient_Communication",
        :array false,
        :required true,
-       :value "Base.CodeableConcept"}
+       :value "Base.CodeableConcept",
+       :type "CodeableConcept"}
       {:name "preferred",
        :base "Patient_Communication",
        :array false,
        :required false,
-       :value "bool"}],
+       :value "bool",
+       :type "boolean"}],
      :name "Patient_Communication"}
     {:elements
      [{:name "name",
        :base "Patient_Contact",
        :array false,
        :required false,
-       :value "Base.HumanName"}
+       :value "Base.HumanName",
+       :type "HumanName"}
       {:name "gender",
        :base "Patient_Contact",
        :array false,
        :required false,
-       :value "string"}
+       :value "string",
+       :type "code"}
       {:name "period",
        :base "Patient_Contact",
        :array false,
        :required false,
-       :value "Base.Period"}
+       :value "Base.Period",
+       :type "Period"}
       {:name "address",
        :base "Patient_Contact",
        :array false,
        :required false,
-       :value "Base.Address"}
+       :value "Base.Address",
+       :type "Address"}
       {:name "telecom",
        :base "Patient_Contact",
        :array true,
        :required false,
-       :value "Base.ContactPoint"}
+       :value "Base.ContactPoint",
+       :type "ContactPoint"}
       {:name "organization",
        :base "Patient_Contact",
        :array false,
        :required false,
-       :value "Base.ResourceReference"}
+       :value "Base.ResourceReference",
+       :type "Reference"}
       {:name "relationship",
        :base "Patient_Contact",
        :array true,
        :required false,
-       :value "Base.CodeableConcept"}],
+       :value "Base.CodeableConcept",
+       :type "CodeableConcept"}],
      :name "Patient_Contact"}],
    :base "http://hl7.org/fhir/StructureDefinition/DomainResource"})
 
@@ -1036,19 +1072,24 @@
      :base "Extension",
      :array false,
      :required false,
-     :value "string"}
-    {:name "value", :choices [{:name "valueBoolean",
-                               :base "Extension",
-                               :array false,
-                               :required false,
-                               :value "bool"}]}
+     :value "string",
+     :type nil}
+    {:name "value",
+     :choices
+     [{:name "valueBoolean",
+       :base "Extension",
+       :array false,
+       :required false,
+       :value "bool",
+       :type "boolean"}]}
     {:name "valueBoolean",
      :base "Extension",
      :array false,
      :required false,
-     :value "bool"}],
+     :value "bool",
+     :type "boolean"}],
    :url "http://hl7.org/fhir/StructureDefinition/organization-preferredContact",
-   :backbone-elements [],
+   :backbone-elements (),
    :base "http://hl7.org/fhir/StructureDefinition/Extension"})
 
 (def unflattened-backbone-elements

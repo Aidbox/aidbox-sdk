@@ -93,7 +93,10 @@
      :array    (boolean (:array v))
      :required (.contains required (name k))
      :value    (transform-element
-                (str (url->resource-name parent-name) "_" (uppercase-first-letter (name k))) v (.contains required (name k)))}))
+                (str (url->resource-name parent-name) "_" (uppercase-first-letter (name k)))
+                v
+                (.contains required (name k)))
+     :type (:type v)}))
 
 (defn- get-typings-and-imports [parent-name required data]
   (reduce (fn [acc item]
