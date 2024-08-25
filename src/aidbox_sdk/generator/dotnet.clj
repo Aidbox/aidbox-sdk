@@ -85,9 +85,10 @@
   (last (str/split (str url) #"/")))
 
 (defn generate-property
-  "Generate class property from schema element."
+  "Generates class property from schema element."
   [element]
-  (let [type (str
+  (let [name (uppercase-first-letter (:name element))
+        type (str
               ;; TODO this is not enough
               ;; In order to properly put "new" modifier we must know if
               ;; there is a same property in ancestor classes
@@ -100,7 +101,6 @@
               (when (:array element) "[]")
               (when (and (not (:required element))
                          (not (:literal element))) "?"))
-        name     (uppercase-first-letter (:name element))
         accessor (if (or (:meta element)
                          (:codeable-concept-pattern element))
                    "{ get; }"
@@ -246,7 +246,8 @@
 
 (defn apply-excluded [excluded schema]
   (filter (fn [field-schema]
-            (not (some #(= % (:name field-schema)) excluded))) schema))
+            (not (some #(= % (:name field-schema)) excluded)))
+          schema))
 
 (defn apply-required [required elements]
   (->> elements
@@ -334,6 +335,21 @@
                result
                constraint-schemas)))))
 
+(defn generate-constraint-module [schema]
+  (let [backbone-elements-classes (->> (:backbone-elements schema)
+                                       (map #(assoc % :base "BackboneElement"))
+                                       (mapv generate-class))
+        resource-class (generate-class schema backbone-elements-classes)]
+    (generate-module
+     :name (package->module-name (:package schema))
+     :deps [{:module "Aidbox.FHIR.Base" :members []}
+            {:module "Aidbox.FHIR.Utils" :members []}]
+     :classes resource-class)))
+
+;;
+;; main
+;;
+
 (defn generate-backbone-classes [ir-schema]
   (->> (ir-schema :backbone-elements)
        (map #(assoc % :base "BackboneElement"))
@@ -349,16 +365,6 @@
 (defn constraint-file-path [ir-schema name]
   (io/file (package->directory (:package ir-schema))
            (str (->pascal-case (url->resource-name name)) ".cs")))
-
-(defn generate-constraint-module [schema]
-  (let [backbone-elements-classes (->> (:backbone-elements schema)
-                                       (map #(assoc % :base "BackboneElement"))
-                                       (mapv generate-class))
-        resource-class (generate-class schema backbone-elements-classes)]
-    (generate-module
-     :name (package->module-name (:package schema))
-     :usings ["Aidbox.FHIR.Base" "Aidbox.FHIR.Utils"]
-     :classes resource-class)))
 
 (defrecord DotNetCodeGenerator []
   CodeGenerator
