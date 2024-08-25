@@ -15,7 +15,7 @@
                                           :required false,
                                           :value "bool"}))))
 
-  (testing "with required"
+  (testing "required"
     (is (= "public required string Type { get; set; }"
            (gen.dotnet/generate-property {:name "type",
                                           :base "Patient_Link",
@@ -23,13 +23,22 @@
                                           :required true,
                                           :value "string"}))))
 
-  (testing "array"
+  (testing "array optional"
     (is (= "public Base.Address[]? Address { get; set; }"
            (gen.dotnet/generate-property {:name "address",
                                           :base "Patient",
                                           :array true,
                                           :required false,
                                           :value "Base.Address"}))))
+
+  (testing "array required"
+    (is (= "public required Extension[] Extension { get; set; }"
+           (gen.dotnet/generate-property {:name "extension",
+                                          :base "Element",
+                                          :array true,
+                                          :required true,
+                                          :value "Extension"
+                                          :type "Extension"}))))
 
   (testing "element with literal"
     ;; TODO
