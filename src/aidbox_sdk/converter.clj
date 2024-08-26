@@ -190,5 +190,5 @@
        (compile-elements)
        (combine-elements)
        (map (fn [schema] (update schema
-                                :backbone-elements #(resolve-choices (flatten-backbones % [])))))
+                                 :backbone-elements #(resolve-choices (flatten-backbones % [])))))
        (resolve-choices)))
