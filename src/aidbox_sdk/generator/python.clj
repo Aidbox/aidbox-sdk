@@ -2,6 +2,7 @@
   (:require
    [aidbox-sdk.generator.helpers :refer [->pascal-case ->snake-case uppercase-first-letter]]
    [aidbox-sdk.generator.utils :as u]
+   [aidbox-sdk.generator.python.templates :as templates]
    [clojure.java.io :as io]
    [clojure.string :as str])
   (:import
@@ -115,8 +116,7 @@
   [ir-schema & [inner-classes]]
   (let [base-class (url->resource-name (:base ir-schema))
         schema-name (or (:url ir-schema) (:name ir-schema))
-        generic (when (= (:type ir-schema) "Bundle") "<T>")
-        class-name' (class-name (str schema-name generic))
+        class-name' (class-name schema-name)
         elements (->> (:elements ir-schema)
                       (map #(if (and (= (:base %) "Bundle_Entry")
                                      (= (:name %) "resource"))
@@ -130,11 +130,8 @@
         base-class-name (when-not (str/blank? base-class)
                           (uppercase-first-letter base-class))]
     (str
-     (when (and inner-classes
-                (seq inner-classes))
-       (str
-        (str/join "\n\n" inner-classes)
-        "\n\n"))
+     (when (seq inner-classes)
+       (str (str/join "\n\n" inner-classes) "\n\n"))
 
      "class " class-name' "(" base-class-name "):"
      (when-not (str/blank? properties)
@@ -184,6 +181,6 @@
                                          (generate-backbone-classes ir-schema))])})
   (generate-search-params [_ search-schemas fhir-schemas])
   (generate-constraints [_ _schemas all-schemas] "")
-  (generate-sdk-files [this] ""))
+  (generate-sdk-files [this] templates/files))
 
 (def generator (->PythonCodeGenerator))
