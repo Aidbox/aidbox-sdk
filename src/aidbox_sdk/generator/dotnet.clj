@@ -1,13 +1,13 @@
 (ns aidbox-sdk.generator.dotnet
   (:require
-   [aidbox-sdk.fhir :as fhir]
+   [aidbox-sdk.generator :as generator]
    [aidbox-sdk.generator.dotnet.templates :as templates]
-   [aidbox-sdk.generator.helpers :refer [->pascal-case uppercase-first-letter vector->map]]
+   [aidbox-sdk.generator.helpers :refer [->pascal-case uppercase-first-letter
+                                         vector->map]]
    [aidbox-sdk.generator.utils :as u]
    [clojure.java.io :as io]
    [clojure.set :as set]
-   [clojure.string :as str]
-   [aidbox-sdk.generator :as gen])
+   [clojure.string :as str])
   (:import
    [aidbox_sdk.generator CodeGenerator]))
 
@@ -216,30 +216,6 @@
          (str/join "\n\n" inner-classes)
          "\n}")))
 
-(defn search-parameters-for [schemas resource-name]
-  (->> schemas
-       (filter fhir/search-parameter?)
-       (remove fhir/search-parameter-from-extension?)
-       (filter #(contains? (set (:base %)) resource-name))))
-
-(defn resolve-elements [schemas resource]
-  (->> (search-parameters-for schemas resource)
-       (map :code)
-       (map ->pascal-case)
-       (distinct)
-       (sort)))
-
-(defn search-parameters-structures
-  [search-parameters-schemas schemas]
-  (->> schemas
-       (map (fn [schema]
-              {:name (:id schema)
-               :base (when-let [base (:base schema)]
-                       (->pascal-case
-                        (str/replace base #"http://hl7.org/fhir/StructureDefinition/" "")))
-               :elements (resolve-elements search-parameters-schemas (:id schema))}))
-       (remove #(empty? (:elements %)))))
-
 ;;
 ;; Constraints
 ;;
@@ -388,14 +364,14 @@
 
   (generate-search-params [_ search-schemas fhir-schemas]
     (for [{:keys [name base elements]}
-          (search-parameters-structures search-schemas fhir-schemas)]
+          (generator/search-parameters-structures search-schemas fhir-schemas)]
       {:path (io/file "search" (str name "SearchParameters.cs"))
        :content
        (generate-module
         :name "Aidbox.FHIR.Search"
         :classes (search-param-class
                   (str name "SearchParameters")
-                  (map #(hash-map :value "string" :name %) elements)
+                  (map #(hash-map :value "string" :name (->pascal-case %)) elements)
                   (when base
                     (str base "SearchParameters"))))}))
 

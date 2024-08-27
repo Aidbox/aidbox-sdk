@@ -827,7 +827,7 @@
    :type "Patient",
    :elements
    [{:name "multipleBirthBoolean",
-     :base "Patient",
+     :basee "Patient",
      :array false,
      :required false,
      :value "bool",
@@ -1411,26 +1411,31 @@
                          :base "Coding",
                          :array false,
                          :required false,
-                         :value "string"}
+                         :value "string"
+                         :type "string"}
                         {:name "system",
                          :base "Coding",
                          :array false,
                          :required false,
-                         :value "string"}
+                         :value "string"
+                         :type "string"}
                         {:name "display",
                          :base "Coding",
                          :array false,
                          :required false,
+                         :type "string"
                          :value "string"}
                         {:name "version",
                          :base "Coding",
                          :array false,
                          :required false,
+                         :type "string"
                          :value "string"}
                         {:name "userSelected",
                          :base "Coding",
                          :array false,
                          :required false,
+                         :type "boolean"
                          :value "bool"}],
                        :url "http://hl7.org/fhir/StructureDefinition/Coding",
                        :backbone-elements (),

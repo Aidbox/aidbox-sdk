@@ -1,8 +1,10 @@
 (ns aidbox-sdk.generator.python
   (:require
-   [aidbox-sdk.generator.helpers :refer [->pascal-case ->snake-case uppercase-first-letter]]
-   [aidbox-sdk.generator.utils :as u]
+   [aidbox-sdk.generator :as generator]
+   [aidbox-sdk.generator.helpers :refer [->pascal-case ->snake-case
+                                         uppercase-first-letter]]
    [aidbox-sdk.generator.python.templates :as templates]
+   [aidbox-sdk.generator.utils :as u]
    [clojure.java.io :as io]
    [clojure.string :as str])
   (:import
@@ -68,34 +70,33 @@
            (str (->pascal-case (:name ir-schema)) ".py")))
 
 (defn generate-polymorphic-property [element]
-  "")
+  nil)
 
 (defn generate-property
   "Generates class property from schema element."
   [element]
   (let [name (->snake-case (:name element))
         lang-type (->lang-type (:type element))
-        type      (str
-                   (cond
-                     ;; required and array
-                     (and (:required element)
-                          (:array element))
-                     (format "List[%s]" lang-type)
+        type      (cond
+                    ;; required and array
+                    (and (:required element)
+                         (:array element))
+                    (format "list[%s]" lang-type)
 
-                     ;; not required and array
-                     (and (not (:required element))
-                          (:array element))
-                     (format "Optional[List[%s]]" lang-type)
+                    ;; not required and array
+                    (and (not (:required element))
+                         (:array element))
+                    (format "Optional[List[%s]]" lang-type)
 
-                     ;; required and not array
-                     (and (:required element)
-                          (not (:array element)))
-                     lang-type
+                    ;; required and not array
+                    (and (:required element)
+                         (not (:array element)))
+                    lang-type
 
-                     ;; not required and not array
-                     (and (not (:required element))
-                          (not (:array element)))
-                     (format "Optional[%s]" lang-type)))
+                    ;; not required and not array
+                    (and (not (:required element))
+                         (not (:array element)))
+                    (format "Optional[%s]" lang-type))
 
         default-value (cond
                         (not (:required element))
@@ -125,6 +126,7 @@
         properties (->> elements
                         (sort-by :name)
                         (map generate-property)
+                        (remove nil?)
                         (map u/add-indent)
                         (str/join "\n"))
         base-class-name (when-not (str/blank? base-class)
@@ -136,8 +138,7 @@
      "class " class-name' "(" base-class-name "):"
      (when-not (str/blank? properties)
        "\n")
-     properties
-     )))
+     properties)))
 
 (defn generate-module
   [& {:keys [deps classes]
@@ -146,7 +147,7 @@
              (generate-deps deps)
              classes)
        (flatten)
-       (str/join "\n")))
+       (str/join "\n\n")))
 
 (defn generate-backbone-classes
   "Generates classes from schema's backbone elements."
@@ -155,21 +156,37 @@
        (map #(assoc % :base "BackboneElement"))
        (map generate-class)))
 
+;;
+;; Search Params
+;;
+
+(defn search-param-class [class-name elements parent & [inner-classes]]
+  (let [properties (->> elements
+                        (map generate-property)
+                        (map #(str u/indent %))
+                        (str/join "\n"))
+        base-class-name (uppercase-first-letter parent)]
+    (str "class " class-name "(" base-class-name "):"
+         (when-not (str/blank? properties)
+           "\n")
+         properties
+         (when (and inner-classes
+                    (seq inner-classes))
+           "\n\n")
+         (str/join "\n\n" inner-classes))))
+
+
 (defrecord PythonCodeGenerator []
   CodeGenerator
   (generate-datatypes [_ ir-schemas]
-    (let [file-name "__init__.py"
-          file-path (io/file "base" file-name)
-          module (generate-module
-                  :name ""
-                  :deps [{:module "..base" :members []}]
-                  :classes [(map (fn [ir-schema]
-                                   (generate-class ir-schema
-                                                   (generate-backbone-classes ir-schema)))
-                                 ir-schemas)])]
-
-      [:path file-path
-       :content module]))
+    {:path (io/file "base" "__init__.py")
+     :content (generate-module
+               :deps [{:module "pydantic" :members ["*"]}
+                      {:module "typing" :members ["Optional" "List"]}]
+               :classes (map (fn [ir-schema]
+                               (generate-class ir-schema
+                                               (generate-backbone-classes ir-schema)))
+                             ir-schemas))})
 
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)
@@ -179,7 +196,20 @@
                       {:module "..base" :members ["*"]}]
                :classes [(generate-class ir-schema
                                          (generate-backbone-classes ir-schema))])})
-  (generate-search-params [_ search-schemas fhir-schemas])
+
+  (generate-search-params [_ search-schemas fhir-schemas]
+    (for [{:keys [name base elements]}
+          (generator/search-parameters-structures search-schemas fhir-schemas)]
+      {:path (io/file "search" (str name "SearchParameters.py"))
+       :content
+       (generate-module
+        :deps [{:module "typing" :members ["Optional"]}]
+        :classes (search-param-class
+                  (str name "SearchParameters")
+                  (map #(hash-map :type "string" :name %) elements)
+                  (when base
+                    (str base "SearchParameters"))))}))
+
   (generate-constraints [_ _schemas all-schemas] "")
   (generate-sdk-files [this] templates/files))
 
