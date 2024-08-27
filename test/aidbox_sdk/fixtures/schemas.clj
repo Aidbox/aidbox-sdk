@@ -2382,3 +2382,38 @@
     :base ["Patient"],
     :version "1.0.0",
     :fqn "hl7.fhir.uv.extensions.r4#1.0.0/patient-extensions-Patient-age"}])
+
+(def patient-search-params-ir-schemas
+  [{:name "Patient"
+    :base "DomainResource"
+    :elements
+    [{:type "string" :name "_id"}
+     {:type "string" :name "active"}
+     {:type "string" :name "address"}
+     {:type "string" :name "address-city"}
+     {:type "string" :name "address-country"}
+     {:type "string" :name "address-postalcode"}
+     {:type "string" :name "address-state"}
+     {:type "string" :name "address-use"}
+     {:type "string" :name "age"}
+     {:type "string" :name "birthOrderBoolean"}
+     {:type "string" :name "birthdate"}
+     {:type "string" :name "death-date"}
+     {:type "string" :name "deceased"}
+     {:type "string" :name "email"}
+     {:type "string" :name "ethnicity"}
+     {:type "string" :name "family"}
+     {:type "string" :name "gender"}
+     {:type "string" :name "general-practitioner"}
+     {:type "string" :name "given"}
+     {:type "string" :name "identifier"}
+     {:type "string" :name "language"}
+     {:type "string" :name "link"}
+     {:type "string" :name "mothersMaidenName"}
+     {:type "string" :name "name"}
+     {:type "string" :name "organization"}
+     {:type "string" :name "part-agree"}
+     {:type "string" :name "phone"}
+     {:type "string" :name "phonetic"}
+     {:type "string" :name "race"}
+     {:type "string" :name "telecom"}]}])

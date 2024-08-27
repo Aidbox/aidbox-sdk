@@ -96,7 +96,7 @@
                 "new ")
               (when (and (:required element)
                          (not (:meta element))) "required ")
-              (:value element)
+              (or (:value element) (:type element))
               (:generic element)
               (when (:array element) "[]")
               (when (and (not (:required element))
@@ -133,12 +133,10 @@
                               (assoc % :value "T")
                               %)))
 
-        properties (try (->> elements
-                             (map generate-property)
-                             (map u/add-indent)
-                             (str/join "\n"))
-                        (catch Exception _
-                          (prn schema)))
+        properties (->> elements
+                        (map generate-property)
+                        (map u/add-indent)
+                        (str/join "\n"))
 
         base-class (cond (= base-class "Resource") "Base.Resource"
                          (= base-class "DomainResource") "DomainResource, IResource"
@@ -213,13 +211,13 @@
 
 (defn apply-choices [choices schema]
   (->> choices
-       (map (fn [[key, item]]
+       (map (fn [[key item]]
               (set/difference
                (set (:choices (first (filter #(= (:name %) (name key)) schema))))
                (set (:choices item)))))
        (reduce set/union #{})
-       ((fn [choises-to-exclude]
-          (filter #(not (contains? choises-to-exclude (:name %))) schema)))))
+       ((fn [choices-to-exclude]
+          (filter #(not (contains? choices-to-exclude (:name %))) schema)))))
 
 (defn pattern-codeable-concept [name schema]
   (->> (str "}")
@@ -233,7 +231,7 @@
                                     (str (when (contains? code :display) (str "\tpublic new string Display { get; } = \"" (:display code) "\";\n")))
                                     (str "\n\nclass Coding" (str/join (str/split (:code code) #"-")) " : Coding\n{\n"))) coding))) "\n")))
 
-(defn create-single-pattern [constraint-name, [key, schema], elements]
+(defn create-single-pattern [constraint-name [key schema] elements]
   (case (url->resource-name (some #(when (= (name key) (:name %)) (:value %)) elements))
     "CodeableConcept" (pattern-codeable-concept (str (uppercase-first-letter (url->resource-name constraint-name)) (uppercase-first-letter (subs (str key) 1))) schema) ""))
 
@@ -242,14 +240,22 @@
               (if-let [pattern (some #(when (= (name (first %)) (:name item)) (last %)) patterns)]
                 (case (:value item)
                   "str" (assoc item :value (:pattern pattern) :literal true)
-                  "CodeableConcept" (conj item (hash-map :value (str (str/join (map uppercase-first-letter (str/split (url->resource-name constraint-name) #"-"))) (str/join (map uppercase-first-letter (str/split (:name item) #"-")))) :codeable-concept-pattern true))
+                  "CodeableConcept" (conj item (hash-map :value (str
+                                                                 (str/join
+                                                                  (map uppercase-first-letter
+                                                                       (str/split (url->resource-name constraint-name) #"-")))
+                                                                 (str/join (map uppercase-first-letter
+                                                                                (str/split (:name item) #"-"))))
+                                                         :codeable-concept-pattern true))
                   "Quantity" item item) item)) (:elements schema))
        (hash-map :elements)
        (conj schema (hash-map :patterns (concat (get schema :patterns []) (map (fn [item] (create-single-pattern constraint-name item (:elements schema))) patterns))))))
 
 (defn add-meta [constraint-name elements]
   (->> (filter #(not (= (:name %) "meta")) elements)
-       (concat [{:name "meta" :required true :value (str "Meta") :meta (str " = new() { Profile = [\"" constraint-name "\"] };")}])))
+       (concat [{:name "meta"
+                 :required true :value "Meta"
+                 :meta (str " = Meta(profile=[\"" constraint-name "\"]);")}])))
 
 (defn apply-single-constraint [constraint parent-schema]
   (->> (:elements parent-schema)
