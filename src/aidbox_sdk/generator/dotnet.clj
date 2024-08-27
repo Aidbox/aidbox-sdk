@@ -196,27 +196,6 @@
             (str/join "."))))
 
 ;;
-;; Search Parameters
-;;
-
-(defn search-param-class [class-name elements parent & [inner-classes]]
-  (let [class-properties
-        (->> elements
-             (map generate-property)
-             (map #(str u/indent %))
-             (str/join "\n"))
-        base-class-name (when-not (str/blank? parent)
-                          (str " : " (uppercase-first-letter parent)))]
-    (str "public class " class-name base-class-name "\n{"
-         (when-not (str/blank? class-properties) "\n")
-         class-properties
-         (when (and inner-classes
-                    (seq inner-classes))
-           "\n\n")
-         (str/join "\n\n" inner-classes)
-         "\n}")))
-
-;;
 ;; Constraints
 ;;
 
@@ -369,11 +348,11 @@
        :content
        (generate-module
         :name "Aidbox.FHIR.Search"
-        :classes (search-param-class
-                  (str name "SearchParameters")
-                  (map #(hash-map :value "string" :name (->pascal-case %)) elements)
-                  (when base
-                    (str base "SearchParameters"))))}))
+        :classes (generate-class
+                  {:name (str name "SearchParameters")
+                   :base  (when base
+                            (str base "SearchParameters"))
+                   :elements (map #(hash-map :value "string" :name (->pascal-case %)) elements)}))}))
 
   (generate-constraints [_ constraint-schemas ir-schemas]
     (->> (apply-constraints constraint-schemas (vector->map ir-schemas))

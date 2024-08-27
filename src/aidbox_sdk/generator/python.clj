@@ -65,9 +65,16 @@
   [x]
   (str/replace x #"[\.#]" "-"))
 
+(defn datatypes-file-path []
+  (io/file "base/__init__.py"))
+
 (defn resource-file-path [ir-schema]
   (io/file (package->directory (:package ir-schema))
            (str (->pascal-case (:name ir-schema)) ".py")))
+
+(defn constraint-file-path [ir-schema name]
+  (io/file (package->directory (:package ir-schema))
+           (str (->pascal-case (url->resource-name name)) ".py")))
 
 (defn generate-polymorphic-property [element]
   nil)
@@ -156,30 +163,10 @@
        (map #(assoc % :base "BackboneElement"))
        (map generate-class)))
 
-;;
-;; Search Params
-;;
-
-(defn search-param-class [class-name elements parent & [inner-classes]]
-  (let [properties (->> elements
-                        (map generate-property)
-                        (map #(str u/indent %))
-                        (str/join "\n"))
-        base-class-name (uppercase-first-letter parent)]
-    (str "class " class-name "(" base-class-name "):"
-         (when-not (str/blank? properties)
-           "\n")
-         properties
-         (when (and inner-classes
-                    (seq inner-classes))
-           "\n\n")
-         (str/join "\n\n" inner-classes))))
-
-
 (defrecord PythonCodeGenerator []
   CodeGenerator
   (generate-datatypes [_ ir-schemas]
-    {:path (io/file "base" "__init__.py")
+    {:path (datatypes-file-path)
      :content (generate-module
                :deps [{:module "pydantic" :members ["*"]}
                       {:module "typing" :members ["Optional" "List"]}]
@@ -204,13 +191,13 @@
        :content
        (generate-module
         :deps [{:module "typing" :members ["Optional"]}]
-        :classes (search-param-class
-                  (str name "SearchParameters")
-                  (map #(hash-map :type "string" :name %) elements)
-                  (when base
-                    (str base "SearchParameters"))))}))
+        :classes [(generate-class
+                   {:name (str name "SearchParameters")
+                    :base (when base
+                            (str base "SearchParameters"))
+                    :elements (map #(hash-map :type "string" :name %) elements)})])}))
 
   (generate-constraints [_ _schemas all-schemas] "")
-  (generate-sdk-files [this] templates/files))
+  (generate-sdk-files [_] templates/files))
 
 (def generator (->PythonCodeGenerator))
