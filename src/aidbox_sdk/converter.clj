@@ -192,3 +192,20 @@
        (map (fn [schema] (update schema
                                  :backbone-elements #(resolve-choices (flatten-backbones % [])))))
        (resolve-choices)))
+
+(defn resolve-elements [schemas resource]
+  (->> schemas
+       (filter #(contains? (set (:base %)) resource))
+       (map :code)
+       (distinct)
+       (sort)))
+
+(defn convert-search-params [search-params-schemas all-schemas]
+  (->> all-schemas
+       (map (fn [schema]
+              {:name (:id schema)
+               :base (when-let [base (:base schema)]
+                       (->pascal-case (url->resource-name base)))
+               :elements (->> (resolve-elements search-params-schemas (:id schema))
+                              (map (fn [el] {:type "string" :name el})))}))
+       (remove #(empty? (:elements %)))))

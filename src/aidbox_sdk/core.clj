@@ -6,6 +6,7 @@
    [aidbox-sdk.converter :as converter]
    [aidbox-sdk.generator :as generator]
    [aidbox-sdk.generator.dotnet :as dotnet]
+   [aidbox-sdk.generator.python :as python]
    [aidbox-sdk.schema :as importer]
    [clojure.java.io :as io]))
 
@@ -16,7 +17,7 @@
 ;; I/O Helpers
 ;;
 
-(defn create-directory! [dir]
+(defn create-directory! [^java.io.File dir]
   (when-not (.mkdir dir)
     (throw (Exception. (str "Can't create directory: " dir)))))
 
@@ -42,13 +43,12 @@
 
 ;;
 ;;
-;;
 
 (defn lang->generator [lang]
   (case lang
     :dotnet dotnet/generator
-    #_#_#_#_#_#_:python python/generator
-            :typescript typescript/generator
+    :python python/generator
+    #_#_#_#_:typescript typescript/generator
         :java java/generator))
 
 (defn generate! [target-language input options]
@@ -60,17 +60,21 @@
         datatype?        (every-pred fhir/fhir-schema? fhir/base-schema? fhir/datatype?)
         domain-resource? (every-pred fhir/fhir-schema? fhir/base-schema? fhir/domain-resource?)
         constraint?      (every-pred fhir/fhir-schema? fhir/constraint? (complement fhir/extension?))
+        search-param?    (every-pred fhir/search-parameter? (complement fhir/search-parameter-from-extension?))
 
         fhir-schemas         (filter fhir/fhir-schema? all-schemas)
         datatype-schemas     (filter datatype? all-schemas)
         resource-schemas     (filter domain-resource? all-schemas)
         constraint-schemas   (filter constraint? all-schemas)
-        search-param-schemas (filter fhir/search-parameter? all-schemas)
+        search-param-schemas (filter search-param? all-schemas)
 
-        ir-schemas           (converter/convert fhir-schemas)
-        datatype-ir-schemas  (converter/convert datatype-schemas)
-        resource-ir-schemas  (converter/convert resource-schemas)
-        generator'           (lang->generator target-language)
+        ir-schemas              (converter/convert fhir-schemas)
+        datatype-ir-schemas     (converter/convert datatype-schemas)
+        resource-ir-schemas     (converter/convert resource-schemas)
+        search-param-ir-schemas (converter/convert-search-params search-param-schemas
+                                                                 fhir-schemas)
+
+        generator' (lang->generator target-language)
 
         generate-resource-module #(generator/generate-resource-module generator' %)]
 
@@ -90,7 +94,7 @@
     (save-files! (generator/generate-constraints generator' constraint-schemas ir-schemas))
 
     (println "Generating search parameters")
-    (save-files! (generator/generate-search-params generator' search-param-schemas fhir-schemas))
+    (save-files! (generator/generate-search-params generator' search-param-ir-schemas))
 
     (println "Generating common SDK files")
     (save-files! (generator/generate-sdk-files generator'))
@@ -102,3 +106,10 @@
 
 (defn -main [& args]
   (cli/app system args))
+
+(comment
+  (require 'aidbox-sdk.generator.dotnet.templates)
+
+  (map #(update % :path io/file) aidbox-sdk.generator.dotnet.templates/files)
+
+  (save-files! (io/file "/tmp/dotnet") (map #(update % :path io/file) aidbox-sdk.generator.dotnet.templates/files)))

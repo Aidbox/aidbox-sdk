@@ -11,7 +11,7 @@
    ["-h" "--help"]])
 
 (def supported-commands #{"generate"})
-(def supported-languages #{"dotnet"})
+(def supported-languages #{"dotnet" "python"})
 
 (defn validate-args [args]
   (let [[command target-language input] args]
@@ -59,7 +59,7 @@
 
       (= command "generate")
       (try
-        (generate target-language input options)
+        (generate (keyword target-language) input options)
         (exit 0)
 
         (catch Throwable e

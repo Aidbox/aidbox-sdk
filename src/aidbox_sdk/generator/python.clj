@@ -76,6 +76,9 @@
   (io/file (package->directory (:package ir-schema))
            (str (->pascal-case (url->resource-name name)) ".py")))
 
+(defn search-param-filepath [ir-schema]
+  (io/file "search" (str (:name ir-schema) "SearchParameters.py")))
+
 (defn generate-polymorphic-property [element]
   nil)
 
@@ -166,14 +169,14 @@
 (defrecord PythonCodeGenerator []
   CodeGenerator
   (generate-datatypes [_ ir-schemas]
-    {:path (datatypes-file-path)
-     :content (generate-module
-               :deps [{:module "pydantic" :members ["*"]}
-                      {:module "typing" :members ["Optional" "List"]}]
-               :classes (map (fn [ir-schema]
-                               (generate-class ir-schema
-                                               (generate-backbone-classes ir-schema)))
-                             ir-schemas))})
+    [{:path (datatypes-file-path)
+      :content (generate-module
+                :deps [{:module "pydantic" :members ["*"]}
+                       {:module "typing" :members ["Optional" "List"]}]
+                :classes (map (fn [ir-schema]
+                                (generate-class ir-schema
+                                                (generate-backbone-classes ir-schema)))
+                              ir-schemas))}])
 
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)
@@ -184,18 +187,17 @@
                :classes [(generate-class ir-schema
                                          (generate-backbone-classes ir-schema))])})
 
-  (generate-search-params [_ search-schemas fhir-schemas]
-    (for [{:keys [name base elements]}
-          (generator/search-parameters-structures search-schemas fhir-schemas)]
-      {:path (io/file "search" (str name "SearchParameters.py"))
-       :content
-       (generate-module
-        :deps [{:module "typing" :members ["Optional"]}]
-        :classes [(generate-class
-                   {:name (str name "SearchParameters")
-                    :base (when base
-                            (str base "SearchParameters"))
-                    :elements (map #(hash-map :type "string" :name %) elements)})])}))
+  (generate-search-params [_ ir-schemas]
+    (map (fn [ir-schema]
+           {:path (search-param-filepath ir-schema)
+            :content (generate-module
+                      :deps [{:module "typing" :members ["Optional"]}]
+                      :classes [(generate-class
+                                 {:name (format "%sSearchParameters" (:name ir-schema))
+                                  :base (when (:base ir-schema)
+                                          (format "%sSearchParameters" (:base ir-schema)))
+                                  :elements (:elements ir-schema)})])})
+         ir-schemas))
 
   (generate-constraints [_ _schemas all-schemas] "")
   (generate-sdk-files [_] templates/files))

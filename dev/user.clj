@@ -5,6 +5,7 @@
    [aidbox-sdk.converter :as converter]
    [aidbox-sdk.fixtures.schemas :as fixtures]
    [aidbox-sdk.generator :as gen]
+   [aidbox-sdk.generator.python :as gen.python]
    [aidbox-sdk.schema :as import]
    [aidbox-sdk.cli :as cli]
    [clojure.data]
@@ -40,48 +41,44 @@
 
   (resource-types aidbox-schemas)
   ;; => ("FHIRSchema"
+  ;;     "SearchParameter"
+  ;;     "CompartmentDefinition"
+  ;;     "ValueSet"
   ;;     "StructureDefinition")
 
   (->> aidbox-schemas
        (filter #(= "Patient" (:id %)))
        (converter/convert))
 
-  (->> aidbox-schemas
-       (filter fhir/fhir-schema?)
-       (converter/convert))
+  (converter/convert-search-params
+   (->> aidbox-schemas
+        (filter fhir/search-parameter?)
+        (remove fhir/search-parameter-from-extension?))
+   (->> aidbox-schemas
+        (filter fhir/fhir-schema?)))
 
-  (->> aidbox-schemas
-       (filter fhir/fhir-schema?)
-       (filter fhir/constraint?)
-       (converter/convert))
+  (let [all-schemas      aidbox-schemas
 
-  (->> r4-schemas
-       (filter #(= nil (:resourceType %)))
-       (filter fhir/constraint?))
+        datatype?        (every-pred fhir/fhir-schema? fhir/base-schema? fhir/datatype?)
+        domain-resource? (every-pred fhir/fhir-schema? fhir/base-schema? fhir/domain-resource?)
+        constraint?      (every-pred fhir/fhir-schema? fhir/constraint? (complement fhir/extension?))
+        search-param?    (every-pred fhir/search-parameter? (complement fhir/search-parameter-from-extension?))
 
-  (gen/build-all!
-   :input "resources/schemas"
-   :target-language "dotnet"
-   :output "dist")
+        fhir-schemas         (filter fhir/fhir-schema? all-schemas)
+        datatype-schemas     (filter datatype? all-schemas)
+        resource-schemas     (filter domain-resource? all-schemas)
+        constraint-schemas   (filter constraint? all-schemas)
+        search-param-schemas (filter search-param? all-schemas)
 
-  (gen/build-all!
-   :auth "YmFzaWM6c2VjcmV0"
-   :target-language "dotnet"
-   :input "http://localhost:8765/api/sdk/fhir-packages"
-   :output "dist1")
+        ir-schemas              (converter/convert fhir-schemas)
+        datatype-ir-schemas     (converter/convert datatype-schemas)
+        resource-ir-schemas     (converter/convert resource-schemas)
+        search-param-ir-schemas (converter/convert-search-params search-param-schemas
+                                                                 fhir-schemas)]
+(gen/generate-datatypes gen.python/generator resource-ir-schemas)
+    )
 
-  (sdk/generate :dotnet "http://localhost:8765/api/sdk/fhir-packages"
-                {:auth-token "YmFzaWM6c2VjcmV0"
-                 :output-dir "dist-new"})
 
-  (cli/app {:exit (fn [s])} ["-h"])
 
-  (cli/parse-args ["generate" "dotnet" "-h"])
-
-  (clojure.walk/postwalk (fn [x] (prn x)
-
-                           x)
-
-                         fixtures/unflattened-backbone-elements)
 
   :rcf)

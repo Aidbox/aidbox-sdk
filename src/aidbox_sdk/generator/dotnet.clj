@@ -341,18 +341,19 @@
                :classes [(generate-class ir-schema
                                          (generate-backbone-classes ir-schema))])})
 
-  (generate-search-params [_ search-schemas fhir-schemas]
-    (for [{:keys [name base elements]}
-          (generator/search-parameters-structures search-schemas fhir-schemas)]
-      {:path (io/file "search" (str name "SearchParameters.cs"))
-       :content
-       (generate-module
-        :name "Aidbox.FHIR.Search"
-        :classes (generate-class
-                  {:name (str name "SearchParameters")
-                   :base  (when base
-                            (str base "SearchParameters"))
-                   :elements (map #(hash-map :value "string" :name (->pascal-case %)) elements)}))}))
+  (generate-search-params [_ ir-schemas]
+    (map (fn [ir-schema]
+           {:path (io/file "search" (str (:name ir-schema) "SearchParameters.cs"))
+            :content
+            (generate-module
+             :name "Aidbox.FHIR.Search"
+             :classes (generate-class
+                       {:name (str (:name ir-schema) "SearchParameters")
+                        :base (when (:base ir-schema)
+                                (str (:base ir-schema) "SearchParameters"))
+                        :elements (map (fn [el] (update el :name ->pascal-case))
+                                       (:elements ir-schema))}))})
+         ir-schemas))
 
   (generate-constraints [_ constraint-schemas ir-schemas]
     (->> (apply-constraints constraint-schemas (vector->map ir-schemas))

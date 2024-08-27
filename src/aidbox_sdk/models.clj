@@ -40,8 +40,16 @@
    [:backbone-elements
     [:vector BackboneElement]]])
 
+(def SearchParamIRSchema
+  [:map {:closed true}
+   [:name string?]
+   [:base string?]
+   [:elements [:vector [:map
+                        [:type "string"]
+                        [:name string?]]]]])
+
 (comment
   (m/validate IRSchema fix/patient-ir-schema)
 
-  ;
+;
   )
