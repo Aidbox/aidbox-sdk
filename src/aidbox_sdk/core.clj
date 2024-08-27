@@ -106,10 +106,3 @@
 
 (defn -main [& args]
   (cli/app system args))
-
-(comment
-  (require 'aidbox-sdk.generator.dotnet.templates)
-
-  (map #(update % :path io/file) aidbox-sdk.generator.dotnet.templates/files)
-
-  (save-files! (io/file "/tmp/dotnet") (map #(update % :path io/file) aidbox-sdk.generator.dotnet.templates/files)))
