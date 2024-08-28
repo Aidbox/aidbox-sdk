@@ -5,26 +5,22 @@
 (deftest cli-helpers-test
 
   (testing "validate-args"
-    (is (= (sut/validate-args [])
+    (is (= ["Please provide one of the supported commands: generate"
+            "Please provide one of the supported target languages: dotnet, python"
+            "Please provide a source of fhir packages"]
+           (sut/validate-args [])))
 
-           ["Please provide one of the supported commands: generate"
-            "Please provide one of the supported target languages: dotnet, java, typescript, python"
-            "Please provide input argument"]))
+    (is (= ["Please provide one of the supported commands: generate"
+            "Please provide one of the supported target languages: dotnet, python"
+            "Please provide a source of fhir packages"]
+           (sut/validate-args ["resource/schemas"])))
 
-    (is (= (sut/validate-args ["resource/schemas"])
+    (is (= ["Please provide one of the supported target languages: dotnet, python"
+            "Please provide a source of fhir packages"]
+           (sut/validate-args ["generate"])))
 
-           ["Please provide one of the supported commands: generate"
-            "Please provide one of the supported target languages: dotnet, java, typescript, python"
-            "Please provide input argument"]))
-
-    (is (= (sut/validate-args ["generate"])
-
-           ["Please provide one of the supported target languages: dotnet, java, typescript, python"
-            "Please provide input argument"]))
-
-    (is (= (sut/validate-args ["generate" "dotnet"])
-
-           ["Please provide input argument"]))
+    (is (= ["Please provide a source of fhir packages"]
+           (sut/validate-args ["generate" "dotnet"])))
 
     (is (= (sut/validate-args ["generate" "dotnet" "http://localhost:8765/api/sdk/fhir-packages"])
            []))

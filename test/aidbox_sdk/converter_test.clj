@@ -1,6 +1,7 @@
 (ns aidbox-sdk.converter-test
   (:require
    [clojure.test :refer [deftest is are testing]]
+   [matcho.core :as matcho]
    [aidbox-sdk.fixtures.schemas :as fixtures]
    [aidbox-sdk.converter :as sut]))
 
@@ -23,23 +24,22 @@
       (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/iso21090-ADXP-deliveryAddressLine"))))
 
 (deftest test-resolve-references
-  (is (= (sut/resolve-references fixtures/schemas-with-element-reference)
-         fixtures/schemas-with-element-reference-resolved)))
+  (is (= fixtures/schemas-with-element-reference-resolved
+         (sut/resolve-references fixtures/schemas-with-element-reference))))
 
 (deftest test-resolve-choices
-  (is (= (sut/resolve-choices fixtures/schemas-with-element-choices)
-         fixtures/schemas-with-element-choices-resolved)))
+  (is (= fixtures/schemas-with-element-choices-resolved
+         (sut/resolve-choices fixtures/schemas-with-element-choices))))
 
 (deftest test-backbones-flattening
-  (is (= (sut/flatten-backbones fixtures/unflattened-backbone-elements [])
-         fixtures/flattened-backbone-elements)))
+  (is (= fixtures/flattened-backbone-elements
+         (sut/flatten-backbones fixtures/unflattened-backbone-elements []))))
 
 (deftest test-convert
   (testing "convert resource"
-    (is (= (sut/convert [fixtures/patient-fhir-schema])
-
-           [fixtures/patient-ir-schema])))
+    (is (= [fixtures/patient-ir-schema]
+           (sut/convert [fixtures/patient-fhir-schema]))))
 
   (testing "convert constraint"
-    (is (= (sut/convert [fixtures/organization-preferred-contact-fhir-schema])
-           [fixtures/organization-preferred-contact-ir-schema]))))
+    (is (= [fixtures/organization-preferred-contact-ir-schema]
+           (sut/convert [fixtures/organization-preferred-contact-fhir-schema])))))

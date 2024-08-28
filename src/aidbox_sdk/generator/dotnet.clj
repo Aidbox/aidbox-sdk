@@ -255,7 +255,7 @@
   (->> (filter #(not (= (:name %) "meta")) elements)
        (concat [{:name "meta"
                  :required true :value "Meta"
-                 :meta (str " = Meta(profile=[\"" constraint-name "\"]);")}])))
+                 :meta (str " = new() { Profile = [\"" constraint-name "\"] };")}])))
 
 (defn apply-single-constraint [constraint parent-schema]
   (->> (:elements parent-schema)
