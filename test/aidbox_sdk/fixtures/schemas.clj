@@ -3483,7 +3483,7 @@
 
 {"http://hl7.org/fhir/StructureDefinition/ldlcholesterol"
  {:package "hl7.fhir.r4.core",
-  :derivation "specialization",
+  :derivation "constraint",
   :patterns (),
   :name "Observation",
   :type "Observation",
@@ -3492,7 +3492,7 @@
     :required true,
     :value "Meta",
     :profile "http://hl7.org/fhir/StructureDefinition/ldlcholesterol",
-    :type "Meta"
+    :type "Meta",
     :meta
     " = new() { Profile = [\"http://hl7.org/fhir/StructureDefinition/ldlcholesterol\"] };"}
    {:name "category",
@@ -4040,7 +4040,7 @@
   :base "http://hl7.org/fhir/StructureDefinition/DomainResource"},
  "http://hl7.org/fhir/StructureDefinition/cholesterol"
  {:package "hl7.fhir.r4.core",
-  :derivation "specialization",
+  :derivation "constraint",
   :patterns (),
   :name "Observation",
   :type "Observation",
@@ -4048,8 +4048,8 @@
   [{:name "meta",
     :required true,
     :value "Meta",
-    :type "Meta"
     :profile "http://hl7.org/fhir/StructureDefinition/cholesterol",
+    :type "Meta",
     :meta
     " = new() { Profile = [\"http://hl7.org/fhir/StructureDefinition/cholesterol\"] };"}
    {:name "category",
@@ -4597,7 +4597,7 @@
   :base "http://hl7.org/fhir/StructureDefinition/DomainResource"},
  "http://hl7.org/fhir/StructureDefinition/observation-genetics"
  {:package "hl7.fhir.r4.core",
-  :derivation "specialization",
+  :derivation "constraint",
   :patterns (),
   :name "Observation",
   :type "Observation",
@@ -4605,8 +4605,8 @@
   [{:name "meta",
     :required true,
     :value "Meta",
-    :type "Meta",
     :profile "http://hl7.org/fhir/StructureDefinition/observation-genetics",
+    :type "Meta",
     :meta
     " = new() { Profile = [\"http://hl7.org/fhir/StructureDefinition/observation-genetics\"] };"}
    {:name "category",
@@ -5166,16 +5166,16 @@
   :base "http://hl7.org/fhir/StructureDefinition/DomainResource"},
  "http://hl7.org/fhir/StructureDefinition/devicemetricobservation"
  {:package "hl7.fhir.r4.core",
-  :derivation "specialization",
-  :patterns [],
+  :derivation "constraint",
+  :patterns (),
   :name "Observation",
   :type "Observation",
   :elements
   [{:name "meta",
     :required true,
     :value "Meta",
-    :type "Meta",
     :profile "http://hl7.org/fhir/StructureDefinition/devicemetricobservation",
+    :type "Meta",
     :meta
     " = new() { Profile = [\"http://hl7.org/fhir/StructureDefinition/devicemetricobservation\"] };"}
    {:name "category",
@@ -5711,7 +5711,7 @@
   :base "http://hl7.org/fhir/StructureDefinition/DomainResource"},
  "http://hl7.org/fhir/StructureDefinition/triglyceride"
  {:package "hl7.fhir.r4.core",
-  :derivation "specialization",
+  :derivation "constraint",
   :patterns [""],
   :name "Observation",
   :type "Observation",
@@ -5719,8 +5719,8 @@
   [{:name "meta",
     :required true,
     :value "Meta",
-    :type "Meta",
     :profile "http://hl7.org/fhir/StructureDefinition/triglyceride",
+    :type "Meta",
     :meta
     " = new() { Profile = [\"http://hl7.org/fhir/StructureDefinition/triglyceride\"] };"}
    {:name "category",
@@ -6268,7 +6268,7 @@
   :base "http://hl7.org/fhir/StructureDefinition/DomainResource"},
  "http://hl7.org/fhir/StructureDefinition/vitalsigns"
  {:package "hl7.fhir.r4.core",
-  :derivation "specialization",
+  :derivation "constraint",
   :patterns (),
   :name "Observation",
   :type "Observation",
@@ -6276,8 +6276,8 @@
   [{:name "meta",
     :required true,
     :value "Meta",
-    :type "Meta",
     :profile "http://hl7.org/fhir/StructureDefinition/vitalsigns",
+    :type "Meta",
     :meta
     " = new() { Profile = [\"http://hl7.org/fhir/StructureDefinition/vitalsigns\"] };"}
    {:name "category",
@@ -6838,7 +6838,7 @@
   :base "http://hl7.org/fhir/StructureDefinition/DomainResource"},
  "http://hl7.org/fhir/StructureDefinition/hdlcholesterol"
  {:package "hl7.fhir.r4.core",
-  :derivation "specialization",
+  :derivation "constraint",
   :patterns (),
   :name "Observation",
   :type "Observation",
@@ -6846,8 +6846,8 @@
   [{:name "meta",
     :required true,
     :value "Meta",
-    :type "Meta",
     :profile "http://hl7.org/fhir/StructureDefinition/hdlcholesterol",
+    :type "Meta",
     :meta
     " = new() { Profile = [\"http://hl7.org/fhir/StructureDefinition/hdlcholesterol\"] };"}
    {:name "category",

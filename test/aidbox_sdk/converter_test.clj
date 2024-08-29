@@ -2,7 +2,6 @@
   (:require
    [aidbox-sdk.converter :as sut]
    [aidbox-sdk.fixtures.schemas :as fixtures]
-   [aidbox-sdk.generator.helpers :refer [vector->map]]
    [clojure.test :refer [are deftest is testing]]))
 
 (deftest test-converter-utils
