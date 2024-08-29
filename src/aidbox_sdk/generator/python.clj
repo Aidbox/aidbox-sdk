@@ -20,11 +20,11 @@
     "dateTime"     "str"
     "decimal"      "float"
 
-    "integer"      "integer"
-    "unsignedInt"  "integer"
-    "positiveInt"  "integer"
+    "integer"      "int"
+    "unsignedInt"  "int"
+    "positiveInt"  "int"
 
-    "integer64"    "integer"
+    "integer64"    "int"
     "base64Binary" "str"
 
     "uri"          "str"
