@@ -5,7 +5,6 @@
    [aidbox-sdk.generator.python.templates :as templates]
    [aidbox-sdk.generator.utils :as u]
    [clojure.java.io :as io]
-   [clojure.set :as set]
    [clojure.string :as str])
   (:import
    [aidbox_sdk.generator CodeGenerator]))
@@ -38,6 +37,8 @@
     "markdown"     "str"
     "id"           "str"
 
+    ;; hardcoded just in case
+    "Meta"         "Meta"
     ;; else
     fhir-type))
 
@@ -82,11 +83,16 @@
 (defn generate-polymorphic-property [element]
   nil)
 
+(defn ->backbone-type [element]
+  (str (:base element) "_" (uppercase-first-letter (:name element))))
+
 (defn generate-property
   "Generates class property from schema element."
   [element]
   (let [name (->snake-case (:name element))
-        lang-type (->lang-type (:type element))
+        lang-type (if (= "BackboneElement" (:type element))
+                    (->backbone-type element)
+                    (->lang-type (:type element)))
         type      (cond
                     ;; required and array
                     (and (:required element)
@@ -109,6 +115,9 @@
                     (format "Optional[%s]" lang-type))
 
         default-value (cond
+                        (:meta element)
+                        (format "Meta(profile=[\"%s\"])" (:profile element))
+
                         (not (:required element))
                         "None"
 
@@ -134,7 +143,6 @@
                               (assoc % :value "T")
                               %)))
         properties (->> elements
-                        (sort-by :name)
                         (map generate-property)
                         (remove nil?)
                         (map u/add-indent)
@@ -165,105 +173,6 @@
   (->> (ir-schema :backbone-elements)
        (map #(assoc % :base "BackboneElement"))
        (map generate-class)))
-
-;;
-;; Constraints
-;;
-
-(defn apply-excluded [excluded schema]
-  (filter (fn [field-schema]
-            (not (some #(= % (:name field-schema)) excluded)))
-          schema))
-
-(defn apply-required [required elements]
-  (->> elements
-       (map (fn [element]
-              (if (contains? (set required) (:name element))
-                (assoc element :required true)
-                element)))))
-
-(defn apply-choices [choices schema]
-  (->> choices
-       (map (fn [[key, item]]
-              (set/difference
-               (set (:choices (first (filter #(= (:name %) (name key)) schema))))
-               (set (:choices item)))))
-       (reduce set/union #{})
-       ((fn [choises-to-exclude]
-          (filter #(not (contains? choises-to-exclude (:name %))) schema)))))
-
-(defn pattern-codeable-concept [name schema]
-  (->> (str "}")
-       (str "\tpublic new " (str/join ", " (map #(str "Coding" (str/join (str/split (:code %) #"-"))) (get-in schema [:pattern :coding] []))) "[] Coding { get; } = [new()];\n") #_(str/join ", " (map #(str "Coding" (str/join (str/split (:code %) #"-")) "()") (get-in schema [:pattern :coding] [])))
-       (str "\nclass " (str/join (map uppercase-first-letter (str/split name #"-"))) " : CodeableConcept\n{\n")
-       (str (when-let [coding (:coding (:pattern schema))]
-              (str/join (map (fn [code]
-                               (->> (str "}")
-                                    (str (when (contains? code :code)  (str "\tpublic new string Code { get; } = \"" (:code code) "\";\n")))
-                                    (str (when (contains? code :system) (str "\tpublic new string System { get; } = \"" (:system code) "\";\n")))
-                                    (str (when (contains? code :display) (str "\tpublic new string Display { get; } = \"" (:display code) "\";\n")))
-                                    (str "\n\nclass Coding" (str/join (str/split (:code code) #"-")) " : Coding\n{\n"))) coding))) "\n")))
-
-(defn create-single-pattern [constraint-name, [key, schema], elements]
-  (case (url->resource-name (some #(when (= (name key) (:name %)) (:value %)) elements))
-    "CodeableConcept" (pattern-codeable-concept (str (uppercase-first-letter (url->resource-name constraint-name)) (uppercase-first-letter (subs (str key) 1))) schema) ""))
-
-(defn apply-patterns [constraint-name patterns schema]
-  (->> (map (fn [item]
-              (if-let [pattern (some #(when (= (name (first %)) (:name item)) (last %)) patterns)]
-                (case (:value item)
-                  "str" (assoc item :value (:pattern pattern) :literal true)
-                  "CodeableConcept" (conj item (hash-map :value (str (str/join (map uppercase-first-letter (str/split (url->resource-name constraint-name) #"-"))) (str/join (map uppercase-first-letter (str/split (:name item) #"-")))) :codeable-concept-pattern true))
-                  "Quantity" item item) item)) (:elements schema))
-       (hash-map :elements)
-       (conj schema (hash-map :patterns (concat (get schema :patterns []) (map (fn [item] (create-single-pattern constraint-name item (:elements schema))) patterns))))))
-
-(defn add-meta [constraint-name elements]
-  (->> (filter #(not= (:name %) "meta") elements)
-       (concat [{:name "meta"
-                 :required true
-                 :value "Meta"
-                 :type "Meta"
-                 :meta (str " = Meta(profile=[\"" constraint-name "\"])")}])))
-
-(defn apply-single-constraint [constraint parent-schema]
-  (->> (:elements parent-schema)
-       (apply-required (:required constraint))
-       (apply-excluded (:excluded constraint))
-       (apply-choices (filter #(contains? (last %) :choices) (:elements constraint)))
-       (add-meta (:url constraint))
-       (hash-map :elements)
-       (conj parent-schema)
-       (apply-patterns (:url constraint) (filter #(contains? (last %) :pattern) (:elements constraint)))))
-
-(defn apply-constraints [constraint-schemas base-schemas]
-  (loop [result {}]
-    (if (= (count constraint-schemas) (count result))
-      result
-      (recur
-       (reduce (fn [acc constraint-schema]
-                 (cond
-                   (contains? result (:url constraint-schema))
-                   acc
-
-                   (contains? result (:base constraint-schema))
-                   (assoc acc
-                          (:url constraint-schema)
-                          (assoc (apply-single-constraint constraint-schema
-                                                          (get result (:base constraint-schema)))
-                                 :package (:package constraint-schema)))
-
-                   (contains? base-schemas (:base constraint-schema))
-                   (assoc acc
-                          (:url constraint-schema)
-                          (assoc (apply-single-constraint constraint-schema
-                                                          (get base-schemas (:base constraint-schema)))
-                                 :package (:package constraint-schema)))
-
-                   :else acc))
-
-               result
-               constraint-schemas)))))
 
 ;;
 ;; Main
@@ -302,15 +211,16 @@
                                   :elements (:elements ir-schema)})])})
          ir-schemas))
 
-  (generate-constraints [_ constraint-schemas ir-schemas]
-    (->> (apply-constraints constraint-schemas (vector->map ir-schemas))
-         (mapv (fn [[name' schema]]
-                 {:path (constraint-file-path schema name')
-                  :content (generate-module
-                            :deps [{:module "pydantic" :members ["*"]}
-                                   {:module "typing" :members ["Optional" "List"]}
-                                   {:module "..base" :members ["*"]}]
-                            :classes (generate-class schema (generate-backbone-classes schema)))}))))
+  (generate-constraints [_ constraint-ir-schemas]
+    (mapv (fn [[constraint-name schema]]
+            {:path (constraint-file-path schema constraint-name)
+             :content (generate-module
+                       :deps [{:module "pydantic" :members ["*"]}
+                              {:module "typing" :members ["Optional" "List"]}
+                              {:module "..base" :members ["*"]}]
+                       :classes (generate-class (assoc schema :url constraint-name)
+                                                (generate-backbone-classes schema)))})
+          constraint-ir-schemas))
 
   (generate-sdk-files [_] templates/files))
 

@@ -40,5 +40,5 @@
   (generate-datatypes [this ir-schemas])
   (generate-resource-module [this ir-schema])
   (generate-search-params [this ir-schemas])
-  (generate-constraints [this constraint-schemas ir-schemas])
+  (generate-constraints [this ir-schemas])
   (generate-sdk-files [this]))

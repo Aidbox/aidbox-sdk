@@ -2,10 +2,11 @@
   (:gen-class)
   (:require
    [aidbox-sdk.cli :as cli]
-   [aidbox-sdk.fhir :as fhir]
    [aidbox-sdk.converter :as converter]
+   [aidbox-sdk.fhir :as fhir]
    [aidbox-sdk.generator :as generator]
    [aidbox-sdk.generator.dotnet :as dotnet]
+   [aidbox-sdk.generator.helpers :refer [vector->map]]
    [aidbox-sdk.generator.python :as python]
    [aidbox-sdk.schema :as importer]
    [clojure.java.io :as io]))
@@ -73,6 +74,8 @@
         resource-ir-schemas     (converter/convert resource-schemas)
         search-param-ir-schemas (converter/convert-search-params search-param-schemas
                                                                  fhir-schemas)
+        constraint-ir-schemas   (converter/convert-constraints constraint-schemas
+                                                               ir-schemas)
 
         generator' (lang->generator target-language)
 
@@ -91,7 +94,7 @@
     (save-files! (map generate-resource-module resource-ir-schemas))
 
     (println "Generating constraints")
-    (save-files! (generator/generate-constraints generator' constraint-schemas ir-schemas))
+    (save-files! (generator/generate-constraints generator' constraint-ir-schemas))
 
     (println "Generating search parameters")
     (save-files! (generator/generate-search-params generator' search-param-ir-schemas))

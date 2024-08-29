@@ -1,9 +1,9 @@
 (ns aidbox-sdk.converter-test
   (:require
-   [clojure.test :refer [deftest is are testing]]
-   [matcho.core :as matcho]
+   [aidbox-sdk.converter :as sut]
    [aidbox-sdk.fixtures.schemas :as fixtures]
-   [aidbox-sdk.converter :as sut]))
+   [aidbox-sdk.generator.helpers :refer [vector->map]]
+   [clojure.test :refer [are deftest is testing]]))
 
 (deftest test-converter-utils
   (testing "url->resource-name"
@@ -43,3 +43,10 @@
   (testing "convert constraint"
     (is (= [fixtures/organization-preferred-contact-ir-schema]
            (sut/convert [fixtures/organization-preferred-contact-fhir-schema])))))
+
+(deftest test-convert-constraints
+  (testing "constraints"
+    (is
+     (= fixtures/observation-constraints-ir-schema
+        (sut/convert-constraints fixtures/observation-constraints
+                                 [fixtures/observation-ir-schema])))))

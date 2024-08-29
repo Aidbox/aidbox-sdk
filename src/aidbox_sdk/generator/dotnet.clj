@@ -361,12 +361,12 @@
                                        (:elements ir-schema))}))})
          ir-schemas))
 
-  (generate-constraints [_ constraint-schemas ir-schemas]
-    (->> (apply-constraints constraint-schemas (vector->map ir-schemas))
-         (mapv (fn [[name' schema]]
-                 {:path (constraint-file-path schema name')
-                  :content (generate-constraint-module
-                            (assoc schema :url name'))}))))
+  (generate-constraints [_ constraint-ir-schemas]
+    (mapv (fn [[name' schema]]
+            {:path (constraint-file-path schema name')
+             :content (generate-constraint-module
+                       (assoc schema :url name'))})
+          constraint-ir-schemas))
 
   (generate-sdk-files [_] templates/files))
 

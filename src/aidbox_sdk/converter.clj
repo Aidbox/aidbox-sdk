@@ -1,10 +1,10 @@
 (ns aidbox-sdk.converter
   (:require
-   [clojure.walk :as walk]
+   [aidbox-sdk.generator.helpers :refer [->pascal-case safe-conj
+                                         uppercase-first-letter vector->map]]
+   [clojure.set :as set]
    [clojure.string :as str]
-   [aidbox-sdk.generator.helpers :refer [->pascal-case
-                                         safe-conj
-                                         uppercase-first-letter]]))
+   [clojure.walk :as walk]))
 
 (def primitives #{"dateTime" "xhtml" "Distance" "time" "date" "string" "uuid" "oid" "id" "Dosage" "Duration" "instant" "Count" "decimal" "code" "base64Binary" "unsignedInt" "url" "markdown" "uri" "positiveInt"  "canonical" "Age" "Timing"})
 
@@ -96,7 +96,7 @@
                 (str (url->resource-name parent-name) "_" (uppercase-first-letter (name k)))
                 v
                 (.contains required (name k)))
-     :type (:type v)}))
+     :type     (:type v)}))
 
 (defn- get-typings-and-imports [parent-name required data]
   (reduce (fn [acc item]
@@ -193,6 +193,10 @@
                                  :backbone-elements #(resolve-choices (flatten-backbones % [])))))
        (resolve-choices)))
 
+;;
+;; Search Params
+;;
+
 (defn resolve-elements [schemas resource]
   (->> schemas
        (filter #(contains? (set (:base %)) resource))
@@ -209,3 +213,114 @@
                :elements (->> (resolve-elements search-params-schemas (:id schema))
                               (map (fn [el] {:type "string" :name el})))}))
        (remove #(empty? (:elements %)))))
+
+;;
+;; Constraints
+;;
+
+(defn apply-excluded [excluded schema]
+  (filter (fn [field-schema]
+            (not (some #(= % (:name field-schema)) excluded)))
+          schema))
+
+(defn apply-required [required elements]
+  (->> elements
+       (map (fn [element]
+              (if (contains? (set required) (:name element))
+                (assoc element :required true)
+                element)))))
+
+(defn apply-choices [choices schema]
+  (->> choices
+       (map (fn [[key item]] (set/difference
+                              (set (:choices (first (filter #(= (:name %) (name key)) schema))))
+                              (set (:choices item)))))
+       (reduce set/union #{})
+       ((fn [choices-to-exclude]
+          (filter #(not (contains? choices-to-exclude (:name %))) schema)))))
+
+(defn pattern-codeable-concept [name schema]
+  (->> (str "}")
+       (str "\tpublic new " (str/join ", " (map #(str "Coding" (str/join (str/split (:code %) #"-"))) (get-in schema [:pattern :coding] []))) "[] Coding { get; } = [new()];\n") #_(str/join ", " (map #(str "Coding" (str/join (str/split (:code %) #"-")) "()") (get-in schema [:pattern :coding] [])))
+       (str "\nclass " (str/join (map uppercase-first-letter (str/split name #"-"))) " : CodeableConcept\n{\n")
+       (str (when-let [coding (:coding (:pattern schema))]
+              (str/join (map (fn [code]
+                               (->> (str "}")
+                                    (str (when (contains? code :code)  (str "\tpublic new string Code { get; } = \"" (:code code) "\";\n")))
+                                    (str (when (contains? code :system) (str "\tpublic new string System { get; } = \"" (:system code) "\";\n")))
+                                    (str (when (contains? code :display) (str "\tpublic new string Display { get; } = \"" (:display code) "\";\n")))
+                                    (str "\n\nclass Coding" (str/join (str/split (:code code) #"-")) " : Coding\n{\n"))) coding))) "\n")))
+
+(defn create-single-pattern [constraint-name [key schema] elements]
+  (case (url->resource-name (some #(when (= (name key) (:name %)) (:value %)) elements))
+    "CodeableConcept" (pattern-codeable-concept (str (uppercase-first-letter (url->resource-name constraint-name)) (uppercase-first-letter (subs (str key) 1))) schema) ""))
+
+(defn apply-patterns [constraint-name patterns schema]
+  (->> (map (fn [item]
+              (if-let [pattern (some #(when (= (name (first %)) (:name item)) (last %)) patterns)]
+                (case (:value item)
+                  "str" (assoc item :value (:pattern pattern) :literal true)
+                  "CodeableConcept" (conj item (hash-map :value (str
+                                                                 (str/join
+                                                                  (map uppercase-first-letter
+                                                                       (str/split (url->resource-name constraint-name) #"-")))
+                                                                 (str/join (map uppercase-first-letter
+                                                                                (str/split (:name item) #"-"))))
+                                                         :codeable-concept-pattern true))
+                  "Quantity" item item) item)) (:elements schema))
+       (hash-map :elements) (conj schema (hash-map :patterns (concat (get schema :patterns []) (map (fn [item] (create-single-pattern constraint-name item (:elements schema))) patterns))))))
+
+(defn add-meta [constraint-name elements]
+  (->> (filter #(not (= (:name %) "meta")) elements)
+       (concat [{:name "meta"
+                 :required true
+                 :value "Meta"
+                 :profile constraint-name
+                 :type "Meta"
+                 :meta (str " = new() { Profile = [\"" constraint-name "\"] };")}])))
+
+(defn copy-from-constraint [properties new-schema]
+  (merge new-schema properties))
+
+(defn convert-constraint [constraint parent-schema]
+  (->> (:elements parent-schema)
+       (apply-required (:required constraint))
+       (apply-excluded (:excluded constraint))
+       (apply-choices (filter #(contains? (last %) :choices)
+                              (:elements constraint)))
+       (add-meta (:url constraint))
+       (hash-map :elements)
+       (conj parent-schema)
+       (copy-from-constraint {:package (:package constraint)
+                              :derivation (:derivation constraint)})
+       (apply-patterns (:url constraint)
+                       (filter #(contains? (last %) :pattern)
+                               (:elements constraint)))))
+
+(defn convert-constraints [constraint-schemas base-schemas]
+  (let [base-schemas (vector->map base-schemas)]
+    (loop [result {}]
+      (if (= (count constraint-schemas) (count result))
+        result
+        (recur
+         (reduce (fn [acc constraint-schema]
+                   (cond
+                     (contains? result (:url constraint-schema))
+                     acc
+
+                     (contains? result (:base constraint-schema))
+                     (assoc acc
+                            (:url constraint-schema)
+                            (convert-constraint constraint-schema
+                                                (get result (:base constraint-schema))))
+
+                     (contains? base-schemas (:base constraint-schema))
+                     (assoc acc
+                            (:url constraint-schema)
+                            (convert-constraint constraint-schema
+                                                (get base-schemas (:base constraint-schema))))
+
+                     :else acc))
+
+                 result
+                 constraint-schemas))))))
