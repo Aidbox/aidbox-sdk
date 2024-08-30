@@ -5,9 +5,10 @@
    [aidbox-sdk.converter :as converter]
    [aidbox-sdk.fhir :as fhir]
    [aidbox-sdk.generator :as generator]
+   [aidbox-sdk.generator.java :as java]
    [aidbox-sdk.generator.dotnet :as dotnet]
-   [aidbox-sdk.generator.helpers :refer [vector->map]]
    [aidbox-sdk.generator.python :as python]
+   [aidbox-sdk.generator.typescript :as typescript]
    [aidbox-sdk.schema :as importer]
    [clojure.java.io :as io]))
 
@@ -49,8 +50,8 @@
   (case lang
     :dotnet dotnet/generator
     :python python/generator
-    #_#_#_#_:typescript typescript/generator
-        :java java/generator))
+    :typescript typescript/generator
+    :java java/generator))
 
 (defn generate! [target-language input options]
   (let [output-dir (io/file (:output-dir options))

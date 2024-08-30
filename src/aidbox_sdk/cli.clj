@@ -11,7 +11,7 @@
    ["-h" "--help"]])
 
 (def supported-commands #{"generate"})
-(def supported-languages #{"dotnet" "python"})
+(def supported-languages #{"dotnet" "python" "typescript" "java"})
 
 (defn validate-args [args]
   (let [[command target-language input] args]
