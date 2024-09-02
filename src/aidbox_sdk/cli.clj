@@ -59,7 +59,7 @@
 
       (= command "generate")
       (try
-        (generate (keyword target-language) input options)
+        (generate (keyword target-language) input (assoc options :exit exit))
         (exit 0)
 
         (catch Throwable e

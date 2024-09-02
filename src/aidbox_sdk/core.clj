@@ -57,7 +57,8 @@
   (let [output-dir (io/file (:output-dir options))
         save-files! #(save-files! output-dir %)
         all-schemas (importer/retrieve (importer/resource input)
-                                       {:auth (:auth-token options)})
+                                       {:auth (:auth-token options)
+                                        :exit (:exit options)})
 
         datatype?        (every-pred fhir/fhir-schema? fhir/base-schema? fhir/datatype?)
         domain-resource? (every-pred fhir/fhir-schema? fhir/base-schema? fhir/domain-resource?)

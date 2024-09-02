@@ -104,7 +104,7 @@
   (rest packages))
 
 (defmethod retrieve :url
-  [{:keys [source]} opts]
+  [{:keys [source]} {:keys [exit] :as opts}]
   (let [extract-link (fn [package] (-> package :href))
         extract-name (fn [package] (str (:name package) "#" (:version package)))
         fhir-packages (try
@@ -115,6 +115,7 @@
                         (catch Exception _
                           (println
                            "ERROR: Cannot download FHIR packages. You might have provided the wrong source or forgotten to provide an authentication token.")
+                          (exit 1)
                           []))]
     (->> fhir-packages
          ;; TODO using pmap for side effects is questionable
