@@ -2,6 +2,8 @@
   (:require [malli.core :as m]
             [aidbox-sdk.fixtures.schemas :as fix]))
 
+(def Type string?)
+
 (def NonPolymorphicElement
   [:map
    [:base string?]
@@ -9,10 +11,15 @@
    [:required boolean?]
    [:value string?]
    [:name string?]
-   [:type string?]])
+   [:type Type]])
 
 (def PolymorphicElement
   [:map
+   [:name string?]
+   [:base string?]
+   [:array boolean?]
+   [:required boolean?]
+   [:value string?]
    [:name string?]
    [:choices [:vector NonPolymorphicElement]]])
 

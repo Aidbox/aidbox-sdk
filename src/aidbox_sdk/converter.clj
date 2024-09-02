@@ -172,7 +172,10 @@
 
 (defn resolve-element-choices [schema el]
   (if (:choices el)
-    (update el :choices find-elements-by-names schema)
+    (let [choices (find-elements-by-names (:choices el) schema)]
+      (-> el
+          (assoc :choices choices)
+          (merge (select-keys (first choices) [:base :array :required]))))
     el))
 
 (defn resolve-schema-choices [schema]

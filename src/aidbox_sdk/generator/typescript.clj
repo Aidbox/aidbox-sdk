@@ -70,12 +70,21 @@
   [url]
   (uppercase-first-letter (url->resource-name url)))
 
-(defn generate-property [{:keys [name array required type base]}]
-  (let [lang-type (->lang-type type)]
-    (str name (when-not required "?") ": " lang-type (when array "[]") ";")))
+(defn generate-polymorphic-property [{:keys [name required choices]}]
+  (let [type (->> choices
+                  (map :type)
+                  (map ->lang-type)
+                  (str/join " | "))]
+    (str name (when-not required "?") ": " type ";")))
+
+(defn generate-property [{:keys [name array required type choices] :as element}]
+  (if choices
+    (generate-polymorphic-property element)
+    (let [lang-type (->lang-type type)]
+      (str name (when-not required "?") ": " lang-type (when array "[]") ";"))))
 
 (defn generate-class
-  "Generates Python class from IR (intermediate representation) schema."
+  "Generates TypeScript type from IR (intermediate representation) schema."
   [ir-schema & [inner-classes]]
   (let [base-class (url->resource-name (:base ir-schema))
         schema-name (or (:url ir-schema) (:name ir-schema))
@@ -89,9 +98,9 @@
      (when (seq inner-classes)
        (str (str/join "\n\n" inner-classes) "\n\n"))
 
-     "export class " class-name' " extends " base-class " {\n"
+     "export type " class-name' " = " base-class " & {\n"
      properties
-     "\n}")))
+     "\n};")))
 
 (defn generate-deps [deps]
   (->> deps
