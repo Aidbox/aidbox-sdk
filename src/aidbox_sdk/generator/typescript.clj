@@ -1,11 +1,13 @@
 (ns aidbox-sdk.generator.typescript
   (:require
-   [aidbox-sdk.generator.helpers :refer [uppercase-first-letter ->pascal-case]]
+   [aidbox-sdk.generator :as generator]
+   [aidbox-sdk.generator.helpers :refer [->pascal-case uppercase-first-letter]]
    [aidbox-sdk.generator.utils :as u]
    [clojure.java.io :as io]
    [clojure.string :as str])
   (:import
    [aidbox_sdk.generator CodeGenerator]))
+
 
 (defn package->directory
   "Generates directory name from package name.
@@ -145,6 +147,6 @@
 
   (generate-search-params [_ ir-schemas] [])
   (generate-constraints [_ ir-schemas] [])
-  (generate-sdk-files [this] []))
+  (generate-sdk-files [this] (generator/prepare-sdk-files :typescript)))
 
 (def generator (->TypeScriptCodeGenerator))

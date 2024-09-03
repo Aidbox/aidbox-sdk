@@ -1,9 +1,10 @@
 (ns aidbox-sdk.generator.python
   (:require
    [aidbox-sdk.generator.helpers :refer [->pascal-case ->snake-case
-                                         uppercase-first-letter vector->map]]
+                                         uppercase-first-letter]]
    [aidbox-sdk.generator.python.templates :as templates]
    [aidbox-sdk.generator.utils :as u]
+   [aidbox-sdk.generator :as generator]
    [clojure.java.io :as io]
    [clojure.string :as str])
   (:import
@@ -222,6 +223,6 @@
                                                 (generate-backbone-classes schema)))})
           constraint-ir-schemas))
 
-  (generate-sdk-files [_] templates/files))
+  (generate-sdk-files [_] (generator/prepare-sdk-files :python)))
 
 (def generator (->PythonCodeGenerator))

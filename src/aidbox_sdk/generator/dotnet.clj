@@ -1,9 +1,7 @@
 (ns aidbox-sdk.generator.dotnet
   (:require
    [aidbox-sdk.generator :as generator]
-   [aidbox-sdk.generator.dotnet.templates :as templates]
-   [aidbox-sdk.generator.helpers :refer [->pascal-case uppercase-first-letter
-                                         vector->map]]
+   [aidbox-sdk.generator.helpers :refer [->pascal-case uppercase-first-letter]]
    [aidbox-sdk.generator.utils :as u]
    [clojure.java.io :as io]
    [clojure.set :as set]
@@ -368,6 +366,6 @@
                        (assoc schema :url name'))})
           constraint-ir-schemas))
 
-  (generate-sdk-files [_] templates/files))
+  (generate-sdk-files [_] (generator/prepare-sdk-files :dotnet)))
 
 (def generator (->DotNetCodeGenerator))

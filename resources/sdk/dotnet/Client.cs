@@ -1,66 +1,4 @@
-(ns aidbox-sdk.generator.dotnet.templates)
-
-(def aidbox-csproj
-  "<Project Sdk=\"Microsoft.NET.Sdk\">
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-</Project>
-")
-
-(def api-cs
-  "using System.Text.Json.Serialization;
-
-public class MetaResponse
-{
-    public string? LastUpdated { get; set; }
-    public string? CreatedAt { get; set; }
-    public required string VersionId { get; set; }
-}
-
-public class Link
-{
-    public required string Relation { get; set; }
-    public required string Url { get; set; }
-}
-
-public class Search
-{
-    public required string Mode { get; set; }
-}
-
-public class Entry<T>
-{
-    public required T Resource { get; set; }
-    public required Search Search { get; set; }
-    public required string FullUrl { get; set; }
-    public required Link[] Link { get; set; }
-}
-
-public class ApiResourcesResponse<T>
-{
-    [JsonPropertyName(\"query-time\")]
-    public int? QueryTime { get; set; }
-
-    public MetaResponse? Meta { get; set; }
-    public string? Type { get; set; }
-    public string? ResourceType { get; set; }
-    public int? Total { get; set; }
-    public Link[]? Link { get; set; }
-
-    [JsonPropertyName(\"query-timeout\")]
-    public int? QueryTimeout { get; set; }
-    public Entry<T>[]? Entry { get; set; }
-
-    [JsonPropertyName(\"query-sql\")]
-    public object[]? QuerySql { get; set; }
-}
-")
-
-(def client-cs
-  "using System.Net;
+using System.Net;
 using System.Text;
 using System.ComponentModel;
 using System.Net.Http.Headers;
@@ -76,7 +14,7 @@ namespace Aidbox;
 
 public enum AuthMethods
 {
-    [Description(\"Basic\")]
+    [Description("Basic")]
     BASIC,
 }
 
@@ -109,7 +47,7 @@ public class Client
 
     public async Task<string> GetInfo()
     {
-        UriBuilder resourcePath = new(this.Url) { Path = \"$version\" };
+        UriBuilder resourcePath = new(this.Url) { Path = "$version" };
 
         var httpClient = this.HttpClient;
 
@@ -117,10 +55,10 @@ public class Client
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new HttpRequestException($\"Server returned error: {response.StatusCode}\");
+            throw new HttpRequestException($"Server returned error: {response.StatusCode}");
         }
 
-        return await response.Content.ReadAsStringAsync() ?? throw new Exception(\"\");
+        return await response.Content.ReadAsStringAsync() ?? throw new Exception("");
     }
 
     public async Task<(T? result, string? error)> Read<T>(string id) where T : IResource
@@ -131,11 +69,11 @@ public class Client
 
         try
         {
-            var response = await httpClient.GetAsync($\"{resourcePath.Uri}/{id}\");
+            var response = await httpClient.GetAsync($"{resourcePath.Uri}/{id}");
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new HttpRequestException($\"Server returned error: {response.StatusCode}\");
+                throw new HttpRequestException($"Server returned error: {response.StatusCode}");
             }
 
             var content = await response.Content.ReadAsStringAsync();
@@ -162,22 +100,22 @@ public class Client
             var name = HttpUtility.UrlEncode(PascalToKebabCase(prop.Name));
             var value = HttpUtility.UrlEncode(Convert.ToString(prop.GetValue(searchParams)));
 
-            if (value != \"\")
+            if (value != "")
             {
                 queryParams.Add(name, value);
             }
 
         }
 
-        return string.Join(\"&\", queryParams);
+        return string.Join("&", queryParams);
     }
 
     private string PascalToKebabCase(string value)
     {
         return Regex.Replace(
             value,
-            \"(?<!^)([A-Z][a-z]|(?<=[a-z])[A-Z0-9])\",
-            \"-$1\",
+            "(?<!^)([A-Z][a-z]|(?<=[a-z])[A-Z0-9])",
+            "-$1",
             RegexOptions.Compiled)
             .Trim()
             .ToLower();
@@ -186,12 +124,12 @@ public class Client
 
     public async Task<(Bundle<T>? result, string? error)> Search<T>() where T : IResource
     {
-        return await Search<T>(\"\");
+        return await Search<T>("");
     }
 
     public async Task<(Bundle<T>? result, string? error)> Search<T>(ResourceSearchParameters? searchParams) where T : IResource
     {
-        var queryString = searchParams is not null ? ToQueryString(searchParams) : \"\";
+        var queryString = searchParams is not null ? ToQueryString(searchParams) : "";
         return await Search<T>(queryString);
     }
 
@@ -210,7 +148,7 @@ public class Client
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new HttpRequestException($\"Server returned error: {response.StatusCode}\");
+                throw new HttpRequestException($"Server returned error: {response.StatusCode}");
             }
 
             var content = await response.Content.ReadAsStringAsync();
@@ -231,7 +169,7 @@ public class Client
 
         string jsonBody = JsonSerializer.Serialize<T>(data, Config.JsonSerializerOptions);
 
-        HttpContent requestData = new StringContent(jsonBody, Encoding.UTF8, \"application/json\");
+        HttpContent requestData = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
         try
         {
@@ -239,7 +177,7 @@ public class Client
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new HttpRequestException($\"Server returned error: {response.StatusCode}\");
+                throw new HttpRequestException($"Server returned error: {response.StatusCode}");
             }
 
             var content = await response.Content.ReadAsStringAsync();
@@ -263,16 +201,16 @@ public class Client
 
         try
         {
-            var response = await httpClient.DeleteAsync($\"{resourcePath.Uri}/{id}\");
+            var response = await httpClient.DeleteAsync($"{resourcePath.Uri}/{id}");
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new HttpRequestException($\"Server returned error: {response.StatusCode}\");
+                throw new HttpRequestException($"Server returned error: {response.StatusCode}");
             }
 
             if (response.StatusCode == HttpStatusCode.NoContent)
             {
-                throw new HttpRequestException($\"The resource with id \\\"{id}\\\" does not exist\");
+                throw new HttpRequestException($"The resource with id \"{id}\" does not exist");
             }
 
             var content = await response.Content.ReadAsStringAsync();
@@ -294,20 +232,20 @@ public class Client
 
         string jsonBody = JsonSerializer.Serialize<T>(resource, Config.JsonSerializerOptions);
 
-        HttpContent requestData = new StringContent(jsonBody, Encoding.UTF8, \"application/json\");
+        HttpContent requestData = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
         var httpClient = this.HttpClient;
 
         // TODO: Versioned Update
-        // httpClient.DefaultRequestHeaders.Add(\"If-Match\", resource.Meta?.VersionId);
+        // httpClient.DefaultRequestHeaders.Add("If-Match", resource.Meta?.VersionId);
 
         try
         {
-            var response = await httpClient.PutAsync($\"{resourcePath.Uri}/{resource.Id}\", requestData);
+            var response = await httpClient.PutAsync($"{resourcePath.Uri}/{resource.Id}", requestData);
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new HttpRequestException($\"Server returned error: {response.StatusCode}\");
+                throw new HttpRequestException($"Server returned error: {response.StatusCode}");
             }
 
             var content = await response.Content.ReadAsStringAsync();
@@ -325,7 +263,7 @@ public class Client
 
     private string EncodeCredentials(AuthCredentials credentials)
     {
-        byte[] credentialsBytes = System.Text.Encoding.UTF8.GetBytes($\"{credentials.Username}:{credentials.Password}\");
+        byte[] credentialsBytes = System.Text.Encoding.UTF8.GetBytes($"{credentials.Username}:{credentials.Password}");
 
         return Convert.ToBase64String(credentialsBytes);
     }
@@ -344,12 +282,3 @@ public class Client
         return attributes.Length > 0 ? attributes[0].Description : method.ToString();
     }
 }
-")
-
-(def files
-  [{:path "Aidbox.csproj"
-    :content aidbox-csproj}
-   {:path "Api.cs"
-    :content api-cs}
-   {:path "Client.cs"
-    :content client-cs}])
