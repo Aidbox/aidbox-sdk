@@ -4,7 +4,7 @@
    [clojure.java.io :as io]))
 
 (defn prepare-sdk-files [target-language]
-  (let [base-dir (io/file "resources/sdk/" (name target-language))]
+  (let [base-dir (io/file "resources" "sdk" (name target-language))]
     (->> base-dir
          u/list-files
          (map (fn [file]
