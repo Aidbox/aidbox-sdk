@@ -1,5 +1,77 @@
 (ns aidbox-sdk.fhir
-  (:require [clojure.string :as str]))
+  (:require
+   [clojure.set :as set]
+   [clojure.string :as str]))
+
+;; Base Types and Datatypes
+
+(def r4-base-types #{"Element" "Resource" "DomainResource"})
+
+(def r4-primitive-types
+  #{"boolean" "integer" "string" "decimal" "uri" "url" "canonical" "base64Binary"
+    "instant" "date" "dateTime" "time" "code" "oid" "id" "markdown" "unsignedInt"
+    "positiveInt" "uuid"})
+
+(def r4-general-purpose-datatypes
+  #{"Ratio" "Period" "Range" "Attachment" "Identifier" "HumanName" "ContactPoint"
+    "Address" "Signature" "SampledData" "Quantity" "Age" "Distance" "Duration"
+    "Count" "MoneyQuantity" "SimpleQuantity" "BackboneElement" "Timing" "Money"
+    "Coding" "CodeableConcept" "Annotation"})
+
+(def r4-metadata-types
+  #{"ContactDetail" "Contributor" "DataRequirement" "UsageContext"
+    "TriggerDefinition" "Expression" "ParameterDefinition" "RelatedArtifact"})
+
+(def r4-special-purpose-datatypes
+  #{"Reference" "Meta" "Dosage" "BackboneElement" "ElementDefinition" "Extension"
+    "Narrative" "xhtml"})
+
+(def r4-datatypes
+  (set/union r4-primitive-types
+             r4-general-purpose-datatypes
+             r4-metadata-types
+             r4-special-purpose-datatypes))
+
+(def r4b-base-types r4-base-types)
+
+(def r4b-primitive-types r4-primitive-types)
+
+(def r4b-general-purpose-datatypes
+  (into r4-general-purpose-datatypes #{"RationRange" "Identifier"}))
+
+(def r4b-metadata-types r4-metadata-types)
+
+(def r4b-special-purpose-datatypes
+  (into r4-special-purpose-datatypes #{"CodeableReference" "ProductShelfLife"
+                                       "MarketingStatus"}))
+
+(def r4b-datatypes
+  (set/union r4b-primitive-types
+             r4b-general-purpose-datatypes
+             r4b-metadata-types
+             r4b-special-purpose-datatypes))
+
+(def r5-base-types
+  #{"Base" "Element" "BackboneElement" "DataType" "PrimitiveType" "BackboneType"
+    "Resource" "DomainResource" "CanonicalResource" "MetadataResource"})
+
+(def r5-primitive-types (set/union r4b-primitive-types #{"integer64"}))
+
+(def r5-general-purpose-datatypes r4b-general-purpose-datatypes)
+
+(def r5-metadata-types
+  (set/union r4b-metadata-types #{"Availability" "ExtendedContactDetail"
+                                  "MonetaryComponent" "VirtualServiceDetail"}))
+
+(def r5-special-purpose-datatypes
+  #{"CodeableReference" "Meta" "Reference" "Dosage" "xhtml" "Narrative"
+    "Extension" "ElementDefinition" "BackboneType"})
+
+(def r5-datatypes
+  (set/union r5-primitive-types
+             r5-general-purpose-datatypes
+             r5-metadata-types
+             r5-special-purpose-datatypes))
 
 ;; Predicates
 (defn resource-type-pred [rt]   (fn [schema] (= rt (:resourceType schema))))
@@ -25,10 +97,9 @@
 (defn extension? [schema] (= (:type schema) "Extension"))
 
 (defmulti  datatype? :package)
-(defmethod datatype? "hl7.fhir.r4.core"  [schema] (= (:base schema) "http://hl7.org/fhir/StructureDefinition/Element"))
-(defmethod datatype? "hl7.fhir.r4b.core" [schema] (= (:base schema) "http://hl7.org/fhir/StructureDefinition/Element"))
-(defmethod datatype? "hl7.fhir.r5.core"  [schema] (or (= (:base schema) "http://hl7.org/fhir/StructureDefinition/DataType")
-                                                      (= (:base schema) "http://hl7.org/fhir/StructureDefinition/PrimitiveType")))
+(defmethod datatype? "hl7.fhir.r4.core"  [schema] (contains? r4-datatypes  (:id schema)))
+(defmethod datatype? "hl7.fhir.r4b.core" [schema] (contains? r4b-datatypes (:id schema)))
+(defmethod datatype? "hl7.fhir.r5.core"  [schema] (contains? r5-datatypes  (:id schema)))
 (defmethod datatype? :default [_] false)
 
 (defmulti  backbone-element? :package)
@@ -54,6 +125,11 @@
 
 ;;
 
+(defmulti  base-type? :package)
+(defmethod base-type? "hl7.fhir.r4.core"  [schema] (contains? r4-base-types  (:id schema)) )
+(defmethod base-type? "hl7.fhir.r4b.core" [schema] (contains? r4b-base-types (:id schema)) )
+(defmethod base-type? "hl7.fhir.r5.core"  [schema] (contains? r5-base-types  (:id schema)) )
+
 (defn base-schema? [schema]
   (or (= (:url schema) "http://hl7.org/fhir/StructureDefinition/BackboneElement")
       (= (:url schema) "http://hl7.org/fhir/StructureDefinition/Resource")
@@ -67,3 +143,4 @@
 
 (defn search-parameter-from-extension? [search-parameter]
   (str/includes? (:id search-parameter) "-extensions-"))
+

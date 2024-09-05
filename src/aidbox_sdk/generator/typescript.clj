@@ -60,6 +60,7 @@
     "code"         "string"
     "markdown"     "string"
     "id"           "string"
+    "xhtml"        "string"
 
     ;; hardcoded just in case
     "Meta"         "Meta"
@@ -101,9 +102,13 @@
      (when (seq inner-classes)
        (str (str/join "\n\n" inner-classes) "\n\n"))
 
-     "export type " class-name' " = " (when-not (str/blank? base-class) (str base-class " & ")) "{\n"
-     properties
-     "\n};")))
+     "export type " class-name' " = "
+     (when-not (str/blank? base-class)
+       (if (seq properties)
+         (str base-class " & ")
+         base-class))
+     (when (seq properties) (str "{\n" properties "\n}"))
+     ";")))
 
 (defn generate-deps [deps]
   (->> deps
