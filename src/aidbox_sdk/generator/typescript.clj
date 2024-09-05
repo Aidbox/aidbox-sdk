@@ -134,23 +134,6 @@
        (map #(assoc % :base "BackboneElement"))
        (map generate-class)))
 
-(defn collect-dependecies [ir-schema]
-  (let [primitive? (fn [type] (= (subs type 0 1)
-                                 (str/lower-case (subs type 0 1))))]
-    (into
-     (->> (:elements ir-schema)
-          (map :type)
-          (remove nil?)
-          (remove primitive?)
-          set)
-     (->> (:backbone-elements ir-schema)
-          (map :elements)
-          flatten
-          (map :type)
-          (remove nil?)
-          (remove primitive?)
-          set))))
-
 (defrecord TypeScriptCodeGenerator []
   CodeGenerator
   (generate-datatypes [_ ir-schemas]
@@ -165,10 +148,9 @@
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)
      :content (generate-module
-               {:deps [{:module "../datatypes" :members (collect-dependecies ir-schema)}]
+               {:deps [{:module "../datatypes" :members (:deps ir-schema)}]
                 :classes [(generate-class ir-schema
                                           (generate-backbone-classes ir-schema))]})})
-
   (generate-search-params [_ ir-schemas] [])
   (generate-constraints [_ ir-schemas] [])
   (generate-sdk-files [this] (generator/prepare-sdk-files :typescript)))

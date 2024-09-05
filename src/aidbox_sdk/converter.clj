@@ -4,7 +4,8 @@
                                          uppercase-first-letter vector->map]]
    [clojure.set :as set]
    [clojure.string :as str]
-   [clojure.walk :as walk]))
+   [clojure.walk :as walk]
+   [aidbox-sdk.fhir :as fhir]))
 
 (def primitives #{"dateTime" "xhtml" "Distance" "time" "date" "string" "uuid" "oid" "id" "Dosage" "Duration" "instant" "Count" "decimal" "code" "base64Binary" "unsignedInt" "url" "markdown" "uri" "positiveInt"  "canonical" "Age" "Timing"})
 
@@ -88,15 +89,16 @@
   (if (contains? v :choices)
     {:name    (escape-keyword (name k))
      :choices (:choices v)}
-    {:name          (escape-keyword (name k))
-     :base          parent-name
-     :array         (boolean (:array v))
-     :required      (.contains required (name k))
-     :value         (transform-element
-                     (str (url->resource-name parent-name) "_" (uppercase-first-letter (name k)))
-                     v
-                     (.contains required (name k)))
-     :type          (:type v)
+    {:name     (escape-keyword (name k))
+     :base     parent-name
+     :array    (boolean (:array v))
+     :required (.contains required (name k))
+     :value    (transform-element
+                (str (url->resource-name parent-name) "_" (uppercase-first-letter (name k)))
+                v
+                (.contains required (name k)))
+     :type     (:type v)
+
      :choice-option (boolean (:choiceOf v))}))
 
 (defn- get-typings-and-imports [parent-name required data]
@@ -138,6 +140,7 @@
           (url->resource-name (:url schema)))
          (safe-conj
           (hash-map :base (get schema :base)
+                    :base-resource-name (url->resource-name (get schema :base))
                     :package (get schema :package)
                     :url (get schema :url)
                     :type (get schema :type)
@@ -188,14 +191,35 @@
 (defn resolve-choices [schemas]
   (map resolve-schema-choices schemas))
 
+(defn collect-dependencies [schema]
+  (let [primitive-element? (partial fhir/primitive-element? (:package schema))]
+    (set/union
+     #{(:base-resource-name schema)}
+     (->> (:elements schema)
+          (remove primitive-element?)
+          (map :type)
+          (remove nil?)
+          set)
+     (->> (:backbone-elements schema)
+          (map :elements)
+          flatten
+          (remove primitive-element?)
+          (map :type)
+          (remove nil?)
+          set))))
+
+(defn resolve-dependencies [schemas]
+  (map #(assoc % :deps (collect-dependencies %)) schemas))
+
 (defn convert [schemas]
   (->> schemas
        (resolve-references)
        (compile-elements)
        (combine-elements)
-       (map (fn [schema] (update schema
-                                 :backbone-elements #(resolve-choices (flatten-backbones % [])))))
-       (resolve-choices)))
+       (map (fn [schema]
+              (update schema :backbone-elements #(resolve-choices (flatten-backbones % [])))))
+       (resolve-choices)
+       (resolve-dependencies)))
 
 ;;
 ;; Search Params

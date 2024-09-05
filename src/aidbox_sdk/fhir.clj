@@ -126,9 +126,9 @@
 ;;
 
 (defmulti  base-type? :package)
-(defmethod base-type? "hl7.fhir.r4.core"  [schema] (contains? r4-base-types  (:id schema)) )
-(defmethod base-type? "hl7.fhir.r4b.core" [schema] (contains? r4b-base-types (:id schema)) )
-(defmethod base-type? "hl7.fhir.r5.core"  [schema] (contains? r5-base-types  (:id schema)) )
+(defmethod base-type? "hl7.fhir.r4.core"  [schema] (contains? r4-base-types  (:id schema)))
+(defmethod base-type? "hl7.fhir.r4b.core" [schema] (contains? r4b-base-types (:id schema)))
+(defmethod base-type? "hl7.fhir.r5.core"  [schema] (contains? r5-base-types  (:id schema)))
 
 (defn base-schema? [schema]
   (or (= (:url schema) "http://hl7.org/fhir/StructureDefinition/BackboneElement")
@@ -144,3 +144,7 @@
 (defn search-parameter-from-extension? [search-parameter]
   (str/includes? (:id search-parameter) "-extensions-"))
 
+(defmulti primitive-element? (fn [package _element] package))
+(defmethod primitive-element? "hl7.fhir.r4.core"  [_ {:keys [type]}] (contains? r4-primitive-types type))
+(defmethod primitive-element? "hl7.fhir.r4b.core" [_ {:keys [type]}] (contains? r4b-primitive-types type))
+(defmethod primitive-element? "hl7.fhir.r5.core"  [_ {:keys [type]}] (contains? r5-primitive-types type))
