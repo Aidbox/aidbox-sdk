@@ -75,6 +75,7 @@
   (let [type (->> choices
                   (map :type)
                   (map ->lang-type)
+                  distinct
                   (str/join " | "))]
     (str name (when-not required "?") ": " type ";")))
 
