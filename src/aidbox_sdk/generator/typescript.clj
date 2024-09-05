@@ -92,6 +92,7 @@
         schema-name (or (:url ir-schema) (:name ir-schema))
         class-name' (class-name schema-name)
         properties (->> (:elements ir-schema)
+                        (remove #(:choice-option %))
                         (map generate-property)
                         (remove nil?)
                         (map u/add-indent)
