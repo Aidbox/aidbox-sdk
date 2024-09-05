@@ -100,7 +100,7 @@
      (when (seq inner-classes)
        (str (str/join "\n\n" inner-classes) "\n\n"))
 
-     "export type " class-name' " = " base-class " & {\n"
+     "export type " class-name' " = " (when-not (str/blank? base-class) (str base-class " & ")) "{\n"
      properties
      "\n};")))
 
@@ -151,10 +151,11 @@
     [{:path (datatypes-file-path)
       :content (generate-module
                 :deps []
-                :classes (map (fn [ir-schema]
-                                (generate-class ir-schema
-                                                (generate-backbone-classes ir-schema)))
-                              ir-schemas))}])
+                :classes (->> ir-schemas
+                              (sort-by :base)
+                              (map (fn [ir-schema]
+                                     (generate-class ir-schema
+                                                     (generate-backbone-classes ir-schema))))))}])
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)
      :content (generate-module
