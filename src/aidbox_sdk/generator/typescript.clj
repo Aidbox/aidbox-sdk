@@ -151,8 +151,27 @@
                {:deps [{:module "../datatypes" :members (:deps ir-schema)}]
                 :classes [(generate-class ir-schema
                                           (generate-backbone-classes ir-schema))]})})
-  (generate-search-params [_ ir-schemas] [])
-  (generate-constraints [_ ir-schemas] [])
+
+  (generate-search-params [_ ir-schemas] []
+    (map (fn [ir-schema]
+           {:path (search-param-filepath ir-schema)
+            :content (generate-module
+                      :deps []
+                      :classes [(generate-class
+                                 {:name (format "%sSearchParameters" (:name ir-schema))
+                                  :base (when (:base ir-schema)
+                                          (format "%sSearchParameters" (:base ir-schema)))
+                                  :elements (:elements ir-schema)})])})
+         ir-schemas))
+
+  (generate-constraints [_ ir-schemas]
+    (mapv (fn [[constraint-name schema]]
+            {:path (constraint-file-path schema constraint-name)
+             :content (generate-module
+                       :deps [{:module "../datatypes" :members (:deps schema)}]
+                       :classes (generate-class (assoc schema :url constraint-name)
+                                                (generate-backbone-classes schema)))})
+          ir-schemas))
   (generate-sdk-files [this] (generator/prepare-sdk-files :typescript)))
 
 (def generator (->TypeScriptCodeGenerator))

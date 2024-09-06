@@ -6,16 +6,16 @@
 
   (testing "validate-args"
     (is (= ["Please provide one of the supported commands: generate"
-            "Please provide one of the supported target languages: dotnet, python"
+            "Please provide one of the supported target languages: dotnet, java, typescript, python"
             "Please provide a source of fhir packages"]
            (sut/validate-args [])))
 
     (is (= ["Please provide one of the supported commands: generate"
-            "Please provide one of the supported target languages: dotnet, python"
+            "Please provide one of the supported target languages: dotnet, java, typescript, python"
             "Please provide a source of fhir packages"]
            (sut/validate-args ["resource/schemas"])))
 
-    (is (= ["Please provide one of the supported target languages: dotnet, python"
+    (is (= ["Please provide one of the supported target languages: dotnet, java, typescript, python"
             "Please provide a source of fhir packages"]
            (sut/validate-args ["generate"])))
 
