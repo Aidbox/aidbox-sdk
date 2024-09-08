@@ -117,11 +117,12 @@
               (or (:required schema) [])
               (seq (:elements schema)))
         backbone-elements (remove empty? (:backbone-elements data))]
-    (conj data
-          {:backbone-elements
-           (if (empty? backbone-elements)
-             []
-             (map (fn [[k, v]] (compile-backbone name k v)) backbone-elements))})))
+    (-> data
+        (assoc :backbone-elements
+               (if (empty? backbone-elements)
+                 []
+                 (map (fn [[k, v]] (compile-backbone name k v)) backbone-elements)))
+        (assoc :base "BackboneElement"))))
 
 (defn- clear-backbone-elements [resource-type schema]
   (->> (:backbone-elements schema)

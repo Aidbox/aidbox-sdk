@@ -127,13 +127,6 @@
        (flatten)
        (str/join "\n\n")))
 
-(defn generate-backbone-classes
-  "Generates classes from schema's backbone elements."
-  [ir-schema]
-  (->> (ir-schema :backbone-elements)
-       (map #(assoc % :base "BackboneElement"))
-       (map generate-class)))
-
 (defrecord TypeScriptCodeGenerator []
   CodeGenerator
   (generate-datatypes [_ ir-schemas]
@@ -144,13 +137,13 @@
                               (sort-by :base)
                               (map (fn [ir-schema]
                                      (generate-class ir-schema
-                                                     (generate-backbone-classes ir-schema))))))}])
+                                                     (map generate-class (:backbone-elements ir-schema)))))))}])
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)
      :content (generate-module
                {:deps [{:module "../datatypes" :members (:deps ir-schema)}]
                 :classes [(generate-class ir-schema
-                                          (generate-backbone-classes ir-schema))]})})
+                                          (map generate-class (:backbone-elements ir-schema)))]})})
 
   (generate-search-params [_ ir-schemas] []
     (map (fn [ir-schema]
@@ -170,7 +163,7 @@
              :content (generate-module
                        :deps [{:module "../datatypes" :members (:deps schema)}]
                        :classes (generate-class (assoc schema :url constraint-name)
-                                                (generate-backbone-classes schema)))})
+                                                (map generate-class (:backbone-elements schema))))})
           ir-schemas))
   (generate-sdk-files [this] (generator/prepare-sdk-files :typescript)))
 

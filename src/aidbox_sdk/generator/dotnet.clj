@@ -295,24 +295,15 @@
                constraint-schemas)))))
 
 (defn generate-constraint-module [schema]
-  (let [backbone-elements-classes (->> (:backbone-elements schema)
-                                       (map #(assoc % :base "BackboneElement"))
-                                       (mapv generate-class))
-        resource-class (generate-class schema backbone-elements-classes)]
-    (generate-module
-     :name (package->module-name (:package schema))
-     :deps [{:module "Aidbox.FHIR.Base" :members []}
-            {:module "Aidbox.FHIR.Utils" :members []}]
-     :classes resource-class)))
+  (generate-module
+   :name (package->module-name (:package schema))
+   :deps [{:module "Aidbox.FHIR.Base" :members []}
+          {:module "Aidbox.FHIR.Utils" :members []}]
+   :classes (generate-class schema (map generate-class schema))))
 
 ;;
 ;; main
 ;;
-
-(defn generate-backbone-classes [ir-schema]
-  (->> (ir-schema :backbone-elements)
-       (map #(assoc % :base "BackboneElement"))
-       (map generate-class)))
 
 (defn datatypes-file-path []
   (io/file "Base.cs"))
@@ -333,7 +324,7 @@
                 :name "Aidbox.FHIR.Base"
                 :classes (map (fn [ir-schema]
                                 (generate-class ir-schema
-                                                (generate-backbone-classes ir-schema)))
+                                                (map generate-class (:backbone-elements ir-schema))))
                               ir-schemas))}])
 
   (generate-resource-module [_ ir-schema]
@@ -343,7 +334,7 @@
                :deps [{:module "Aidbox.FHIR.Base" :members []}
                       {:module "Aidbox.FHIR.Utils" :members []}]
                :classes [(generate-class ir-schema
-                                         (generate-backbone-classes ir-schema))])})
+                                         (map generate-class (:backbone-elements ir-schema)))])})
 
   (generate-search-params [_ ir-schemas]
     (map (fn [ir-schema]

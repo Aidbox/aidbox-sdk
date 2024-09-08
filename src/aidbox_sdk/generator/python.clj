@@ -167,13 +167,6 @@
        (flatten)
        (str/join "\n\n")))
 
-(defn generate-backbone-classes
-  "Generates classes from schema's backbone elements."
-  [ir-schema]
-  (->> (ir-schema :backbone-elements)
-       (map #(assoc % :base "BackboneElement"))
-       (map generate-class)))
-
 ;;
 ;; Main
 ;;
@@ -187,7 +180,8 @@
                        {:module "typing" :members ["Optional" "List"]}]
                 :classes (map (fn [ir-schema]
                                 (generate-class ir-schema
-                                                (generate-backbone-classes ir-schema)))
+                                                (map generate-class (:backbone-elements ir-schema))
+                                                ))
                               ir-schemas))}])
 
   (generate-resource-module [_ ir-schema]
@@ -197,7 +191,7 @@
                       {:module "typing" :members ["Optional" "List"]}
                       {:module "..base" :members ["*"]}]
                :classes [(generate-class ir-schema
-                                         (generate-backbone-classes ir-schema))])})
+                                         (map generate-class (:backbone-elements ir-schema)))])})
 
   (generate-search-params [_ ir-schemas]
     (map (fn [ir-schema]
@@ -219,7 +213,7 @@
                               {:module "typing" :members ["Optional" "List"]}
                               {:module "..base" :members ["*"]}]
                        :classes (generate-class (assoc schema :url constraint-name)
-                                                (generate-backbone-classes schema)))})
+                                                (map generate-class (:backbone-elements schema))))})
           constraint-ir-schemas))
 
   (generate-sdk-files [_] (generator/prepare-sdk-files :python)))

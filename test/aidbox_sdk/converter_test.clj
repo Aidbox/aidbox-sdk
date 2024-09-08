@@ -48,4 +48,6 @@
     (is
      (= fixtures/observation-constraints-ir-schema
         (sut/convert-constraints fixtures/observation-constraints
-                                 [fixtures/observation-ir-schema])))))
+                                 [fixtures/observation-ir-schema])
+
+        ))))
