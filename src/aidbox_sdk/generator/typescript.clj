@@ -24,7 +24,7 @@
 
 (defn resource-file-path [ir-schema]
   (io/file (package->directory (:package ir-schema))
-           (str (->pascal-case (:name ir-schema)) ".ts")))
+           (str (->pascal-case (url->resource-name (:url ir-schema))) ".ts")))
 
 (defn constraint-file-path [ir-schema name]
   (io/file (package->directory (:package ir-schema))
@@ -103,19 +103,41 @@
        (str (str/join "\n\n" inner-classes) "\n\n"))
 
      "export type " class-name' " = "
-     (when-not (str/blank? base-class)
-       (if (seq properties)
-         (str base-class " & ")
-         base-class))
-     (when (seq properties) (str "{\n" properties "\n}"))
+     (cond
+       ;; base class and properties
+       (and (seq properties)
+            (not (str/blank? base-class)))
+       (str base-class " & {\n" properties "\n}")
+
+       ;; no base class / yes properties
+       ;; export type Something = { ... }
+       (and (seq properties)
+            (str/blank? base-class))
+       (str "{\n" properties "\n}")
+
+       ;; yes base class / no properties
+       ;; export type DataType = Element;
+       (and (empty? properties)
+            (not (str/blank? base-class)))
+       base-class
+
+       ;; no base class / no propeties
+       ;; export type Base = {};
+       (and (empty? properties)
+            (str/blank? base-class))
+       "{}")
+
      ";")))
+
+(defn- path->name [path]
+  (str/replace path #"(\.ts)|[\.\/]" ""))
 
 (defn generate-deps [deps]
   (->> deps
        (map (fn [{:keys [module members]}]
               (if (seq members)
-                (str "import { " (str/join ", " members) " } from '" module "';")
-                (str "import " module ";"))))
+                (format "import { %s } from \"%s\";" (str/join ", " members) module)
+                (format "import * as %s from \"%s\";" (path->name module) module))))
        (str/join "\n")))
 
 (defn generate-module
@@ -130,18 +152,20 @@
 (defrecord TypeScriptCodeGenerator []
   CodeGenerator
   (generate-datatypes [_ ir-schemas]
-    [{:path (datatypes-file-path)
-      :content (generate-module
-                :deps []
-                :classes (->> ir-schemas
-                              (sort-by :base)
-                              (map (fn [ir-schema]
-                                     (generate-class ir-schema
-                                                     (map generate-class (:backbone-elements ir-schema)))))))}])
+    (let [ir-schemas (sort-by :base ir-schemas)]
+      (map (fn [ir-schema]
+             {:path (resource-file-path ir-schema)
+              :content (generate-module
+                        :deps (map (fn [d] {:module (str "./" d) :members [d]})
+                                   (:deps ir-schema))
+                        :classes [(generate-class ir-schema (map generate-class (:backbone-elements ir-schema)))])})
+           ir-schemas)))
+
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)
      :content (generate-module
-               {:deps [{:module "../datatypes" :members (:deps ir-schema)}]
+               {:deps (map (fn [d] {:module (str "./" d) :members [d]})
+                           (:deps ir-schema))
                 :classes [(generate-class ir-schema
                                           (map generate-class (:backbone-elements ir-schema)))]})})
 
@@ -161,7 +185,8 @@
     (mapv (fn [[constraint-name schema]]
             {:path (constraint-file-path schema constraint-name)
              :content (generate-module
-                       :deps [{:module "../datatypes" :members (:deps schema)}]
+                       :deps (map (fn [d] {:module (str "./" d) :members [d]})
+                                  (:deps schema))
                        :classes (generate-class (assoc schema :url constraint-name)
                                                 (map generate-class (:backbone-elements schema))))})
           ir-schemas))

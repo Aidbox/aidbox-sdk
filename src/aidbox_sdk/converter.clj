@@ -141,7 +141,8 @@
           (url->resource-name (:url schema)))
          (safe-conj
           (hash-map :base (get schema :base)
-                    :base-resource-name (url->resource-name (get schema :base))
+                    :base-resource-name (when (get schema :base)
+                                          (url->resource-name (get schema :base)))
                     :package (get schema :package)
                     :url (get schema :url)
                     :type (get schema :type)
@@ -175,6 +176,8 @@
        x))
    schemas))
 
+;;
+
 (defn resolve-element-choices [schema el]
   (if (:choices el)
     (let [choices (find-elements-by-names (:choices el) schema)]
@@ -193,9 +196,12 @@
   (map resolve-schema-choices schemas))
 
 (defn collect-dependencies [schema]
-  (let [primitive-element? (partial fhir/primitive-element? (:package schema))]
+  (let [primitive-element? (partial fhir/primitive-element? (:package schema))
+        base-resource-name (if (:base-resource-name schema)
+                             #{(:base-resource-name schema)}
+                             #{})]
     (set/union
-     #{(:base-resource-name schema)}
+     base-resource-name
      (->> (:elements schema)
           (remove primitive-element?)
           (map :type)
@@ -211,6 +217,10 @@
 
 (defn resolve-dependencies [schemas]
   (map #(assoc % :deps (collect-dependencies %)) schemas))
+
+;;
+;; Convert main function
+;;
 
 (defn convert [schemas]
   (->> schemas

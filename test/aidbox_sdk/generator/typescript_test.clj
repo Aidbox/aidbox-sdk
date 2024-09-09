@@ -1,99 +1,104 @@
 (ns aidbox-sdk.generator.typescript-test
   (:require
+   [aidbox-sdk.fixtures :as fixt]
    [aidbox-sdk.fixtures.schemas :as fixtures]
    [aidbox-sdk.generator :as sut]
    [aidbox-sdk.generator.typescript :refer [generator] :as gen.typescript]
    [clojure.java.io :as io]
-   [clojure.test :refer [deftest is testing]]))
+   [clojure.test :refer [deftest is testing use-fixtures]]))
 
-#_(deftest test-generate-deps
-    (testing "no members"
-      (is (= "import pydantic"
-             (gen.python/generate-deps [{:module "pydantic" :members []}]))))
+(use-fixtures :once fixt/prepare-examples)
 
-    (testing "with members"
-      (is (= "from pydantic import *"
-             (gen.python/generate-deps [{:module "pydantic" :members ["*"]}]))))
+(deftest test-generate-deps
+  (testing "no members"
+    (is (= "import * as base from \"./base.ts\";"
+           (gen.typescript/generate-deps [{:module "./base.ts" :members []}]))))
 
-    (testing "multiple deps"
-      (is (= "from pydantic import *\nfrom typing import Optional, List"
-             (gen.python/generate-deps [{:module "pydantic" :members ["*"]}
-                                        {:module "typing" :members ["Optional" "List"]}])))))
+  (testing "with members"
+    (is (= "import { Dosage } from \"../datatypes.ts\";"
+           (gen.typescript/generate-deps [{:module "../datatypes.ts" :members ["Dosage"]}]))))
 
-#_(deftest test-generate-property
-    (testing "simple case"
-      (is (= "active: Optional[bool] = None"
-             (gen.python/generate-property {:name "active",
-                                            :base "Patient",
-                                            :array false,
-                                            :required false,
-                                            :value "bool"
-                                            :type "boolean"}))))
+  (testing "multiple deps"
+    (is (= "import * as base from \"./base.ts\";\nimport { Dosage } from \"../datatypes.ts\";"
+           (gen.typescript/generate-deps [{:module "./base.ts" :members []}
+                                          {:module "../datatypes.ts" :members ["Dosage"]}])))))
 
-    (testing "required"
-      (is (= "type: str"
-             (gen.python/generate-property {:name "type",
-                                            :base "Patient_Link",
-                                            :array false,
-                                            :required true,
-                                            :value "string"
-                                            :type "string"}))))
+(deftest test-generate-property
+  (testing "simple case"
+    (is (= "active?: boolean;"
+           (gen.typescript/generate-property {:name "active",
+                                              :base "Patient",
+                                              :array false,
+                                              :required false,
+                                              :value "bool"
+                                              :type "boolean"}))))
 
-    (testing "array optional"
-      (is (= "address: Optional[List[Address]] = None"
-             (gen.python/generate-property {:name "address",
-                                            :base "Patient",
-                                            :array true,
-                                            :required false,
-                                            :value "Address"
-                                            :type "Address"}))))
+  (testing "required"
+    (is (= "type: string;"
+           (gen.typescript/generate-property {:name "type",
+                                              :base "Patient_Link",
+                                              :array false,
+                                              :required true,
+                                              :value "string"
+                                              :type "string"}))))
 
-    (testing "array required"
-      (is (= "extension: list[Extension] = []"
-             (gen.python/generate-property {:name "extension",
-                                            :base "Element",
-                                            :array true,
-                                            :required true,
-                                            :value "Extension"
-                                            :type "Extension"}))))
+  (testing "array optional"
+    (is (= "address?: Address[];"
+           (gen.typescript/generate-property {:name "address",
+                                              :base "Patient",
+                                              :array true,
+                                              :required false,
+                                              :value "Address"
+                                              :type "Address"}))))
 
-    (testing "element with literal"
+  (testing "array required"
+    (is (= "extension: Extension[];"
+           (gen.typescript/generate-property {:name "extension",
+                                              :base "Element",
+                                              :array true,
+                                              :required true,
+                                              :value "Extension"
+                                              :type "Extension"}))))
+
+  (testing "element with literal"
     ;; TODO
-      )
+    )
 
-    (testing "element with meta"
+  (testing "element with meta"
     ;; TODO
-      )
+    )
 
-    (testing "element with choices"
+  (testing "element with choices"
     ;; TODO
-      ))
+    ))
 
-#_(deftest test-generate-class
-    (testing "base"
-      (is (= "class Patient(DomainResource):\n    multiple_birth_boolean: Optional[bool] = None\n    address: Optional[List[Address]] = None\n    deceased_date_time: Optional[str] = None\n    managing_organization: Optional[Reference] = None\n    deceased_boolean: Optional[bool] = None\n    name: Optional[List[HumanName]] = None\n    birth_date: Optional[str] = None\n    multiple_birth_integer: Optional[int] = None\n    photo: Optional[List[Attachment]] = None\n    link: Optional[List[Patient_Link]] = None\n    active: Optional[bool] = None\n    communication: Optional[List[Patient_Communication]] = None\n    identifier: Optional[List[Identifier]] = None\n    telecom: Optional[List[ContactPoint]] = None\n    general_practitioner: Optional[List[Reference]] = None\n    gender: Optional[str] = None\n    marital_status: Optional[CodeableConcept] = None\n    contact: Optional[List[Patient_Contact]] = None"
-             (gen.python/generate-class fixtures/patient-ir-schema))))
+(deftest test-generate-class
 
-    (testing "with inner classes"
-      (is (= "class Patient_Link(BackboneElement):\n    other: Reference\n    type: str\n\nclass Patient_Communication(BackboneElement):\n    language: CodeableConcept\n    preferred: Optional[bool] = None\n\nclass Patient_Contact(BackboneElement):\n    address: Optional[Address] = None\n    gender: Optional[str] = None\n    name: Optional[HumanName] = None\n    organization: Optional[Reference] = None\n    period: Optional[Period] = None\n    relationship: Optional[List[CodeableConcept]] = None\n    telecom: Optional[List[ContactPoint]] = None\n\nclass Patient(DomainResource):\n    multiple_birth_boolean: Optional[bool] = None\n    address: Optional[List[Address]] = None\n    deceased_date_time: Optional[str] = None\n    managing_organization: Optional[Reference] = None\n    deceased_boolean: Optional[bool] = None\n    name: Optional[List[HumanName]] = None\n    birth_date: Optional[str] = None\n    multiple_birth_integer: Optional[int] = None\n    photo: Optional[List[Attachment]] = None\n    link: Optional[List[Patient_Link]] = None\n    active: Optional[bool] = None\n    communication: Optional[List[Patient_Communication]] = None\n    identifier: Optional[List[Identifier]] = None\n    telecom: Optional[List[ContactPoint]] = None\n    general_practitioner: Optional[List[Reference]] = None\n    gender: Optional[str] = None\n    marital_status: Optional[CodeableConcept] = None\n    contact: Optional[List[Patient_Contact]] = None"
-             (gen.python/generate-class fixtures/patient-ir-schema
-                                        ["class Patient_Link(BackboneElement):\n    other: Reference\n    type: str"
-                                         "class Patient_Communication(BackboneElement):\n    language: CodeableConcept\n    preferred: Optional[bool] = None"
-                                         "class Patient_Contact(BackboneElement):\n    address: Optional[Address] = None\n    gender: Optional[str] = None\n    name: Optional[HumanName] = None\n    organization: Optional[Reference] = None\n    period: Optional[Period] = None\n    relationship: Optional[List[CodeableConcept]] = None\n    telecom: Optional[List[ContactPoint]] = None"])))))
+  (testing "base"
+    (is (= "export type Patient = DomainResource & {\n    address?: Address[];\n    managingOrganization?: Reference;\n    name?: HumanName[];\n    birthDate?: string;\n    multipleBirth?: boolean | number;\n    deceased?: string | boolean;\n    photo?: Attachment[];\n    link?: BackboneElement[];\n    active?: boolean;\n    communication?: BackboneElement[];\n    identifier?: Identifier[];\n    telecom?: ContactPoint[];\n    generalPractitioner?: Reference[];\n    gender?: string;\n    maritalStatus?: CodeableConcept;\n    contact?: BackboneElement[];\n};"
+           (gen.typescript/generate-class (fixt/get-data :patient-ir-schema)))))
 
-#_(deftest test-generate-datatypes
+  (testing "with inner classes"
+    (is (= "export type Patient_Link = BackboneElement & {\n    type: string;\n    other: Reference;\n};\n\nexport type Patient_Communication = BackboneElement & {\n    language: CodeableConcept;\n    preferred?: boolean;\n};\n\nexport type Patient_Contact = BackboneElement & {\n    name?: HumanName;\n    gender?: string;\n    period?: Period;\n    address?: Address;\n    telecom?: ContactPoint[];\n    organization?: Reference;\n    relationship?: CodeableConcept[];\n};\n\nexport type Patient = DomainResource & {\n    address?: Address[];\n    managingOrganization?: Reference;\n    name?: HumanName[];\n    birthDate?: string;\n    multipleBirth?: boolean | number;\n    deceased?: string | boolean;\n    photo?: Attachment[];\n    link?: BackboneElement[];\n    active?: boolean;\n    communication?: BackboneElement[];\n    identifier?: Identifier[];\n    telecom?: ContactPoint[];\n    generalPractitioner?: Reference[];\n    gender?: string;\n    maritalStatus?: CodeableConcept;\n    contact?: BackboneElement[];\n};"
+           (gen.typescript/generate-class (fixt/get-data :patient-ir-schema)
+                                          (map gen.typescript/generate-class (:backbone-elements (fixt/get-data :patient-ir-schema))))))))
+
+(deftest test-generate-datatypes
     (is
      (= [{:path (io/file "base/__init__.py"),
           :content
           "from pydantic import *\nfrom typing import Optional, List\n\nclass Coding(Element):\n    code: Optional[str] = None\n    system: Optional[str] = None\n    display: Optional[str] = None\n    version: Optional[str] = None\n    user_selected: Optional[bool] = None"}]
-        (sut/generate-datatypes generator [fixtures/coding-ir-schema]))))
+        (sut/generate-datatypes generator [fixtures/coding-ir-schema])
+
+
+        )))
 
 (deftest test-generate-resources
   (is
    (= {:path (io/file "hl7-fhir-r4-core/Patient.ts"),
        :content
-       "import { Address, Attachment, Period, CodeableConcept, ContactPoint, HumanName, DomainResource, Reference, Identifier, BackboneElement } from '../datatypes';\n\nexport type Patient_Link = BackboneElement & {\n    type: string;\n    other: Reference;\n};\n\nexport type Patient_Communication = BackboneElement & {\n    language: CodeableConcept;\n    preferred?: boolean;\n};\n\nexport type Patient_Contact = BackboneElement & {\n    name?: HumanName;\n    gender?: string;\n    period?: Period;\n    address?: Address;\n    telecom?: ContactPoint[];\n    organization?: Reference;\n    relationship?: CodeableConcept[];\n};\n\nexport type Patient = DomainResource & {\n    address?: Address[];\n    managingOrganization?: Reference;\n    name?: HumanName[];\n    birthDate?: string;\n    multipleBirth?: boolean | number;\n    deceased?: string | boolean;\n    photo?: Attachment[];\n    link?: BackboneElement[];\n    active?: boolean;\n    communication?: BackboneElement[];\n    identifier?: Identifier[];\n    telecom?: ContactPoint[];\n    generalPractitioner?: Reference[];\n    gender?: string;\n    maritalStatus?: CodeableConcept;\n    contact?: BackboneElement[];\n};"}
-      (sut/generate-resource-module generator fixtures/patient-ir-schema))))
+       "import { Address, Attachment, Period, CodeableConcept, ContactPoint, HumanName, DomainResource, Reference, Identifier, BackboneElement } from \"../datatypes\";\n\nexport type Patient_Link = BackboneElement & {\n    type: string;\n    other: Reference;\n};\n\nexport type Patient_Communication = BackboneElement & {\n    language: CodeableConcept;\n    preferred?: boolean;\n};\n\nexport type Patient_Contact = BackboneElement & {\n    name?: HumanName;\n    gender?: string;\n    period?: Period;\n    address?: Address;\n    telecom?: ContactPoint[];\n    organization?: Reference;\n    relationship?: CodeableConcept[];\n};\n\nexport type Patient = DomainResource & {\n    address?: Address[];\n    managingOrganization?: Reference;\n    name?: HumanName[];\n    birthDate?: string;\n    multipleBirth?: boolean | number;\n    deceased?: string | boolean;\n    photo?: Attachment[];\n    link?: BackboneElement[];\n    active?: boolean;\n    communication?: BackboneElement[];\n    identifier?: Identifier[];\n    telecom?: ContactPoint[];\n    generalPractitioner?: Reference[];\n    gender?: string;\n    maritalStatus?: CodeableConcept;\n    contact?: BackboneElement[];\n};"}
+      (sut/generate-resource-module generator (fixt/get-data :patient-ir-schema)))))
 
 #_(deftest test-generate-search-params
     (is
