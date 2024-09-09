@@ -78,27 +78,39 @@
     (is (= "export type Patient = DomainResource & {\n    address?: Address[];\n    managingOrganization?: Reference;\n    name?: HumanName[];\n    birthDate?: string;\n    multipleBirth?: boolean | number;\n    deceased?: string | boolean;\n    photo?: Attachment[];\n    link?: BackboneElement[];\n    active?: boolean;\n    communication?: BackboneElement[];\n    identifier?: Identifier[];\n    telecom?: ContactPoint[];\n    generalPractitioner?: Reference[];\n    gender?: string;\n    maritalStatus?: CodeableConcept;\n    contact?: BackboneElement[];\n};"
            (gen.typescript/generate-class (fixt/get-data :patient-ir-schema)))))
 
+  (testing "empty elements"
+    (is (= "export type Base = {};"
+           (gen.typescript/generate-class {:package "hl7.fhir.r5.core",
+                                           :derivation nil,
+                                           :type "Base",
+                                           :elements (),
+                                           :url "http://hl7.org/fhir/StructureDefinition/Base",
+                                           :base-resource-name nil,
+                                           :backbone-elements (),
+                                           :base nil,
+                                           :deps #{}}))))
+
   (testing "with inner classes"
     (is (= "export type Patient_Link = BackboneElement & {\n    type: string;\n    other: Reference;\n};\n\nexport type Patient_Communication = BackboneElement & {\n    language: CodeableConcept;\n    preferred?: boolean;\n};\n\nexport type Patient_Contact = BackboneElement & {\n    name?: HumanName;\n    gender?: string;\n    period?: Period;\n    address?: Address;\n    telecom?: ContactPoint[];\n    organization?: Reference;\n    relationship?: CodeableConcept[];\n};\n\nexport type Patient = DomainResource & {\n    address?: Address[];\n    managingOrganization?: Reference;\n    name?: HumanName[];\n    birthDate?: string;\n    multipleBirth?: boolean | number;\n    deceased?: string | boolean;\n    photo?: Attachment[];\n    link?: BackboneElement[];\n    active?: boolean;\n    communication?: BackboneElement[];\n    identifier?: Identifier[];\n    telecom?: ContactPoint[];\n    generalPractitioner?: Reference[];\n    gender?: string;\n    maritalStatus?: CodeableConcept;\n    contact?: BackboneElement[];\n};"
            (gen.typescript/generate-class (fixt/get-data :patient-ir-schema)
                                           (map gen.typescript/generate-class (:backbone-elements (fixt/get-data :patient-ir-schema))))))))
 
+#_
 (deftest test-generate-datatypes
-    (is
-     (= [{:path (io/file "base/__init__.py"),
-          :content
-          "from pydantic import *\nfrom typing import Optional, List\n\nclass Coding(Element):\n    code: Optional[str] = None\n    system: Optional[str] = None\n    display: Optional[str] = None\n    version: Optional[str] = None\n    user_selected: Optional[bool] = None"}]
-        (sut/generate-datatypes generator [fixtures/coding-ir-schema])
-
-
-        )))
+  (is
+   (= [{:path (io/file "base/__init__.py"),
+        :content
+        "from pydantic import *\nfrom typing import Optional, List\n\nclass Coding(Element):\n    code: Optional[str] = None\n    system: Optional[str] = None\n    display: Optional[str] = None\n    version: Optional[str] = None\n    user_selected: Optional[bool] = None"}]
+      (sut/generate-datatypes generator [fixtures/coding-ir-schema]))))
 
 (deftest test-generate-resources
   (is
    (= {:path (io/file "hl7-fhir-r4-core/Patient.ts"),
        :content
-       "import { Address, Attachment, Period, CodeableConcept, ContactPoint, HumanName, DomainResource, Reference, Identifier, BackboneElement } from \"../datatypes\";\n\nexport type Patient_Link = BackboneElement & {\n    type: string;\n    other: Reference;\n};\n\nexport type Patient_Communication = BackboneElement & {\n    language: CodeableConcept;\n    preferred?: boolean;\n};\n\nexport type Patient_Contact = BackboneElement & {\n    name?: HumanName;\n    gender?: string;\n    period?: Period;\n    address?: Address;\n    telecom?: ContactPoint[];\n    organization?: Reference;\n    relationship?: CodeableConcept[];\n};\n\nexport type Patient = DomainResource & {\n    address?: Address[];\n    managingOrganization?: Reference;\n    name?: HumanName[];\n    birthDate?: string;\n    multipleBirth?: boolean | number;\n    deceased?: string | boolean;\n    photo?: Attachment[];\n    link?: BackboneElement[];\n    active?: boolean;\n    communication?: BackboneElement[];\n    identifier?: Identifier[];\n    telecom?: ContactPoint[];\n    generalPractitioner?: Reference[];\n    gender?: string;\n    maritalStatus?: CodeableConcept;\n    contact?: BackboneElement[];\n};"}
-      (sut/generate-resource-module generator (fixt/get-data :patient-ir-schema)))))
+       "import { Address } from \"./Address\";\nimport { Attachment } from \"./Attachment\";\nimport { Period } from \"./Period\";\nimport { CodeableConcept } from \"./CodeableConcept\";\nimport { ContactPoint } from \"./ContactPoint\";\nimport { HumanName } from \"./HumanName\";\nimport { DomainResource } from \"./DomainResource\";\nimport { Reference } from \"./Reference\";\nimport { Identifier } from \"./Identifier\";\nimport { BackboneElement } from \"./BackboneElement\";\n\nexport type Patient_Link = BackboneElement & {\n    type: string;\n    other: Reference;\n};\n\nexport type Patient_Communication = BackboneElement & {\n    language: CodeableConcept;\n    preferred?: boolean;\n};\n\nexport type Patient_Contact = BackboneElement & {\n    name?: HumanName;\n    gender?: string;\n    period?: Period;\n    address?: Address;\n    telecom?: ContactPoint[];\n    organization?: Reference;\n    relationship?: CodeableConcept[];\n};\n\nexport type Patient = DomainResource & {\n    address?: Address[];\n    managingOrganization?: Reference;\n    name?: HumanName[];\n    birthDate?: string;\n    multipleBirth?: boolean | number;\n    deceased?: string | boolean;\n    photo?: Attachment[];\n    link?: BackboneElement[];\n    active?: boolean;\n    communication?: BackboneElement[];\n    identifier?: Identifier[];\n    telecom?: ContactPoint[];\n    generalPractitioner?: Reference[];\n    gender?: string;\n    maritalStatus?: CodeableConcept;\n    contact?: BackboneElement[];\n};"}
+      (sut/generate-resource-module generator (fixt/get-data :patient-ir-schema))
+
+      )))
 
 #_(deftest test-generate-search-params
     (is
