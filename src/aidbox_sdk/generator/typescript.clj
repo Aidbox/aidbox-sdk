@@ -70,7 +70,9 @@
 (defn class-name
   "Generate class name from schema url."
   [url]
-  (uppercase-first-letter (url->resource-name url)))
+  (str/replace
+   (uppercase-first-letter (url->resource-name url))
+   #"_" ""))
 
 (defn generate-polymorphic-property [{:keys [name required choices]}]
   (let [type (->> choices
@@ -80,11 +82,16 @@
                   (str/join " | "))]
     (str name (when-not required "?") ": " type ";")))
 
+(defn ->backbone-type [element]
+  (str/replace (str (:base element) (uppercase-first-letter (:name element))) "_" ""))
+
 (defn generate-property [{:keys [name array required type choices] :as element}]
   (if choices
     (generate-polymorphic-property element)
-    (let [lang-type (->lang-type type)]
-      (str name (when-not required "?") ": " lang-type (when array "[]") ";"))))
+    (let [type' (if (= "BackboneElement" (:type element))
+                  (->backbone-type element)
+                  (->lang-type (:type element)))]
+      (str name (when-not required "?") ": " type' (when array "[]") ";"))))
 
 (defn generate-class
   "Generates TypeScript type from IR (intermediate representation) schema."
