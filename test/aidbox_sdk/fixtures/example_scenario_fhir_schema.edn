@@ -1,0 +1,328 @@
+{:constraints
+ {:cnl-0
+  {:human
+   "Name should be usable as an identifier for the module by machine processing applications such as code generation",
+   :severity "warning",
+   :expression
+   "name.exists() implies name.matches('^[A-Z]([A-Za-z0-9_]){1,254}$')"},
+  :exs-3
+  {:human "Must have actors if status is active or required",
+   :severity "error",
+   :expression "status='active' or status='retired' implies actor.exists()"},
+  :exs-4
+  {:human "Must have processes if status is active or required",
+   :severity "error",
+   :expression
+   "status='active' or status='retired' implies process.exists()"},
+  :exs-6
+  {:human "Actor keys must be unique",
+   :severity "error",
+   :expression "actor.key.count() = actor.key.distinct().count()"},
+  :exs-7
+  {:human "Actor titles must be unique",
+   :severity "error",
+   :expression "actor.title.count() = actor.title.distinct().count()"},
+  :exs-8
+  {:human "Instance keys must be unique",
+   :severity "error",
+   :expression "instance.key.count() = instance.key.distinct().count()"},
+  :exs-9
+  {:human "Instance titles must be unique",
+   :severity "error",
+   :expression "instance.title.count() = instance.title.distinct().count()"},
+  :exs-12
+  {:human "Process titles must be unique",
+   :severity "error",
+   :expression "process.title.count() = process.title.distinct().count()"}},
+ :package "hl7.fhir.r5.core",
+ :technical-id
+ "hl7.fhir.r5.core/5.0.0/FHIRSchema/http://hl7.org/fhir/StructureDefinition/ExampleScenario/5.0.0",
+ :derivation "specialization",
+ :fhirVersion nil,
+ :name "ExampleScenario",
+ :type "ExampleScenario",
+ :resourceType "FHIRSchema",
+ :elements
+ {:description {:type "markdown", :scalar true, :summary true},
+  :date {:type "dateTime", :scalar true, :summary true},
+  :publisher {:type "string", :scalar true, :summary true},
+  :instance
+  {:type "BackboneElement",
+   :array true,
+   :elements
+   {:description {:type "markdown", :scalar true},
+    :key {:type "string", :scalar true},
+    :containedInstance
+    {:type "BackboneElement",
+     :array true,
+     :elements
+     {:versionReference {:type "string", :scalar true},
+      :instanceReference {:type "string", :scalar true}},
+     :required ["instanceReference"],
+     :constraints
+     {:exs-14
+      {:human
+       "InstanceReference must be a key of an instance defined in the ExampleScenario",
+       :severity "error",
+       :expression
+       "%resource.instance.where(key=%context.instanceReference).exists()"},
+      :exs-15
+      {:human
+       "versionReference must be specified if the referenced instance defines versions",
+       :severity "error",
+       :expression
+       "versionReference.empty() implies %resource.instance.where(key=%context.instanceReference).version.empty()"},
+      :exs-16
+      {:human
+       "versionReference must be a key of a version within the instance pointed to by instanceReference",
+       :severity "error",
+       :expression
+       "versionReference.exists() implies %resource.instance.where(key=%context.instanceReference).version.where(key=%context.versionReference).exists()"}}},
+    :content {:type "Reference", :scalar true},
+    :structureType
+    {:type "Coding",
+     :scalar true,
+     :binding
+     {:strength "extensible",
+      :valueSet
+      "http://hl7.org/fhir/ValueSet/examplescenario-instance-type"}},
+    :title {:type "string", :scalar true},
+    :structureVersion {:type "string", :scalar true},
+    :structureProfileUri
+    {:type "uri", :scalar true, :choiceOf "structureProfile"},
+    :structureProfile
+    {:scalar true,
+     :choices ["structureProfileCanonical" "structureProfileUri"]},
+    :structureProfileCanonical
+    {:type "canonical", :scalar true, :choiceOf "structureProfile"},
+    :version
+    {:type "BackboneElement",
+     :array true,
+     :elements
+     {:key {:type "string", :scalar true},
+      :title {:type "string", :scalar true},
+      :content {:type "Reference", :scalar true},
+      :description {:type "markdown", :scalar true}},
+     :required ["key" "title"]}},
+   :required ["key" "structureType" "title"],
+   :constraints
+   {:exs-1
+    {:human
+     "StructureVersion is required if structureType is not FHIR (but may still be present even if FHIR)",
+     :severity "error",
+     :expression
+     "structureType.exists() and structureType.memberOf('http://hl7.org/fhir/ValueSet/resource-types').not() implies structureVersion.exists()"},
+    :exs-2
+    {:human
+     "instance.content is only allowed if there are no instance.versions",
+     :severity "error",
+     :expression "content.exists() implies version.empty()"},
+    :exs-10
+    {:human "Version keys must be unique within an instance",
+     :severity "error",
+     :expression "version.key.count() = version.key.distinct().count()"},
+    :exs-11
+    {:human "Version titles must be unique within an instance",
+     :severity "error",
+     :expression "version.title.count() = version.title.distinct().count()"},
+    :exs-20
+    {:human "Instance should be referenced in at least one location",
+     :severity "warning",
+     :expression
+     "%resource.process.descendants().select(instanceReference).where($this=%context.key).exists()"},
+    :exs-21
+    {:human "Instance version should be referenced in at least one operation",
+     :severity "warning",
+     :expression
+     "version.exists() implies version.key.intersect(%resource.process.descendants().where(instanceReference = %context.key).versionReference).exists()"}}},
+  :jurisdiction
+  {:type "CodeableConcept",
+   :array true,
+   :binding
+   {:strength "extensible",
+    :valueSet "http://hl7.org/fhir/ValueSet/jurisdiction"},
+   :summary true},
+  :purpose {:type "markdown", :scalar true},
+  :name {:type "string", :scalar true, :summary true},
+  :process
+  {:type "BackboneElement",
+   :array true,
+   :elements
+   {:step
+    {:type "BackboneElement",
+     :array true,
+     :elements
+     {:pause {:type "boolean", :scalar true},
+      :number {:type "string", :scalar true},
+      :process
+      {:scalar true,
+       :elementReference
+       ["http://hl7.org/fhir/StructureDefinition/ExampleScenario"
+        "elements"
+        "process"]},
+      :workflow
+      {:type "canonical",
+       :refers ["http://hl7.org/fhir/StructureDefinition/ExampleScenario"],
+       :scalar true},
+      :operation
+      {:type "BackboneElement",
+       :scalar true,
+       :elements
+       {:response
+        {:scalar true,
+         :elementReference
+         ["http://hl7.org/fhir/StructureDefinition/ExampleScenario"
+          "elements"
+          "instance"
+          "elements"
+          "containedInstance"]},
+        :description {:type "markdown", :scalar true},
+        :request
+        {:scalar true,
+         :elementReference
+         ["http://hl7.org/fhir/StructureDefinition/ExampleScenario"
+          "elements"
+          "instance"
+          "elements"
+          "containedInstance"]},
+        :initiator {:type "string", :scalar true},
+        :type
+        {:type "Coding",
+         :scalar true,
+         :binding
+         {:strength "extensible",
+          :valueSet
+          "http://hl7.org/fhir/ValueSet/testscript-operation-codes"}},
+        :receiverActive {:type "boolean", :scalar true},
+        :title {:type "string", :scalar true},
+        :initiatorActive {:type "boolean", :scalar true},
+        :receiver {:type "string", :scalar true}},
+       :required ["title"],
+       :constraints
+       {:exs-17
+        {:human
+         "If specified, initiator must be a key of an actor within the ExampleScenario",
+         :severity "error",
+         :expression
+         "initiator.exists() implies initiator = 'OTHER' or %resource.actor.where(key=%context.initiator).exists()"},
+        :exs-18
+        {:human
+         "If specified, receiver must be a key of an actor within the ExampleScenario",
+         :severity "error",
+         :expression
+         "receiver.exists() implies receiver = 'OTHER' or %resource.actor.where(key=%context.receiver).exists()"}}},
+      :alternative
+      {:type "BackboneElement",
+       :array true,
+       :elements
+       {:step
+        {:array true,
+         :elementReference
+         ["http://hl7.org/fhir/StructureDefinition/ExampleScenario"
+          "elements"
+          "process"
+          "elements"
+          "step"]},
+        :title {:type "string", :scalar true},
+        :description {:type "markdown", :scalar true}},
+       :required ["title"]}},
+     :constraints
+     {:exs-13
+      {:human "Alternative titles must be unique within a step",
+       :severity "error",
+       :expression
+       "alternative.title.count() = alternative.title.distinct().count()"},
+      :exs-22
+      {:human
+       "Can have a process, a workflow, one or more operations or none of these, but cannot have a combination",
+       :severity "error",
+       :expression
+       "(process.exists() implies workflow.empty() and operation.empty()) and (workflow.exists() implies operation.empty())"}}},
+    :title {:type "string", :scalar true, :summary true},
+    :description {:type "markdown", :scalar true},
+    :preConditions {:type "markdown", :scalar true},
+    :postConditions {:type "markdown", :scalar true}},
+   :required ["title"],
+   :constraints
+   {:exs-5
+    {:human
+     "Processes must have steps if ExampleScenario status is active or required",
+     :severity "error",
+     :expression
+     "%resource.status='active' or %resource.status='retired' implies step.exists()"}}},
+  :copyrightLabel {:type "string", :scalar true},
+  :useContext {:type "UsageContext", :array true, :summary true},
+  :copyright {:type "markdown", :scalar true},
+  :versionAlgorithm
+  {:scalar true,
+   :choices ["versionAlgorithmString" "versionAlgorithmCoding"]},
+  :experimental {:type "boolean", :scalar true, :summary true},
+  :title {:type "string", :scalar true, :summary true},
+  :versionAlgorithmCoding
+  {:type "Coding",
+   :scalar true,
+   :binding
+   {:strength "extensible",
+    :valueSet "http://hl7.org/fhir/ValueSet/version-algorithm"},
+   :summary true,
+   :choiceOf "versionAlgorithm"},
+  :status
+  {:type "code",
+   :scalar true,
+   :binding
+   {:strength "required",
+    :valueSet "http://hl7.org/fhir/ValueSet/publication-status"},
+   :summary true,
+   :modifier true},
+  :url
+  {:type "uri",
+   :scalar true,
+   :summary true,
+   :constraints
+   {:cnl-1
+    {:human
+     "URL should not contain | or # - these characters make processing canonical references problematic",
+     :severity "warning",
+     :expression "exists() implies matches('^[^|# ]+$')"}}},
+  :identifier {:type "Identifier", :array true, :summary true},
+  :versionAlgorithmString
+  {:type "string",
+   :scalar true,
+   :binding
+   {:strength "extensible",
+    :valueSet "http://hl7.org/fhir/ValueSet/version-algorithm"},
+   :summary true,
+   :choiceOf "versionAlgorithm"},
+  :version {:type "string", :scalar true, :summary true},
+  :contact {:type "ContactDetail", :array true, :summary true},
+  :actor
+  {:type "BackboneElement",
+   :array true,
+   :elements
+   {:key {:type "string", :scalar true},
+    :type
+    {:type "code",
+     :scalar true,
+     :binding
+     {:strength "required",
+      :valueSet "http://hl7.org/fhir/ValueSet/examplescenario-actor-type"}},
+    :title {:type "string", :scalar true},
+    :description {:type "markdown", :scalar true}},
+   :required ["key" "type" "title"],
+   :constraints
+   {:exs-19
+    {:human "Actor should be referenced in at least one operation",
+     :severity "warning",
+     :expression
+     "%resource.process.descendants().select(operation).where(initiator=%context.key or receiver=%context.key).exists()"},
+    :exs-23
+    {:human "actor.key canot be 'OTHER'",
+     :severity "error",
+     :expression "key != 'OTHER'"}}}},
+ :id "ExampleScenario",
+ :kind "resource",
+ :url "http://hl7.org/fhir/StructureDefinition/ExampleScenario",
+ :packageVersion "5.0.0",
+ :base "http://hl7.org/fhir/StructureDefinition/DomainResource",
+ :version "5.0.0",
+ :required ["status"]}
