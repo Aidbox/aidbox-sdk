@@ -3,7 +3,6 @@
    [aidbox-sdk.core :as sdk]
    [aidbox-sdk.fhir :as fhir]
    [aidbox-sdk.converter :as converter]
-   [aidbox-sdk.fixtures.schemas :as fixtures]
    [aidbox-sdk.generator :as gen]
    [aidbox-sdk.generator.python :as gen.python]
    [aidbox-sdk.schema :as import]
@@ -59,24 +58,33 @@
 
   (let [all-schemas      aidbox-schemas
 
-        datatype?        (every-pred fhir/fhir-schema? fhir/base-schema? fhir/datatype?)
-        domain-resource? (every-pred fhir/fhir-schema? fhir/base-schema? fhir/domain-resource?)
+        base-type?       (every-pred fhir/fhir-schema? fhir/base-type?)
+        datatype?        (every-pred fhir/fhir-schema? fhir/datatype? (complement fhir/primitive-type?))
+        domain-resource? (every-pred fhir/fhir-schema? fhir/domain-resource?)
         constraint?      (every-pred fhir/fhir-schema? fhir/constraint? (complement fhir/extension?))
         search-param?    (every-pred fhir/search-parameter? (complement fhir/search-parameter-from-extension?))
 
         fhir-schemas         (filter fhir/fhir-schema? all-schemas)
-        datatype-schemas     (filter datatype? all-schemas)
-        resource-schemas     (filter domain-resource? all-schemas)
-        constraint-schemas   (filter constraint? all-schemas)
-        search-param-schemas (filter search-param? all-schemas)
+        base-schemas         (filter base-type?        all-schemas)
+        datatype-schemas     (filter datatype?         all-schemas)
+        resource-schemas     (filter domain-resource?  all-schemas)
+        constraint-schemas   (filter constraint?       all-schemas)
+        search-param-schemas (filter search-param?     all-schemas)
 
         ir-schemas              (converter/convert fhir-schemas)
+        base-ir-schemas         (converter/convert base-schemas)
         datatype-ir-schemas     (converter/convert datatype-schemas)
         resource-ir-schemas     (converter/convert resource-schemas)
         search-param-ir-schemas (converter/convert-search-params search-param-schemas
-                                                                 fhir-schemas)]
-(gen/generate-datatypes gen.python/generator resource-ir-schemas)
-    )
+                                                                 fhir-schemas)
+        constraint-ir-schemas   (converter/convert-constraints constraint-schemas
+                                                               ir-schemas)]
+
+
+    ()
+
+    base-ir-schemas)
+
 
 
 
