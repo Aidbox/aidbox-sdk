@@ -150,33 +150,23 @@
 
 ;; resolve references
 
-(defn- find-schema-by-url [schemas url]
-  (->> schemas
-       (filter #(= url (:url %)))
-       (first)))
+(defn resolve-element-references [schemas]
+  (walk/postwalk
+   (fn [x]
+     ;; TODO add type of the reference
+     (if (:elementReference x)
+       (merge (dissoc x :elementReference)
+              {:type "Reference"})
+       x))
+   schemas))
 
-(defn- find-element-by-reference [element-reference schemas]
-  (let [[schema-url & path] element-reference
-        schema (find-schema-by-url schemas schema-url)
-        element (get-in schema (map keyword path))]
-    (or element {})))
+;;
 
 (defn find-elements-by-names [element-names schema]
   (filter #(contains?
             (set element-names)
             (:name %))
           (:elements schema)))
-
-(defn resolve-references [schemas]
-  (walk/postwalk
-   (fn [x]
-     (if-let [reference (:elementReference x)]
-       (merge (dissoc x :elementReference)
-              (find-element-by-reference reference schemas))
-       x))
-   schemas))
-
-;;
 
 (defn resolve-element-choices [schema el]
   (if (:choices el)
@@ -224,7 +214,7 @@
 
 (defn convert [schemas]
   (->> schemas
-       (resolve-references)
+       (resolve-element-references)
        (compile-elements)
        (combine-elements)
        (map (fn [schema]

@@ -1,8 +1,11 @@
 (ns aidbox-sdk.converter-test
   (:require
    [aidbox-sdk.converter :as sut]
+   [aidbox-sdk.fixtures :as fixt]
    [aidbox-sdk.fixtures.schemas :as fixtures]
-   [clojure.test :refer [are deftest is testing]]))
+   [clojure.test :refer [are deftest is testing use-fixtures]]))
+
+(use-fixtures :once fixt/prepare-examples)
 
 (deftest test-converter-utils
   (testing "url->resource-name"
@@ -24,7 +27,7 @@
 
 (deftest test-resolve-references
   (is (= fixtures/schemas-with-element-reference-resolved
-         (sut/resolve-references fixtures/schemas-with-element-reference))))
+         (sut/resolve-element-references fixtures/schemas-with-element-reference))))
 
 (deftest test-resolve-choices
   (is (= fixtures/schemas-with-element-choices-resolved
@@ -49,3 +52,8 @@
      (= fixtures/observation-constraints-ir-schema
         (sut/convert-constraints fixtures/observation-constraints
                                  [fixtures/observation-ir-schema])))))
+
+(comment
+  (fixt/load-data!)
+
+  @fixt/data)
