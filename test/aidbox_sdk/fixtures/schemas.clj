@@ -260,21 +260,7 @@
       {:action
        {:type "BackboneElement",
         :array true,
-        :elements
-        {:operation
-         {:scalar true,
-          :type "BackboneElement",
-          :elements
-          {:detail {:type "uri", :scalar true},
-           :result
-           {:type "code",
-            :scalar true,
-            :binding
-            {:strength "required",
-             :valueSet "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-             :codesystems ["http://hl7.org/fhir/report-action-result-codes"]}},
-           :message {:type "markdown", :scalar true}},
-          :required ["result"]}},
+        :elements {:operation {:scalar true, :type "Reference"}},
         :required ["operation"]}},
       :required ["action"]},
      :test
@@ -286,34 +272,8 @@
        {:type "BackboneElement",
         :array true,
         :elements
-        {:assert
-         {:scalar true,
-          :type "BackboneElement",
-          :elements
-          {:detail {:type "string", :scalar true},
-           :result
-           {:type "code",
-            :scalar true,
-            :binding
-            {:strength "required",
-             :valueSet "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-             :codesystems ["http://hl7.org/fhir/report-action-result-codes"]}},
-           :message {:type "markdown", :scalar true}},
-          :required ["result"]},
-         :operation
-         {:scalar true,
-          :type "BackboneElement",
-          :elements
-          {:detail {:type "uri", :scalar true},
-           :result
-           {:type "code",
-            :scalar true,
-            :binding
-            {:strength "required",
-             :valueSet "http://hl7.org/fhir/ValueSet/report-action-result-codes",
-             :codesystems ["http://hl7.org/fhir/report-action-result-codes"]}},
-           :message {:type "markdown", :scalar true}},
-          :required ["result"]}},
+        {:assert {:scalar true, :type "Reference"},
+         :operation {:scalar true, :type "Reference"}},
         :constraints
         {:inv-2
          {:human

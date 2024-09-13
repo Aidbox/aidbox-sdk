@@ -1,0 +1,142 @@
+{:constraints
+ {:vs-2
+  {:human
+   "If there is no component or hasMember element then either a value[x] or a data absent reason must be present.",
+   :severity "error",
+   :expression
+   "(component.empty() and hasMember.empty()) implies (dataAbsentReason.exists() or value.exists())"}},
+ :package "hl7.fhir.r5.core",
+ :technical-id
+ "hl7.fhir.r5.core/5.0.0/FHIRSchema/http://hl7.org/fhir/StructureDefinition/vitalsigns/5.0.0",
+ :derivation "constraint",
+ :fhirVersion nil,
+ :name "vitalsigns",
+ :type "Observation",
+ :resourceType "FHIRSchema",
+ :elements
+ {:category
+  {:type "CodeableConcept",
+   :array true,
+   :slicing
+   {:rules "open",
+    :slices
+    {:VSCat
+     {:max 1,
+      :min 1,
+      :match
+      {:type "pattern",
+       :value
+       {:coding
+        {:code "vital-signs",
+         :system
+         "http://terminology.hl7.org/CodeSystem/observation-category"}}},
+      :schema
+      {:type "CodeableConcept",
+       :elements
+       {:coding
+        {:type "Coding",
+         :array true,
+         :elements
+         {:code {:type "code", :fixed "vital-signs", :mustSupport true},
+          :system
+          {:type "uri",
+           :fixed
+           "http://terminology.hl7.org/CodeSystem/observation-category",
+           :mustSupport true}},
+         :required ["system" "code"],
+         :mustSupport true}},
+       :required ["coding"],
+       :mustSupport true}}},
+    :ordered false,
+    :discriminator
+    [{:path "coding.code", :type "value"}
+     {:path "coding.system", :type "value"}]},
+   :mustSupport true},
+  :hasMember
+  {:type "Reference",
+   :refers
+   ["http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse"
+    "http://hl7.org/fhir/StructureDefinition/MolecularSequence"
+    "http://hl7.org/fhir/StructureDefinition/vitalsigns"]},
+  :derivedFrom
+  {:type "Reference",
+   :refers
+   ["http://hl7.org/fhir/StructureDefinition/DocumentReference"
+    "http://hl7.org/fhir/StructureDefinition/ImagingStudy"
+    "http://hl7.org/fhir/StructureDefinition/QuestionnaireResponse"
+    "http://hl7.org/fhir/StructureDefinition/MolecularSequence"
+    "http://hl7.org/fhir/StructureDefinition/vitalsigns"]},
+  :value {:max 1, :min 0},
+  :component
+  {:elements
+   {:code
+    {:type "CodeableConcept",
+     :binding
+     {:strength "extensible",
+      :valueSet "http://hl7.org/fhir/ValueSet/observation-vitalsignresult"},
+     :mustSupport true},
+    :value {:max 1, :min 0},
+    :valueQuantity
+    {:max 1,
+     :min 0,
+     :binding
+     {:strength "required",
+      :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+     :mustSupport true},
+    :dataAbsentReason
+    {:max 1, :min 0, :type "CodeableConcept", :mustSupport true}},
+   :required ["code"],
+   :constraints
+   {:vs-3
+    {:human "If there is no a value a data absent reason must be present",
+     :severity "error",
+     :expression "value.exists() or dataAbsentReason.exists()"}},
+   :mustSupport true},
+  :effectiveDateTime
+  {:type "dateTime",
+   :choiceOf "effective",
+   :constraints
+   {:vs-1
+    {:human
+     "if Observation.effective[x] is dateTime and has a value then that value shall be precise to the day",
+     :severity "error",
+     :expression "($this as dateTime).toString().length() >= 8"}},
+   :mustSupport true,
+   :required-element true},
+  :status
+  {:type "code",
+   :binding
+   {:strength "required",
+    :valueSet "http://hl7.org/fhir/ValueSet/observation-status"},
+   :mustSupport true},
+  :effective {:choices ["effectiveDateTime" "effectivePeriod"]},
+  :code
+  {:type "CodeableConcept",
+   :binding
+   {:strength "extensible",
+    :valueSet "http://hl7.org/fhir/ValueSet/observation-vitalsignresult"},
+   :mustSupport true},
+  :subject
+  {:type "Reference",
+   :refers ["http://hl7.org/fhir/StructureDefinition/Patient"],
+   :mustSupport true},
+  :dataAbsentReason
+  {:max 1, :min 0, :type "CodeableConcept", :mustSupport true},
+  :effectivePeriod
+  {:type "Period",
+   :choiceOf "effective",
+   :constraints
+   {:vs-1
+    {:human
+     "if Observation.effective[x] is dateTime and has a value then that value shall be precise to the day",
+     :severity "error",
+     :expression "($this as dateTime).toString().length() >= 8"}},
+   :mustSupport true,
+   :required-element true}},
+ :id "vitalsigns",
+ :kind "resource",
+ :url "http://hl7.org/fhir/StructureDefinition/vitalsigns",
+ :packageVersion "5.0.0",
+ :base "http://hl7.org/fhir/StructureDefinition/Observation",
+ :version "5.0.0",
+ :required ["status" "category" "code" "subject" "effective" "effective"]}

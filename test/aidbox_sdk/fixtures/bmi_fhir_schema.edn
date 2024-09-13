@@ -1,0 +1,44 @@
+{:package "hl7.fhir.r5.core",
+ :technical-id
+ "hl7.fhir.r5.core/5.0.0/FHIRSchema/http://hl7.org/fhir/StructureDefinition/bmi/5.0.0",
+ :derivation "constraint",
+ :fhirVersion nil,
+ :name "bmi",
+ :type "Observation",
+ :resourceType "FHIRSchema",
+ :elements
+ {:code
+  {:elements
+   {:coding
+    {:slicing
+     {:rules "open",
+      :slices
+      {:BMICode
+       {:max 1,
+        :min 1,
+        :match
+        {:type "pattern",
+         :value {:code "39156-5", :system "http://loinc.org"}},
+        :schema
+        {:elements
+         {:code {:type "code", :fixed "39156-5"},
+          :system {:type "uri", :fixed "http://loinc.org"}},
+         :required ["system" "code"]}}},
+      :ordered false,
+      :discriminator
+      [{:path "code", :type "value"} {:path "system", :type "value"}]}}}},
+  :valueQuantity
+  {:elements
+   {:code {:type "code", :fixed "kg/m2", :mustSupport true},
+    :unit {:type "string", :mustSupport true},
+    :value {:type "decimal", :mustSupport true},
+    :system
+    {:type "uri", :fixed "http://unitsofmeasure.org", :mustSupport true}},
+   :required ["value" "unit" "system" "code"]}},
+ :id "bmi",
+ :kind "resource",
+ :url "http://hl7.org/fhir/StructureDefinition/bmi",
+ :packageVersion "5.0.0",
+ :base "http://hl7.org/fhir/StructureDefinition/vitalsigns",
+ :version "5.0.0",
+ :required ["valueQuantity"]}
