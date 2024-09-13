@@ -85,13 +85,18 @@
 (defn ->backbone-type [element]
   (str/replace (str (:base element) (uppercase-first-letter (:name element))) "_" ""))
 
-(defn generate-property [{:keys [name array required type choices] :as element}]
-  (if choices
-    (generate-polymorphic-property element)
-    (let [type' (if (= "BackboneElement" (:type element))
-                  (->backbone-type element)
-                  (->lang-type (:type element)))]
-      (str name (when-not required "?") ": " type' (when array "[]") ";"))))
+(defn generate-property [{:keys [name array required type choices profile] :as element}]
+  (cond choices
+        (generate-polymorphic-property element)
+
+        (= type "Meta")
+        (format "%s: Meta = { profile: \"%s\" }" name profile)
+
+        :else
+        (let [type' (if (= "BackboneElement" type)
+                      (->backbone-type element)
+                      (->lang-type (:type element)))]
+          (str name (when-not required "?") ": " type' (when array "[]") ";"))))
 
 (defn generate-class
   "Generates TypeScript type from IR (intermediate representation) schema."

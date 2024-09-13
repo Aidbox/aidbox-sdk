@@ -65,15 +65,18 @@
     )
 
   (testing "element with meta"
-    ;; TODO
-    )
+    (is (= "meta: Meta = { profile: \"http://hl7.org/fhir/StructureDefinition/vitalsigns\" }"
+           (gen.typescript/generate-property {:name "meta",
+                                              :required true,
+                                              :value "Meta",
+                                              :profile "http://hl7.org/fhir/StructureDefinition/vitalsigns",
+                                              :type "Meta"}))))
 
   (testing "element with choices"
     ;; TODO
     ))
 
 (deftest test-generate-class
-
   (testing "base"
     (is (= "export type Patient = DomainResource & {\n    address?: Address[];\n    managingOrganization?: Reference;\n    name?: HumanName[];\n    birthDate?: string;\n    multipleBirth?: boolean | number;\n    deceased?: string | boolean;\n    photo?: Attachment[];\n    link?: PatientLink[];\n    active?: boolean;\n    communication?: PatientCommunication[];\n    identifier?: Identifier[];\n    telecom?: ContactPoint[];\n    generalPractitioner?: Reference[];\n    gender?: string;\n    maritalStatus?: CodeableConcept;\n    contact?: PatientContact[];\n};"
            (gen.typescript/generate-class (fixt/get-data :patient-ir-schema)))))
