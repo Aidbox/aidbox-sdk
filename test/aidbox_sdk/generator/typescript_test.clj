@@ -73,8 +73,26 @@
                                               :type "Meta"}))))
 
   (testing "element with choices"
-    ;; TODO
-    ))
+    (is (= "value?: Reference | number;"
+           (gen.typescript/generate-property {:name "value",
+                                              :choices
+                                              [{:name "valueReference"
+                                                :base "Observation"
+                                                :array false
+                                                :required false
+                                                :value "Base.ResourceReference"
+                                                :type "Reference"
+                                                :choice-option true}
+                                               {:name "valueInteger"
+                                                :base "Observation"
+                                                :array false
+                                                :required false
+                                                :value "int"
+                                                :type "integer"
+                                                :choice-option true}],
+                                              :base "Observation",
+                                              :array false,
+                                              :required false})))))
 
 (deftest test-generate-class
   (testing "base"
