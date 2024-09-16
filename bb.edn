@@ -1,0 +1,84 @@
+{:tasks
+ {:requires  ([babashka.fs :as fs]
+              [babashka.curl :as curl]
+              [clojure.java.shell]
+              [clojure.string :as str]
+              [cheshire.core :as json]
+              [clojure.edn :as edn]
+              [clojure.java.io :as io])
+
+  download
+  {:desc "download deps"
+   :task
+   (do
+
+     (def deps-downloaded (atom #{}))
+     (def deps-not-downloaded (atom #{}))
+     (def base-url "gs://fhir-schema-registry/1.0.0/")
+     (def resources-dir "./resources")
+
+     (defn run-gsutil [command]
+       (println (str "Running: gsutil " (str/join " " command)))
+       (let [result (apply shell "gsutil" command)]
+         (if (= 0 (:exit result))
+           (println "Success!")
+           (println "Failed:" (:err result)))))
+
+     (defn download-package [package-gs-name dir]
+       (try
+         (let [path (str resources-dir "/" dir "/" package-gs-name ".ndjson.gz")]
+           (run-gsutil ["cp" (str base-url package-gs-name "/package.ndjson.gz")
+                        path])
+           (swap! deps-downloaded (fn [a] (conj a package-gs-name)))
+           path)
+         (catch Exception e
+           (swap! deps-not-downloaded (fn [a] (conj a package-gs-name)))
+           (println " ex, continuing " e))))
+
+     ;; from ndjson.gz
+     (defn extract-first-line [file-path]
+       (with-open [reader (-> file-path
+                              io/input-stream
+                              java.util.zip.GZIPInputStream.
+                              io/reader)]
+         (first (line-seq reader))))
+
+     (defn get-dependencies [ndjson-path]
+       (let [json-str (extract-first-line ndjson-path)
+             parsed-json (json/parse-string json-str true)]
+         ;; json: [":hl7.fhir.uv.extensions.r4#1.0.0" ":hl7.fhir.r4.core#4.0.1"...]
+         (mapv
+          (fn [d] (subs d 1))
+          (:dependencies parsed-json))))
+
+     (defn download-deps [dependencies dir]
+       (doseq [dep dependencies]
+         (when-not (get (deref deps-downloaded) dep)
+           (println "DOWNLOADING " dep)
+           (def path (download-package dep dir))
+           (println "\n\n Downloaded deps: " (str (deref deps-downloaded)) "\n\n\n")
+           (when path
+             (def more-deps (get-dependencies path))
+             (when (seq more-deps)
+               (println " more! " more-deps)
+               (download-deps more-deps dir))))))
+
+     (do
+       (def us-core-path (download-package "hl7.fhir.us.core#6.1.0" "r4"))
+
+       (let [dependencies (get-dependencies us-core-path)]
+         (download-deps dependencies "r4"))
+
+       (def r5 (download-package "hl7.fhir.r5.core#5.0.0" "r5"))
+
+       (let [dependencies (get-dependencies r5)]
+         (download-deps dependencies "r5"))
+
+       (def r4b (download-package "hl7.fhir.r4b.core#4.3.0" "r4b"))
+
+       (let [dependencies (get-dependencies r4b)]
+         (download-deps dependencies "r4b"))
+
+       (println "Done!")
+       (println "Deps downloaded: " (str (deref deps-downloaded)))
+       (println "Deps not downloaded: " (str (deref deps-not-downloaded)))))}}}

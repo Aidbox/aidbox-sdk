@@ -10,9 +10,9 @@
    [clojure.data]
    [clojure.java.io :as io]))
 
-(def r4-schemas  (import/retrieve (import/resource "resources/schemas") {}))
-(def r4b-schemas (import/retrieve (import/resource "resources/r4b-schemas") {}))
-(def r5-schemas  (import/retrieve (import/resource "resources/r5-schemas") {}))
+(def r4-schemas  (import/retrieve (import/resource "resources/r4") {}))
+(def r4b-schemas (import/retrieve (import/resource "resources/r4b") {}))
+(def r5-schemas  (import/retrieve (import/resource "resources/r5") {}))
 
 (def aidbox-schemas (import/retrieve
                      (import/resource "http://localhost:8765/api/sdk/fhir-packages")
