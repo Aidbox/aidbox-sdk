@@ -1,11 +1,11 @@
 (ns aidbox-sdk.converter
   (:require
+   [aidbox-sdk.fhir :as fhir]
    [aidbox-sdk.generator.helpers :refer [->pascal-case safe-conj
                                          uppercase-first-letter vector->map]]
    [clojure.set :as set]
    [clojure.string :as str]
-   [clojure.walk :as walk]
-   [aidbox-sdk.fhir :as fhir]))
+   [clojure.walk :as walk]))
 
 (def primitives #{"dateTime" "xhtml" "Distance" "time" "date" "string" "uuid" "oid" "id" "Dosage" "Duration" "instant" "Count" "decimal" "code" "base64Binary" "unsignedInt" "url" "markdown" "uri" "positiveInt"  "canonical" "Age" "Timing"})
 
@@ -186,17 +186,18 @@
   (map resolve-schema-choices schemas))
 
 (defn collect-dependencies [schema]
-  (let [primitive-element? (partial fhir/primitive-element? (:package schema))
-        base-resource-name (if (:base-resource-name schema)
-                             #{(:base-resource-name schema)}
-                             #{})]
+  (let [primitive-element? (partial fhir/primitive-element? (:package schema))]
     (set/union
-     base-resource-name
+     (cond-> #{}
+       (:base-resource-name schema) (conj (:base-resource-name schema))
+       (fhir/constraint? schema)    (conj "Meta"))
+
      (->> (:elements schema)
           (remove primitive-element?)
           (map :type)
           (remove nil?)
           set)
+
      (->> (:backbone-elements schema)
           (map :elements)
           flatten
