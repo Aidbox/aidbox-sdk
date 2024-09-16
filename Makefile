@@ -23,3 +23,6 @@ COMPILE_OPTS := \
   -H:Name=aidbox-sdk
 compile-native-image: generate-reflect-config
 	native-image -jar $(PATH_TO_JAR) $(COMPILE_OPTS) $(image_name)
+
+repl:
+	clj -Mtest:nrepl

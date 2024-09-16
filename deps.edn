@@ -10,6 +10,15 @@
  {:dev {:extra-paths ["dev" "test"]
         :extra-deps {com.health-samurai/matcho  {:mvn/version "0.3.11"}}}
 
+  :nrepl
+  {:extra-paths ["dev"]
+   :extra-deps  {cider/cider-nrepl {:mvn/version "LATEST"}}
+
+   :main-opts   ["-m" "nrepl.cmdline"
+                 "-b" "0.0.0.0"
+                 "--middleware"
+                 "[cider.nrepl/cider-middleware]"]}
+
   :test {:extra-paths ["test"]
          :exec-fn     kaocha.runner/exec-fn
          :extra-deps  {com.health-samurai/matcho  {:mvn/version "0.3.11"}
