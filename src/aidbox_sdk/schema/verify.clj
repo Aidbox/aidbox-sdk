@@ -103,9 +103,15 @@
                        (filterv #(= (:name %) dep-name))
                        (mapv #(simplify-package-meta %)))]
 
-              (if (and (= (count found) 1)
-                       (every? #(= (:version %) dep-version) found))
+              (cond
+                (and (= (count found) 1)
+                     (every? #(= (:version %) dep-version) found))
                 mismatch
+
+                (= "hl7.fhir.r4.examples" dep-name) ;; skip
+                mismatch
+
+                :else
                 (conj mismatch {:required {:name    dep-name
                                            :version dep-version}
                                 :found    found}))))
