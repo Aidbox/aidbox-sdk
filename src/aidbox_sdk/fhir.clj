@@ -129,6 +129,7 @@
 (defmethod base-type? "hl7.fhir.r4.core"  [schema] (contains? r4-base-types  (:id schema)))
 (defmethod base-type? "hl7.fhir.r4b.core" [schema] (contains? r4b-base-types (:id schema)))
 (defmethod base-type? "hl7.fhir.r5.core"  [schema] (contains? r5-base-types  (:id schema)))
+(defmethod base-type? :default [_] false)
 
 (defn base-schema? [schema]
   (or (= (:url schema) "http://hl7.org/fhir/StructureDefinition/BackboneElement")
