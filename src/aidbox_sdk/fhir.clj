@@ -149,3 +149,4 @@
 (defmethod primitive-element? "hl7.fhir.r4.core"  [_ {:keys [type]}] (contains? r4-primitive-types type))
 (defmethod primitive-element? "hl7.fhir.r4b.core" [_ {:keys [type]}] (contains? r4b-primitive-types type))
 (defmethod primitive-element? "hl7.fhir.r5.core"  [_ {:keys [type]}] (contains? r5-primitive-types type))
+(defmethod primitive-element? :default [_ _] false)
