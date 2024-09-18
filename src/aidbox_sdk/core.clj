@@ -108,7 +108,8 @@
     (println "Generating common SDK files")
     (save-files! (generator/generate-sdk-files generator'))
 
-    (println "Finished succesfully!")))
+    (println "Finished succesfully!")
+    (println "Output dir: " (.getAbsolutePath output-dir))))
 
 (def system {:exit (fn [status] (System/exit status))
              :generate generate!})

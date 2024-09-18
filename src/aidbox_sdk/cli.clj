@@ -38,6 +38,13 @@
   (println "USAGE")
   (println "aidbox-sdk generate <target-language> <input-source> [options]")
   (println)
+  (println "<target-language> is one of: " (str/join "," supported-languages))
+  (println "<input-source> is either:\n1) path to .tar.gz FHIRSchemas package file\n2) url to download FHIRSchema .tar.gz file")
+  (println)
+  (println "EXAMPLES")
+  (println "$ aidbox-sdk generate dotnet http://localhost:8888/api/sdk/fhir-packages -a YmFzaWM6c2VjcmV0")
+  (println "$ aidbox-sdk generate dotnet hl7.fhir.r4.core-4.0.1.tgz")
+  (println)
   (println "OPTIONS")
   (println summary))
 
@@ -63,7 +70,7 @@
         (exit 0)
 
         (catch Throwable e
-          (print-errors e)
+          (println " error " e)
           (exit 1)))
 
       :else
