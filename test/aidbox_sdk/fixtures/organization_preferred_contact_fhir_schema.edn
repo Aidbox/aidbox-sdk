@@ -1,0 +1,22 @@
+{:package "hl7.fhir.r4.core",
+ :technical-id
+ "hl7.fhir.r4.core/4.0.1/FHIRSchema/http://hl7.org/fhir/StructureDefinition/organization-preferredContact/4.0.1",
+ :derivation "constraint",
+ :fhirVersion nil,
+ :excluded ["extension"],
+ :name "organization-preferredContact",
+ :type "Extension",
+ :resourceType "FHIRSchema",
+ :elements
+ {:url
+  {:fixed
+   "http://hl7.org/fhir/StructureDefinition/organization-preferredContact"},
+  :value {:choices ["valueBoolean"]},
+  :valueBoolean {:type "boolean", :choiceOf "value", :required-element true}},
+ :id "organization-preferredContact",
+ :kind "complex-type",
+ :url "http://hl7.org/fhir/StructureDefinition/organization-preferredContact",
+ :packageVersion "4.0.1",
+ :base "http://hl7.org/fhir/StructureDefinition/Extension",
+ :version "4.0.1",
+ :required ["value"]}

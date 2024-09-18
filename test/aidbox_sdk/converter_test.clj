@@ -23,6 +23,8 @@
       (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/openEHR-exposureDate")
 
       "iso21090-ADXP-deliveryAddressLine"
+      (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/iso21090-ADXP-deliveryAddressLine")
+
       (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/iso21090-ADXP-deliveryAddressLine"))))
 
 (deftest test-resolve-references
@@ -43,8 +45,8 @@
            (sut/convert [fixtures/patient-fhir-schema]))))
 
   (testing "convert constraint"
-    (is (= [fixtures/organization-preferred-contact-ir-schema]
-           (sut/convert [fixtures/organization-preferred-contact-fhir-schema])))))
+    (is (= [(fixt/get-data :organization-preferred-contact-ir-schema)]
+           (sut/convert [(fixt/get-data :organization-preferred-contact-fhir-schema)])))))
 
 (deftest test-convert-constraints
   (testing "constraints"
@@ -56,4 +58,6 @@
 (comment
   (fixt/load-data!)
 
-  @fixt/data)
+  @fixt/data
+
+  ::close)
