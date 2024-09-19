@@ -14,9 +14,9 @@
    [clojure.data]
    [clojure.java.io :as io]))
 
-(defonce r4-schemas  (import/retrieve (import/resource "resources/r4") {}))
-(defonce r4b-schemas (import/retrieve (import/resource "resources/r4b") {}))
-(defonce r5-schemas  (import/retrieve (import/resource "resources/r5") {}))
+(defonce r4-schemas  (import/retrieve (import/resource "resources/schemas/r4") {}))
+(defonce r4b-schemas (import/retrieve (import/resource "resources/schemas/r4b") {}))
+(defonce r5-schemas  (import/retrieve (import/resource "resources/schemas/r5") {}))
 
 (defonce aidbox-schemas (import/retrieve
                          (import/resource "http://localhost:8765/api/sdk/fhir-packages")
