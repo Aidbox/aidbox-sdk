@@ -40,8 +40,8 @@ jobs:
 
       - name: Install system and client dependencies
         run: |
-          sudo apt -y update && sudo apt install -y rlwrap
-          npm ci
+          sudo apt -y update
+          cd test/aidbox_sdk/snapshots/typescript && npm ci
 
       - name: Run ESLint
         run: cd test/aidbox_sdk/snapshots/typescript && npm run lint
