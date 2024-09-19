@@ -90,7 +90,7 @@
         (generate-polymorphic-property element)
 
         (= type "Meta")
-        (format "%s: Meta = { profile: \"%s\" }" name profile)
+        (format "%s: Meta & { profile: [\"%s\"] }" name profile)
 
         :else
         (let [type' (if (= "BackboneElement" type)
