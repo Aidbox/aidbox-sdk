@@ -1,8 +1,8 @@
 export interface SearchParams {
-  'placeholder-1': {};
-  'placeholder-2': {};
-  "Bundle": {},
-  "Patient": {}
+  'placeholder-1': object;
+  'placeholder-2': object;
+  "Bundle": object,
+  "Patient": object
 }
 
 export interface SubsSubscription {
@@ -12,20 +12,20 @@ export interface SubsSubscription {
 }
 
 export interface ResourceTypeMap {
-  'placeholder-1': {};
-  'placeholder-2': {};
-  "Bundle": {},
-  "Patient": {}
+  'placeholder-1': object;
+  'placeholder-2': object;
+  "Bundle": object,
+  "Patient": object
 }
 
 export type TaskDefinitionsMap = {
-  'placeholder-1': { params: {}; result: {} };
-  'placeholder-2': { params: {}; result: {} };
+  'placeholder-1': { params: object; result: object };
+  'placeholder-2': { params: object; result: object };
 };
 
 export type WorkflowDefinitionsMap = {
-  'placeholder-1': { params: {}; result: {} };
-  'placeholder-2': { params: {}; result: {} };
+  'placeholder-1': { params: object; result: object };
+  'placeholder-2': { params: object; result: object };
 };
 
 export const TaskDefinitionsNameMap: Record<keyof TaskDefinitionsMap, string> = {
