@@ -18,6 +18,7 @@ checkouts/
 .lsp/
 .clj-kondo/
 .schemas/
+.calva/
 
 .env
 META/*
