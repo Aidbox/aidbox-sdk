@@ -80,7 +80,7 @@
         search-param-ir-schemas (converter/convert-search-params search-param-schemas
                                                                  fhir-schemas)
         constraint-ir-schemas   (converter/convert-constraints constraint-schemas
-                                                               ir-schemas)
+                                                               (remove fhir/constraint? ir-schemas))
 
         generator' (lang->generator target-language)
 

@@ -331,7 +331,8 @@
                               :derivation (:derivation constraint)})
        (apply-patterns (:url constraint)
                        (filter #(contains? (last %) :pattern)
-                               (:elements constraint)))))
+                               (:elements constraint)))
+       ((fn [schema] (update schema :deps set/union #{"Meta"})))))
 
 (defn convert-constraints [constraint-schemas base-schemas]
   (let [base-schemas (vector->map base-schemas)]

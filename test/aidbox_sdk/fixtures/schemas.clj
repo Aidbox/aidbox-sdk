@@ -3518,6 +3518,7 @@
   :patterns (),
   :name "Observation",
   :type "Observation",
+  :deps #{"Meta"}
   :elements
   [{:name "meta",
     :required true,
@@ -4075,6 +4076,7 @@
   :patterns [],
   :name "Observation",
   :type "Observation",
+  :deps #{"Meta"}
   :elements
   [{:name "meta",
     :required true,
@@ -4632,6 +4634,7 @@
   :patterns [],
   :name "Observation",
   :type "Observation",
+  :deps #{"Meta"}
   :elements
   [{:name "meta",
     :required true,
@@ -5201,6 +5204,7 @@
   :patterns [],
   :name "Observation",
   :type "Observation",
+  :deps #{"Meta"}
   :elements
   [{:name "meta",
     :required true,
@@ -5746,6 +5750,7 @@
   :patterns [""],
   :name "Observation",
   :type "Observation",
+  :deps #{"Meta"}
   :elements
   [{:name "meta",
     :required true,
@@ -6303,6 +6308,7 @@
   :patterns [],
   :name "Observation",
   :type "Observation",
+  :deps #{"Meta"}
   :elements
   [{:name "meta",
     :required true,
@@ -6873,6 +6879,7 @@
   :patterns [],
   :name "Observation",
   :type "Observation",
+  :deps #{"Meta"}
   :elements
   [{:name "meta",
     :required true,
