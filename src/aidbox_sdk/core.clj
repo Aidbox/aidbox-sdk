@@ -69,7 +69,9 @@
         fhir-schemas         (filter fhir/fhir-schema? all-schemas)
         base-schemas         (filter base-type?        all-schemas)
         datatype-schemas     (filter datatype?         all-schemas)
-        resource-schemas     (filter domain-resource?  all-schemas)
+        resource-schemas     (filter #(or (domain-resource? %)
+                                          (fhir/backbone-element? %))
+                                     all-schemas)
         constraint-schemas   (filter constraint?       all-schemas)
         search-param-schemas (filter search-param?     all-schemas)
 

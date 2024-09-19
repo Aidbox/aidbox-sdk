@@ -72,7 +72,7 @@
   [url]
   (str/replace
    (uppercase-first-letter (url->resource-name url))
-   #"_" ""))
+   #"_|-" ""))
 
 (defn generate-polymorphic-property [{:keys [name required choices]}]
   (let [type (->> choices

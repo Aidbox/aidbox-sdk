@@ -197,13 +197,11 @@
      (cond-> #{}
        (:base-resource-name schema) (conj (:base-resource-name schema))
        (fhir/constraint? schema)    (conj "Meta"))
-
      (->> (:elements schema)
           (remove primitive-element?)
           (map :type)
           (remove nil?)
           set)
-
      (->> (:backbone-elements schema)
           (map :elements)
           flatten

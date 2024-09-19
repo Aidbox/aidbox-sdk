@@ -10,7 +10,7 @@
 (def r4-primitive-types
   #{"boolean" "integer" "string" "decimal" "uri" "url" "canonical" "base64Binary"
     "instant" "date" "dateTime" "time" "code" "oid" "id" "markdown" "unsignedInt"
-    "positiveInt" "uuid"})
+    "positiveInt" "uuid" "xhtml"})
 
 (def r4-general-purpose-datatypes
   #{"Ratio" "Period" "Range" "Attachment" "Identifier" "HumanName" "ContactPoint"
@@ -37,7 +37,7 @@
 (def r4b-primitive-types r4-primitive-types)
 
 (def r4b-general-purpose-datatypes
-  (into r4-general-purpose-datatypes #{"RationRange" "Identifier"}))
+  (into r4-general-purpose-datatypes #{"RatioRange" "Identifier"}))
 
 (def r4b-metadata-types r4-metadata-types)
 
