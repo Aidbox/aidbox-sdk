@@ -22,3 +22,5 @@ checkouts/
 .env
 META/*
 !META/.gitkeep
+
+resources/sdk/typescript/node_modules/

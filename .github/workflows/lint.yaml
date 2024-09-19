@@ -27,6 +27,16 @@ jobs:
           node-version: 20
           cache: "npm"
 
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.npm
+            **/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install system and client dependencies
         run: |
           sudo apt -y update && sudo apt install -y rlwrap
