@@ -144,7 +144,7 @@ export const mergeHeaders = (source1: HttpClientHeadersInit = {}, source2: HttpC
     const result = new globalThis.Headers(source1 as HeadersInit)
     const isHeadersInstance = source2 instanceof globalThis.Headers
     const source = new globalThis.Headers(source2 as HeadersInit)
-    // @ts-ignore
+    // @ts-expect-error ignore
     for (const [key, value] of source.entries()) {
         if ((isHeadersInstance && value === 'undefined') || value === undefined) {
             result.delete(key)
@@ -168,12 +168,13 @@ export const deepMerge = <T>(...sources: Array<Partial<T> | undefined>): T => {
 
             returnValue = [...returnValue, ...source]
         } else if (isObject(source)) {
-            for (let [key, value] of Object.entries(source)) {
+            for (const [key, value] of Object.entries(source)) {
+                let newValue = value
                 if (isObject(value) && key in returnValue) {
-                    value = deepMerge(returnValue[key], value)
+                    newValue = deepMerge(returnValue[key], value)
                 }
 
-                returnValue = { ...returnValue, [key]: value }
+                returnValue = { ...returnValue, [key]: newValue }
             }
 
             if (isObject((source as any).headers)) {
@@ -756,7 +757,7 @@ export class HttpClient {
     protected _input: Input
     protected _options: InternalOptions
 
-    // eslint-disable-next-line complexity
+
     constructor (input: Input, options: Options = {}) {
         this._input = input
         this._options = {
@@ -774,7 +775,7 @@ export class HttpClient {
                 options.hooks
             ),
             method: normalizeRequestMethod(options.method ?? (this._input as Request).method),
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+
             prefixUrl: String(options.prefixUrl || ''),
             retry: normalizeRetryOptions(options.retry),
             throwHttpErrors: options.throwHttpErrors !== false,
@@ -897,7 +898,7 @@ export class HttpClient {
                 await delay(ms, { signal: this._options.signal })
 
                 for (const hook of this._options.hooks.beforeRetry) {
-                    // eslint-disable-next-line no-await-in-loop
+
                     const hookResult = await hook({
                         request: this.request,
                         options: (this._options as unknown) as NormalizedOptions,
@@ -920,7 +921,7 @@ export class HttpClient {
 
     protected async _fetch (): Promise<Response> {
         for (const hook of this._options.hooks.beforeRequest) {
-            // eslint-disable-next-line no-await-in-loop
+
             const result = await hook(this.request, (this._options as unknown) as NormalizedOptions)
 
             if (result instanceof Request) {
