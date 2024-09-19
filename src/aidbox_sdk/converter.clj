@@ -152,16 +152,19 @@
                     :derivation (get schema :derivation))))))
 
 ;; resolve references
+(defn resolve-element-references [schema]
+  (update schema :elements
+          (fn [elements]
+            (walk/postwalk
+             (fn [x]
+               ;; TODO add type of the reference
+               (if (:elementReference x)
+                 (-> x
+                     (assoc :type "Reference")
+                     (dissoc :elementReference))
 
-(defn resolve-element-references [schemas]
-  (walk/postwalk
-   (fn [x]
-     ;; TODO add type of the reference
-     (if (:elementReference x)
-       (merge (dissoc x :elementReference)
-              {:type "Reference"})
-       x))
-   schemas))
+                 x))
+             elements))))
 
 ;;
 
@@ -218,7 +221,7 @@
 
 (defn convert [schemas]
   (->> schemas
-       (resolve-element-references)
+       (map resolve-element-references)
        (compile-elements)
        (combine-elements)
        (map (fn [schema]

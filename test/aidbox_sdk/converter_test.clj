@@ -2,6 +2,7 @@
   (:require
    [aidbox-sdk.converter :as sut]
    [aidbox-sdk.fixtures :as fixt]
+   [matcho.core :refer [match]]
    [aidbox-sdk.fixtures.schemas :as fixtures]
    [clojure.test :refer [are deftest is testing use-fixtures]]))
 
@@ -28,9 +29,27 @@
       "us-core-patient-6-0-0"
       (sut/url->resource-name "http://hl7.org/fhir/us/core/structuredefinition/us-core-patient|6.0.0"))))
 
-(deftest test-resolve-references
-  (is (= fixtures/schemas-with-element-reference-resolved
-         (sut/resolve-element-references fixtures/schemas-with-element-reference))))
+(deftest test-resolve-element-references
+  (match
+   (sut/resolve-element-references
+    {:elements
+     {:component
+      {:type "BackboneElement",
+       :array true,
+       :summary true,
+       :elements
+       {:referenceRange
+        {:array true,
+         :elementReference
+         ["http://hl7.org/fhir/StructureDefinition/Observation"
+          "elements"
+          "referenceRange"]}}}}})
+    {:elements
+     {:component
+      {:type "BackboneElement",
+       :array true,
+       :summary true,
+       :elements {:referenceRange {:array true, :type "Reference"}}}}}))
 
 (deftest test-resolve-choices
   (is (= fixtures/schemas-with-element-choices-resolved
