@@ -1,0 +1,75 @@
+import { UsageContext } from "./UsageContext";
+import { Age } from "./Age";
+import { Period } from "./Period";
+import { ContactDetail } from "./ContactDetail";
+import { CodeableConcept } from "./CodeableConcept";
+import { Expression } from "./Expression";
+import { Dosage } from "./Dosage";
+import { Range } from "./Range";
+import { RelatedArtifact } from "./RelatedArtifact";
+import { Timing } from "./Timing";
+import { Quantity } from "./Quantity";
+import { Duration } from "./Duration";
+import { DomainResource } from "./DomainResource";
+import { Reference } from "./Reference";
+import { Identifier } from "./Identifier";
+import { BackboneElement } from "./BackboneElement";
+
+export type ActivityDefinitionParticipant = BackboneElement & {
+    role?: CodeableConcept;
+    type: string;
+};
+
+export type ActivityDefinitionDynamicValue = BackboneElement & {
+    path: string;
+    expression: Expression;
+};
+
+export type ActivityDefinition = DomainResource & {
+    observationResultRequirement?: Reference[];
+    description?: string;
+    date?: string;
+    transform?: string;
+    endorser?: ContactDetail[];
+    publisher?: string;
+    approvalDate?: string;
+    jurisdiction?: CodeableConcept[];
+    dosage?: Dosage[];
+    observationRequirement?: Reference[];
+    purpose?: string;
+    name?: string;
+    useContext?: UsageContext[];
+    copyright?: string;
+    experimental?: boolean;
+    topic?: CodeableConcept[];
+    participant?: ActivityDefinitionParticipant[];
+    title?: string;
+    library?: string[];
+    author?: ContactDetail[];
+    product?: CodeableConcept | Reference;
+    usage?: string;
+    priority?: string;
+    status: string;
+    timing?: Range | Period | string | Timing | Duration | Age;
+    subtitle?: string;
+    kind?: string;
+    dynamicValue?: ActivityDefinitionDynamicValue[];
+    url?: string;
+    code?: CodeableConcept;
+    identifier?: Identifier[];
+    lastReviewDate?: string;
+    editor?: ContactDetail[];
+    doNotPerform?: boolean;
+    bodySite?: CodeableConcept[];
+    intent?: string;
+    specimenRequirement?: Reference[];
+    reviewer?: ContactDetail[];
+    quantity?: Quantity;
+    version?: string;
+    relatedArtifact?: RelatedArtifact[];
+    location?: Reference;
+    contact?: ContactDetail[];
+    subject?: CodeableConcept | Reference;
+    profile?: string;
+    effectivePeriod?: Period;
+};

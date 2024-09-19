@@ -1,0 +1,55 @@
+import { UsageContext } from "./UsageContext";
+import { Annotation } from "./Annotation";
+import { Period } from "./Period";
+import { ContactDetail } from "./ContactDetail";
+import { DataRequirement } from "./DataRequirement";
+import { CodeableConcept } from "./CodeableConcept";
+import { TriggerDefinition } from "./TriggerDefinition";
+import { Expression } from "./Expression";
+import { RelatedArtifact } from "./RelatedArtifact";
+import { Timing } from "./Timing";
+import { Duration } from "./Duration";
+import { DomainResource } from "./DomainResource";
+import { Reference } from "./Reference";
+import { Identifier } from "./Identifier";
+import { BackboneElement } from "./BackboneElement";
+
+export type EvidenceVariableCharacteristic = BackboneElement & {
+    description?: string;
+    definition?: Expression | DataRequirement | TriggerDefinition | string | Reference | CodeableConcept;
+    exclude?: boolean;
+    groupMeasure?: string;
+    timeFromStart?: Duration;
+    participantEffective?: Duration | Timing | string | Period;
+    usageContext?: UsageContext[];
+};
+
+export type EvidenceVariable = DomainResource & {
+    description?: string;
+    date?: string;
+    endorser?: ContactDetail[];
+    publisher?: string;
+    approvalDate?: string;
+    jurisdiction?: CodeableConcept[];
+    name?: string;
+    useContext?: UsageContext[];
+    copyright?: string;
+    type?: string;
+    topic?: CodeableConcept[];
+    title?: string;
+    note?: Annotation[];
+    author?: ContactDetail[];
+    characteristic: EvidenceVariableCharacteristic[];
+    status: string;
+    subtitle?: string;
+    url?: string;
+    identifier?: Identifier[];
+    lastReviewDate?: string;
+    editor?: ContactDetail[];
+    reviewer?: ContactDetail[];
+    shortTitle?: string;
+    version?: string;
+    relatedArtifact?: RelatedArtifact[];
+    contact?: ContactDetail[];
+    effectivePeriod?: Period;
+};
