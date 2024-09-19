@@ -25,7 +25,8 @@
       "iso21090-ADXP-deliveryAddressLine"
       (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/iso21090-ADXP-deliveryAddressLine")
 
-      (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/iso21090-ADXP-deliveryAddressLine"))))
+      "us-core-patient-6-0-0"
+      (sut/url->resource-name "http://hl7.org/fhir/us/core/structuredefinition/us-core-patient|6.0.0"))))
 
 (deftest test-resolve-references
   (is (= fixtures/schemas-with-element-reference-resolved

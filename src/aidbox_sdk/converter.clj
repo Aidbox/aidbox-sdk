@@ -12,7 +12,10 @@
 (defn url->resource-name
   "There are :id and :name in schemas but they are not reliable source."
   [url]
-  (last (str/split (str url) #"/")))
+  (str/replace
+   (last (str/split (str url) #"/"))
+   #"\||\."
+   "-"))
 
 (defn flatten-backbones [backbone-elements accumulator]
   (reduce (fn [acc item]
