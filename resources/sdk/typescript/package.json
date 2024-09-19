@@ -10,7 +10,7 @@
     "scripts": {
         "build": "tsc",
         "format": "prettier --write '**/*.ts'",
-        "lint": "npx eslint .",
+        "lint": "npx eslint --quiet .",
         "test": "ts-node test.ts"
     },
     "keywords": [],
