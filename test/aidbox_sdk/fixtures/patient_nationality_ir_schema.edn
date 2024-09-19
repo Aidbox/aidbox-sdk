@@ -1,0 +1,18 @@
+{"http://hl7.org/fhir/StructureDefinition/patient-nationality"
+ {:package "hl7.fhir.r4.core",
+  :derivation "specialization",
+  :name "Extension",
+  :type "Extension",
+  :elements
+  [{:name "meta",
+    :required true,
+    :value "Meta",
+    :meta
+    " = new() { Profile = [\"http://hl7.org/fhir/StructureDefinition/patient-nationality\"] };"}
+   {:name "valueBase64Binary",
+    :base "Extension",
+    :array false,
+    :required false,
+    :value "string"}]
+  :url "http://hl7.org/fhir/StructureDefinition/Extension",
+  :base "http://hl7.org/fhir/StructureDefinition/Element"}}

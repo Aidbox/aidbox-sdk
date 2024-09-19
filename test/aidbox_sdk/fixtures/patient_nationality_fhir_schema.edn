@@ -1,0 +1,44 @@
+{:package "hl7.fhir.r4.core",
+ :derivation "constraint",
+ :excluded ["value"],
+ :type "Extension",
+ :elements
+ {:extension
+  {:slicing
+   {:slices
+    {:code
+     {:schema
+      {:scalar true,
+       :excluded ["extension"],
+       :required ["value"],
+       :type "Extension",
+       :elements
+       {:url {:fixed "code", :type "uri"},
+        :valueCodeableConcept
+        {:required-element true, :type "CodeableConcept", :choiceOf "value"},
+        :value {:choices ["valueCodeableConcept"]}}},
+      :min 0,
+      :max 1,
+      :match {:type "pattern", :value {:url "code"}}},
+     :period
+     {:schema
+      {:scalar true,
+       :excluded ["extension"],
+       :required ["value"],
+       :type "Extension",
+       :elements
+       {:url {:fixed "period", :type "uri"},
+        :valuePeriod
+        {:required-element true, :type "Period", :choiceOf "value"},
+        :value {:choices ["valuePeriod"]}}},
+      :min 0,
+      :max 1,
+      :match {:type "pattern", :value {:url "period"}}}},
+    :discriminator [{:type "value", :path "url"}],
+    :rules "open"}},
+  :url
+  {:fixed "http://hl7.org/fhir/StructureDefinition/patient-nationality"}},
+ :id "patient-nationality",
+ :kind "complex-type",
+ :url "http://hl7.org/fhir/StructureDefinition/patient-nationality",
+ :base "http://hl7.org/fhir/StructureDefinition/Extension"}

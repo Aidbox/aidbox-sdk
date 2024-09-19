@@ -1,0 +1,14 @@
+{"http://hl7.org/fhir/StructureDefinition/Extension"
+ {:package "hl7.fhir.r4.core",
+  :derivation "specialization",
+  :name "Extension",
+  :type "Extension",
+  :elements
+  [{:name "valueBase64Binary",
+    :base "Extension",
+    :array false,
+    :required false,
+    :value "string"}],
+  :url "http://hl7.org/fhir/StructureDefinition/Extension",
+  :backbone-elements [],
+  :base "http://hl7.org/fhir/StructureDefinition/Element"}}
