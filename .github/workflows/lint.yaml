@@ -16,6 +16,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Merge TypeScript SDK files
+        run: |
+          cp -r -u resources/sdk/typescript/* test/aidbox_sdk/snapshots/typescript/
+
       - name: Setup node
         uses: actions/setup-node@v4
         with:
@@ -26,10 +31,6 @@ jobs:
         run: |
           sudo apt -y update && sudo apt install -y rlwrap
           npm ci
-
-      - name: Merge TypeScript SDK files
-        run: |
-          cp -r -u resources/sdk/typescript/* test/aidbox_sdk/snapshots/typescript/
 
       - name: Run ESLint
         run: cd test/aidbox_sdk/snapshots/typescript && npm run lint
