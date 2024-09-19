@@ -12,17 +12,26 @@
    [malli.core :as m]
    [clojure.spec.alpha :as s]
    [clojure.data]
-   [clojure.java.io :as io]))
+   [clojure.java.io :as io]
+   [aidbox-sdk.generator.typescript :as gen.typescript]))
 
-(defonce r4-schemas  (import/retrieve (import/resource "resources/schemas/r4") {}))
-(defonce r4b-schemas (import/retrieve (import/resource "resources/schemas/r4b") {}))
-(defonce r5-schemas  (import/retrieve (import/resource "resources/schemas/r5") {}))
+(defonce aidbox-schemas (atom nil))
 
-(defonce aidbox-schemas (import/retrieve
-                         (import/resource "http://localhost:8765/api/sdk/fhir-packages")
-                         {:auth "YmFzaWM6c2VjcmV0"}))
+(defn load-aidbox-schemas []
+  (reset! aidbox-schemas
+          (import/retrieve
+           (import/resource "http://localhost:8765/api/sdk/fhir-packages") {:auth "YmFzaWM6c2VjcmV0"}))
+  nil)
 
-(def target (io/file "out/"))
+(comment
+  (load-aidbox-schemas)
+
+  (defonce r4-schemas  (import/retrieve (import/resource "resources/r4") {}))
+  (defonce r4b-schemas (import/retrieve (import/resource "resources/r4b") {}))
+  (defonce r5-schemas  (import/retrieve (import/resource "resources/schemas/r5") {}))
+
+  )
+
 
 (defn kinds          [schemas] (distinct (map :kind schemas)))
 (defn resource-types [schemas] (distinct (map :resourceType schemas)))
@@ -30,6 +39,9 @@
 
 (defn exclude-keys [m keys]
   (apply dissoc m keys))
+
+(defn filter-by-url [url schemas]
+  (filter #(= url (:url %)) schemas))
 
 (comment
 
@@ -45,25 +57,25 @@
   (resource-types r4-schemas)
   ;; => ("ValueSet" "SearchParameter" nil "StructureDefinition")
 
-  (resource-types aidbox-schemas)
+  (resource-types @aidbox-schemas)
   ;; => ("FHIRSchema"
   ;;     "SearchParameter"
   ;;     "CompartmentDefinition"
   ;;     "ValueSet"
   ;;     "StructureDefinition")
 
-  (->> aidbox-schemas
+  (->> @aidbox-schemas
        (filter #(= "Patient" (:id %)))
        (converter/convert))
 
   (converter/convert-search-params
-   (->> aidbox-schemas
+   (->> @aidbox-schemas
         (filter fhir/search-parameter?)
         (remove fhir/search-parameter-from-extension?))
-   (->> aidbox-schemas
+   (->> @aidbox-schemas
         (filter fhir/fhir-schema?)))
 
-  (let [all-schemas      aidbox-schemas
+  (let [all-schemas      @aidbox-schemas
 
         base-type?       (every-pred fhir/fhir-schema? fhir/base-type?)
         datatype?        (every-pred fhir/fhir-schema? fhir/datatype? (complement fhir/primitive-type?))
@@ -74,7 +86,8 @@
         fhir-schemas         (filter fhir/fhir-schema? all-schemas)
         base-schemas         (filter base-type?        all-schemas)
         datatype-schemas     (filter datatype?         all-schemas)
-        resource-schemas     (filter domain-resource?  all-schemas)
+        resource-schemas     (filter #(or (domain-resource? %)
+                                          (fhir/backbone-element? %))  all-schemas)
         constraint-schemas   (filter constraint?       all-schemas)
         search-param-schemas [filter search-param?     all-schemas]
 
@@ -85,18 +98,9 @@
         search-param-ir-schemas (converter/convert-search-params search-param-schemas
                                                                  fhir-schemas)
         constraint-ir-schemas   (converter/convert-constraints constraint-schemas
-                                                               ir-schemas)]
+                                                               (remove fhir/constraint? ir-schemas))]
 
-    ;; (converter/convert-constraints
-    ;;  (->> constraint-schemas
-    ;;       (filter #(= "http://hl7.org/fhir/StructureDefinition/vitalsigns" (:url %))))
-    ;;  ir-schemas)
-
-    ;; (->> fhir-schemas
-    ;;      (filter #(= "http://hl7.org/fhir/StructureDefinition/Observation" (:url %))))
-
-    ;
+    ir-schemas
     )
 
-    ;; TODO
   :rcf)
