@@ -1,0 +1,35 @@
+name: Lint if snapshots change
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "**"
+    paths:
+      - ".github/workflows/lint.yaml"
+      - "test/aidbox_sdk/snapshots/**"
+      - "resources/sdk/**"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Install system and client dependencies
+        run: |
+          sudo apt -y update && sudo apt install -y rlwrap
+          npm ci
+
+      - name: Merge TypeScript SDK files
+        run: |
+          cp -r -u resources/sdk/typescript/* test/aidbox_sdk/snapshots/typescript/
+
+      - name: Run ESLint
+        run: cd test/aidbox_sdk/snapshots/typescript && npm run lint
