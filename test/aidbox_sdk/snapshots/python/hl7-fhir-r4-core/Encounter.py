@@ -1,13 +1,13 @@
 from typing import Optional, List
 from pydantic import *
-from base.Period import Period
-from base.CodeableConcept import CodeableConcept
-from base.Coding import Coding
-from base.Duration import Duration
-from base.DomainResource import DomainResource
-from base.Reference import Reference
-from base.Identifier import Identifier
-from base.BackboneElement import BackboneElement
+from ..base.Period import Period
+from ..base.CodeableConcept import CodeableConcept
+from ..base.Coding import Coding
+from ..base.Duration import Duration
+from ..base.DomainResource import DomainResource
+from ..base.Reference import Reference
+from ..base.Identifier import Identifier
+from ..base.BackboneElement import BackboneElement
 
 class Encounter_Diagnosis(BackboneElement):
     use: Optional[CodeableConcept] = None
@@ -20,7 +20,7 @@ class Encounter_Participant(BackboneElement):
     individual: Optional[Reference] = None
 
 class Encounter_ClassHistory(BackboneElement):
-    class: Coding
+    class_: Coding
     period: Period
 
 class Encounter_Hospitalization(BackboneElement):
@@ -57,7 +57,7 @@ class Encounter(DomainResource):
     class_history: Optional[List[Encounter_ClassHistory]] = None
     priority: Optional[CodeableConcept] = None
     status: str
-    class: Coding
+    class_: Coding
     length: Optional[Duration] = None
     identifier: Optional[List[Identifier]] = None
     hospitalization: Optional[Encounter_Hospitalization] = None

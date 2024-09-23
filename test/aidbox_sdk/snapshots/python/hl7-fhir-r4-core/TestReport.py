@@ -1,9 +1,9 @@
 from typing import Optional, List
 from pydantic import *
-from base.DomainResource import DomainResource
-from base.Reference import Reference
-from base.Identifier import Identifier
-from base.BackboneElement import BackboneElement
+from ..base.DomainResource import DomainResource
+from ..base.Reference import Reference
+from ..base.Identifier import Identifier
+from ..base.BackboneElement import BackboneElement
 
 class TestReport_Participant(BackboneElement):
     uri: str
@@ -21,7 +21,7 @@ class TestReport_Setup_Action_Operation(BackboneElement):
     message: Optional[str] = None
 
 class TestReport_Setup_Action(BackboneElement):
-    assert: Optional[TestReport_Setup_Action_Assert_] = None
+    assert_: Optional[TestReport_Setup_Action_Assert_] = None
     operation: Optional[TestReport_Setup_Action_Operation] = None
 
 class TestReport_Setup(BackboneElement):
@@ -34,7 +34,7 @@ class TestReport_Teardown(BackboneElement):
     action: list[TestReport_Teardown_Action] = []
 
 class TestReport_Test_Action(BackboneElement):
-    assert: Optional[Reference] = None
+    assert_: Optional[Reference] = None
     operation: Optional[Reference] = None
 
 class TestReport_Test(BackboneElement):

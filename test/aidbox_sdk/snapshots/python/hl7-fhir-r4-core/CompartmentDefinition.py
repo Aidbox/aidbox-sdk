@@ -1,9 +1,9 @@
 from typing import Optional, List
 from pydantic import *
-from base.UsageContext import UsageContext
-from base.ContactDetail import ContactDetail
-from base.DomainResource import DomainResource
-from base.BackboneElement import BackboneElement
+from ..base.UsageContext import UsageContext
+from ..base.ContactDetail import ContactDetail
+from ..base.DomainResource import DomainResource
+from ..base.BackboneElement import BackboneElement
 
 class CompartmentDefinition_Resource(BackboneElement):
     code: str

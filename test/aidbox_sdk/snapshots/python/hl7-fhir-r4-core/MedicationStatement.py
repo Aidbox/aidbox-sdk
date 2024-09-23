@@ -1,12 +1,12 @@
 from typing import Optional, List
 from pydantic import *
-from base.Annotation import Annotation
-from base.Period import Period
-from base.CodeableConcept import CodeableConcept
-from base.Dosage import Dosage
-from base.DomainResource import DomainResource
-from base.Reference import Reference
-from base.Identifier import Identifier
+from ..base.Annotation import Annotation
+from ..base.Period import Period
+from ..base.CodeableConcept import CodeableConcept
+from ..base.Dosage import Dosage
+from ..base.DomainResource import DomainResource
+from ..base.Reference import Reference
+from ..base.Identifier import Identifier
 
 class MedicationStatement(DomainResource):
     category: Optional[CodeableConcept] = None

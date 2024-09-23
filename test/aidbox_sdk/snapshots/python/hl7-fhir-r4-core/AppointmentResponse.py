@@ -1,9 +1,9 @@
 from typing import Optional, List
 from pydantic import *
-from base.CodeableConcept import CodeableConcept
-from base.DomainResource import DomainResource
-from base.Reference import Reference
-from base.Identifier import Identifier
+from ..base.CodeableConcept import CodeableConcept
+from ..base.DomainResource import DomainResource
+from ..base.Reference import Reference
+from ..base.Identifier import Identifier
 
 class AppointmentResponse(DomainResource):
     end: Optional[str] = None

@@ -1,12 +1,12 @@
 from typing import Optional, List
 from pydantic import *
-from base.Annotation import Annotation
-from base.Attachment import Attachment
-from base.CodeableConcept import CodeableConcept
-from base.DomainResource import DomainResource
-from base.Reference import Reference
-from base.Identifier import Identifier
-from base.BackboneElement import BackboneElement
+from ..base.Annotation import Annotation
+from ..base.Attachment import Attachment
+from ..base.CodeableConcept import CodeableConcept
+from ..base.DomainResource import DomainResource
+from ..base.Reference import Reference
+from ..base.Identifier import Identifier
+from ..base.BackboneElement import BackboneElement
 
 class Communication_Payload(BackboneElement):
     content_string: Optional[str] = None

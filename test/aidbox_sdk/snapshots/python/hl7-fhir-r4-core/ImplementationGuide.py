@@ -1,11 +1,11 @@
 from typing import Optional, List
 from pydantic import *
-from base.UsageContext import UsageContext
-from base.ContactDetail import ContactDetail
-from base.CodeableConcept import CodeableConcept
-from base.DomainResource import DomainResource
-from base.Reference import Reference
-from base.BackboneElement import BackboneElement
+from ..base.UsageContext import UsageContext
+from ..base.ContactDetail import ContactDetail
+from ..base.CodeableConcept import CodeableConcept
+from ..base.DomainResource import DomainResource
+from ..base.Reference import Reference
+from ..base.BackboneElement import BackboneElement
 
 class ImplementationGuide_Definition_Page(BackboneElement):
     page: Optional[List[Reference]] = None
@@ -78,7 +78,7 @@ class ImplementationGuide(DomainResource):
     fhir_version: list[str] = []
     license: Optional[str] = None
     jurisdiction: Optional[List[CodeableConcept]] = None
-    global: Optional[List[ImplementationGuide_Global_]] = None
+    global_: Optional[List[ImplementationGuide_Global_]] = None
     depends_on: Optional[List[ImplementationGuide_DependsOn]] = None
     name: str
     use_context: Optional[List[UsageContext]] = None

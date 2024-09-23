@@ -1,13 +1,13 @@
 from typing import Optional, List
 from pydantic import *
-from base.UsageContext import UsageContext
-from base.ContactDetail import ContactDetail
-from base.CodeableConcept import CodeableConcept
-from base.Coding import Coding
-from base.ElementDefinition import ElementDefinition
-from base.DomainResource import DomainResource
-from base.Identifier import Identifier
-from base.BackboneElement import BackboneElement
+from ..base.UsageContext import UsageContext
+from ..base.ContactDetail import ContactDetail
+from ..base.CodeableConcept import CodeableConcept
+from ..base.Coding import Coding
+from ..base.ElementDefinition import ElementDefinition
+from ..base.DomainResource import DomainResource
+from ..base.Identifier import Identifier
+from ..base.BackboneElement import BackboneElement
 
 class StructureDefinition_Mapping(BackboneElement):
     uri: Optional[str] = None

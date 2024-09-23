@@ -1,13 +1,13 @@
 from typing import Optional, List
 from pydantic import *
-from base.Attachment import Attachment
-from base.Period import Period
-from base.CodeableConcept import CodeableConcept
-from base.ContactPoint import ContactPoint
-from base.DomainResource import DomainResource
-from base.Reference import Reference
-from base.Identifier import Identifier
-from base.BackboneElement import BackboneElement
+from ..base.Attachment import Attachment
+from ..base.Period import Period
+from ..base.CodeableConcept import CodeableConcept
+from ..base.ContactPoint import ContactPoint
+from ..base.DomainResource import DomainResource
+from ..base.Reference import Reference
+from ..base.Identifier import Identifier
+from ..base.BackboneElement import BackboneElement
 
 class HealthcareService_AvailableTime(BackboneElement):
     all_day: Optional[bool] = None

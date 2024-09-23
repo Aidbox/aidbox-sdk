@@ -1,13 +1,13 @@
 from typing import Optional, List
 from pydantic import *
-from base.Address import Address
-from base.CodeableConcept import CodeableConcept
-from base.ContactPoint import ContactPoint
-from base.HumanName import HumanName
-from base.DomainResource import DomainResource
-from base.Reference import Reference
-from base.Identifier import Identifier
-from base.BackboneElement import BackboneElement
+from ..base.Address import Address
+from ..base.CodeableConcept import CodeableConcept
+from ..base.ContactPoint import ContactPoint
+from ..base.HumanName import HumanName
+from ..base.DomainResource import DomainResource
+from ..base.Reference import Reference
+from ..base.Identifier import Identifier
+from ..base.BackboneElement import BackboneElement
 
 class Organization_Contact(BackboneElement):
     name: Optional[HumanName] = None

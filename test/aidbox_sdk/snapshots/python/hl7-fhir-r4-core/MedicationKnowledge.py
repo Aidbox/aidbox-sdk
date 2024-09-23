@@ -1,14 +1,14 @@
 from typing import Optional, List
 from pydantic import *
-from base.CodeableConcept import CodeableConcept
-from base.Dosage import Dosage
-from base.Quantity import Quantity
-from base.Duration import Duration
-from base.DomainResource import DomainResource
-from base.Money import Money
-from base.Ratio import Ratio
-from base.Reference import Reference
-from base.BackboneElement import BackboneElement
+from ..base.CodeableConcept import CodeableConcept
+from ..base.Dosage import Dosage
+from ..base.Quantity import Quantity
+from ..base.Duration import Duration
+from ..base.DomainResource import DomainResource
+from ..base.Money import Money
+from ..base.Ratio import Ratio
+from ..base.Reference import Reference
+from ..base.BackboneElement import BackboneElement
 
 class MedicationKnowledge_Monograph(BackboneElement):
     type: Optional[CodeableConcept] = None

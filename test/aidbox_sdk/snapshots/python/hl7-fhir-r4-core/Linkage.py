@@ -1,8 +1,8 @@
 from typing import Optional, List
 from pydantic import *
-from base.DomainResource import DomainResource
-from base.Reference import Reference
-from base.BackboneElement import BackboneElement
+from ..base.DomainResource import DomainResource
+from ..base.Reference import Reference
+from ..base.BackboneElement import BackboneElement
 
 class Linkage_Item(BackboneElement):
     type: str

@@ -1,15 +1,15 @@
 from typing import Optional, List
 from pydantic import *
-from base.Annotation import Annotation
-from base.CodeableConcept import CodeableConcept
-from base.ContactPoint import ContactPoint
-from base.ProdCharacteristic import ProdCharacteristic
-from base.Quantity import Quantity
-from base.DomainResource import DomainResource
-from base.ProductShelfLife import ProductShelfLife
-from base.Reference import Reference
-from base.Identifier import Identifier
-from base.BackboneElement import BackboneElement
+from ..base.Annotation import Annotation
+from ..base.CodeableConcept import CodeableConcept
+from ..base.ContactPoint import ContactPoint
+from ..base.ProdCharacteristic import ProdCharacteristic
+from ..base.Quantity import Quantity
+from ..base.DomainResource import DomainResource
+from ..base.ProductShelfLife import ProductShelfLife
+from ..base.Reference import Reference
+from ..base.Identifier import Identifier
+from ..base.BackboneElement import BackboneElement
 
 class DeviceDefinition_DeviceName(BackboneElement):
     name: str

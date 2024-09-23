@@ -1,8 +1,8 @@
 from typing import Optional, List
 from pydantic import *
-from base.DomainResource import DomainResource
-from base.Reference import Reference
-from base.Identifier import Identifier
+from ..base.DomainResource import DomainResource
+from ..base.Reference import Reference
+from ..base.Identifier import Identifier
 
 class EnrollmentResponse(DomainResource):
     status: Optional[str] = None

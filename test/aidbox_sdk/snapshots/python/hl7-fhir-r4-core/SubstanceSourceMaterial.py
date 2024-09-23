@@ -1,9 +1,9 @@
 from typing import Optional, List
 from pydantic import *
-from base.CodeableConcept import CodeableConcept
-from base.DomainResource import DomainResource
-from base.Identifier import Identifier
-from base.BackboneElement import BackboneElement
+from ..base.CodeableConcept import CodeableConcept
+from ..base.DomainResource import DomainResource
+from ..base.Identifier import Identifier
+from ..base.BackboneElement import BackboneElement
 
 class SubstanceSourceMaterial_Organism_Author(BackboneElement):
     author_type: Optional[CodeableConcept] = None
@@ -17,7 +17,7 @@ class SubstanceSourceMaterial_Organism_Hybrid(BackboneElement):
     paternal_organism_name: Optional[str] = None
 
 class SubstanceSourceMaterial_Organism_OrganismGeneral(BackboneElement):
-    class: Optional[CodeableConcept] = None
+    class_: Optional[CodeableConcept] = None
     order: Optional[CodeableConcept] = None
     phylum: Optional[CodeableConcept] = None
     kingdom: Optional[CodeableConcept] = None

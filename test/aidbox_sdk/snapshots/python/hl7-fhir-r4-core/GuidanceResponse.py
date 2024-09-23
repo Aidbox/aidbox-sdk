@@ -1,11 +1,11 @@
 from typing import Optional, List
 from pydantic import *
-from base.Annotation import Annotation
-from base.DataRequirement import DataRequirement
-from base.CodeableConcept import CodeableConcept
-from base.DomainResource import DomainResource
-from base.Reference import Reference
-from base.Identifier import Identifier
+from ..base.Annotation import Annotation
+from ..base.DataRequirement import DataRequirement
+from ..base.CodeableConcept import CodeableConcept
+from ..base.DomainResource import DomainResource
+from ..base.Reference import Reference
+from ..base.Identifier import Identifier
 
 class GuidanceResponse(DomainResource):
     data_requirement: Optional[List[DataRequirement]] = None

@@ -1,13 +1,13 @@
 from typing import Optional, List
 from pydantic import *
-from base.UsageContext import UsageContext
-from base.ContactDetail import ContactDetail
-from base.CodeableConcept import CodeableConcept
-from base.Coding import Coding
-from base.DomainResource import DomainResource
-from base.Reference import Reference
-from base.Identifier import Identifier
-from base.BackboneElement import BackboneElement
+from ..base.UsageContext import UsageContext
+from ..base.ContactDetail import ContactDetail
+from ..base.CodeableConcept import CodeableConcept
+from ..base.Coding import Coding
+from ..base.DomainResource import DomainResource
+from ..base.Reference import Reference
+from ..base.Identifier import Identifier
+from ..base.BackboneElement import BackboneElement
 
 class TestScript_Variable(BackboneElement):
     hint: Optional[str] = None
@@ -67,7 +67,7 @@ class TestScript_Setup_Action_Operation(BackboneElement):
     accept: Optional[str] = None
 
 class TestScript_Setup_Action(BackboneElement):
-    assert: Optional[TestScript_Setup_Action_Assert_] = None
+    assert_: Optional[TestScript_Setup_Action_Assert_] = None
     operation: Optional[TestScript_Setup_Action_Operation] = None
 
 class TestScript_Setup(BackboneElement):
@@ -110,7 +110,7 @@ class TestScript_Destination(BackboneElement):
     profile: Coding
 
 class TestScript_Test_Action(BackboneElement):
-    assert: Optional[Reference] = None
+    assert_: Optional[Reference] = None
     operation: Optional[Reference] = None
 
 class TestScript_Test(BackboneElement):

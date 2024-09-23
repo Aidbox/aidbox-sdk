@@ -1,13 +1,13 @@
 from typing import Optional, List
 from pydantic import *
-from base.Period import Period
-from base.CodeableConcept import CodeableConcept
-from base.Quantity import Quantity
-from base.DomainResource import DomainResource
-from base.Money import Money
-from base.Reference import Reference
-from base.Identifier import Identifier
-from base.BackboneElement import BackboneElement
+from ..base.Period import Period
+from ..base.CodeableConcept import CodeableConcept
+from ..base.Quantity import Quantity
+from ..base.DomainResource import DomainResource
+from ..base.Money import Money
+from ..base.Reference import Reference
+from ..base.Identifier import Identifier
+from ..base.BackboneElement import BackboneElement
 
 class Coverage_CostToBeneficiary_Exception(BackboneElement):
     type: CodeableConcept
@@ -35,7 +35,7 @@ class Coverage(DomainResource):
     subscriber: Optional[Reference] = None
     payor: list[Reference] = []
     status: str
-    class: Optional[List[Coverage_Class_]] = None
+    class_: Optional[List[Coverage_Class_]] = None
     identifier: Optional[List[Identifier]] = None
     order: Optional[int] = None
     network: Optional[str] = None

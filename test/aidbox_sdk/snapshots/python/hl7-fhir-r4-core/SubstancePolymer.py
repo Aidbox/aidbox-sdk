@@ -1,10 +1,10 @@
 from typing import Optional, List
 from pydantic import *
-from base.Attachment import Attachment
-from base.CodeableConcept import CodeableConcept
-from base.SubstanceAmount import SubstanceAmount
-from base.DomainResource import DomainResource
-from base.BackboneElement import BackboneElement
+from ..base.Attachment import Attachment
+from ..base.CodeableConcept import CodeableConcept
+from ..base.SubstanceAmount import SubstanceAmount
+from ..base.DomainResource import DomainResource
+from ..base.BackboneElement import BackboneElement
 
 class SubstancePolymer_Repeat_RepeatUnit_DegreeOfPolymerisation(BackboneElement):
     amount: Optional[SubstanceAmount] = None
@@ -39,7 +39,7 @@ class SubstancePolymer_MonomerSet(BackboneElement):
     starting_material: Optional[List[SubstancePolymer_MonomerSet_StartingMaterial]] = None
 
 class SubstancePolymer(DomainResource):
-    class: Optional[CodeableConcept] = None
+    class_: Optional[CodeableConcept] = None
     repeat: Optional[List[SubstancePolymer_Repeat]] = None
     geometry: Optional[CodeableConcept] = None
     monomer_set: Optional[List[SubstancePolymer_MonomerSet]] = None

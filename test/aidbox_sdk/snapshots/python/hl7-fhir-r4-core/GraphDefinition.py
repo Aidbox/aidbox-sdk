@@ -1,11 +1,11 @@
 from typing import Optional, List
 from pydantic import *
-from base.UsageContext import UsageContext
-from base.ContactDetail import ContactDetail
-from base.CodeableConcept import CodeableConcept
-from base.DomainResource import DomainResource
-from base.Reference import Reference
-from base.BackboneElement import BackboneElement
+from ..base.UsageContext import UsageContext
+from ..base.ContactDetail import ContactDetail
+from ..base.CodeableConcept import CodeableConcept
+from ..base.DomainResource import DomainResource
+from ..base.Reference import Reference
+from ..base.BackboneElement import BackboneElement
 
 class GraphDefinition_Link_Target_Compartment(BackboneElement):
     use: str

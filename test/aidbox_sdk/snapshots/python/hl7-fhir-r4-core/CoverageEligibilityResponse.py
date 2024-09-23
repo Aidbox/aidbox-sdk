@@ -1,12 +1,12 @@
 from typing import Optional, List
 from pydantic import *
-from base.Period import Period
-from base.CodeableConcept import CodeableConcept
-from base.DomainResource import DomainResource
-from base.Money import Money
-from base.Reference import Reference
-from base.Identifier import Identifier
-from base.BackboneElement import BackboneElement
+from ..base.Period import Period
+from ..base.CodeableConcept import CodeableConcept
+from ..base.DomainResource import DomainResource
+from ..base.Money import Money
+from ..base.Reference import Reference
+from ..base.Identifier import Identifier
+from ..base.BackboneElement import BackboneElement
 
 class CoverageEligibilityResponse_Insurance_Item_Benefit(BackboneElement):
     used_string: Optional[str] = None

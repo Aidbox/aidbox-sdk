@@ -1,15 +1,15 @@
 from typing import Optional, List
 from pydantic import *
-from base.Annotation import Annotation
-from base.Period import Period
-from base.CodeableConcept import CodeableConcept
-from base.Dosage import Dosage
-from base.Quantity import Quantity
-from base.Duration import Duration
-from base.DomainResource import DomainResource
-from base.Reference import Reference
-from base.Identifier import Identifier
-from base.BackboneElement import BackboneElement
+from ..base.Annotation import Annotation
+from ..base.Period import Period
+from ..base.CodeableConcept import CodeableConcept
+from ..base.Dosage import Dosage
+from ..base.Quantity import Quantity
+from ..base.Duration import Duration
+from ..base.DomainResource import DomainResource
+from ..base.Reference import Reference
+from ..base.Identifier import Identifier
+from ..base.BackboneElement import BackboneElement
 
 class MedicationRequest_Substitution(BackboneElement):
     reason: Optional[CodeableConcept] = None

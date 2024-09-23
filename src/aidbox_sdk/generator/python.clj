@@ -48,7 +48,10 @@
 (defn class-name
   "Generate class name from schema url."
   [url]
-  (uppercase-first-letter (url->resource-name url)))
+  (-> url
+      url->resource-name
+      uppercase-first-letter
+      (str/replace #"-" "_")))
 
 (defn generate-deps [deps]
   (->> deps
@@ -88,10 +91,21 @@
 (defn ->backbone-type [element]
   (str (:base element) "_" (uppercase-first-letter (:name element))))
 
+(def restricted-python-words
+  #{"False" "None" "True" "and" "as" "assert" "async" "await" "break" "class"
+   "continue" "def" "del" "elif" "else" "except" "finally" "for" "from" "global"
+   "if" "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass" "raise"
+   "return" "try" "while" "with" "yield"})
+
+(defn guard-python-property-name [prop]
+  (if (restricted-python-words prop)
+    (str prop "_")
+    prop))
+
 (defn generate-property
   "Generates class property from schema element."
   [element]
-  (let [name (->snake-case (:name element))
+  (let [name (guard-python-property-name (->snake-case (:name element)))
         lang-type (if (= "BackboneElement" (:type element))
                     (->backbone-type element)
                     (->lang-type (:type element)))
@@ -158,7 +172,9 @@
       "class " class-name' "(" base-class-name "):"
       "\n"
       properties
-      (when-not (seq properties) "  pass"))))
+      (when-not (seq properties)
+        (str (apply str (repeat 4 " "))
+             "pass")))))
 
 (defn generate-module
   [& {:keys [deps classes]
@@ -193,7 +209,7 @@
      :content (generate-module
                 :deps (concat [{:module "typing" :members ["Optional" "List"]}
                                {:module "pydantic" :members ["*"]}]
-                              (map (fn [d] {:module (str "base." d) :members [d]}) (:deps ir-schema)))
+                              (map (fn [d] {:module (str "..base." d) :members [d]}) (:deps ir-schema)))
                :classes [(generate-class ir-schema
                                          (map generate-class (:backbone-elements ir-schema)))])})
 
@@ -215,7 +231,7 @@
              :content (generate-module
                         :deps  (concat [{:module "typing" :members ["Optional" "List"]}
                                         {:module "pydantic" :members ["*"]}]
-                                       (map (fn [d] {:module (str "base." d) :members [d]}) (:deps schema)))
+                                       (map (fn [d] {:module (str "..base." d) :members [d]}) (:deps schema)))
                         :classes (generate-class (assoc schema :url constraint-name)
                                                  (map generate-class (:backbone-elements schema))))})
           constraint-ir-schemas))

@@ -1,13 +1,13 @@
 from typing import Optional, List
 from pydantic import *
-from base.Attachment import Attachment
-from base.Period import Period
-from base.CodeableConcept import CodeableConcept
-from base.Coding import Coding
-from base.DomainResource import DomainResource
-from base.Reference import Reference
-from base.Identifier import Identifier
-from base.BackboneElement import BackboneElement
+from ..base.Attachment import Attachment
+from ..base.Period import Period
+from ..base.CodeableConcept import CodeableConcept
+from ..base.Coding import Coding
+from ..base.DomainResource import DomainResource
+from ..base.Reference import Reference
+from ..base.Identifier import Identifier
+from ..base.BackboneElement import BackboneElement
 
 class Consent_Provision_Actor(BackboneElement):
     role: CodeableConcept
@@ -22,7 +22,7 @@ class Consent_Provision(BackboneElement):
     purpose: Optional[List[Coding]] = None
     data_period: Optional[Period] = None
     type: Optional[str] = None
-    class: Optional[List[Coding]] = None
+    class_: Optional[List[Coding]] = None
     code: Optional[List[CodeableConcept]] = None
     action: Optional[List[CodeableConcept]] = None
     period: Optional[Period] = None
