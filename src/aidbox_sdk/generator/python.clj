@@ -176,8 +176,8 @@
   (generate-datatypes [_ ir-schemas]
     [{:path (datatypes-file-path)
       :content (generate-module
-                :deps [{:module "pydantic" :members ["*"]}
-                       {:module "typing" :members ["Optional" "List"]}]
+                :deps [{:module "typing" :members ["Optional" "List"]}
+                       {:module "pydantic" :members ["*"]}]
                 :classes (map (fn [ir-schema]
                                 (generate-class ir-schema
                                                 (map generate-class (:backbone-elements ir-schema))
@@ -187,8 +187,8 @@
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)
      :content (generate-module
-               :deps [{:module "pydantic" :members ["*"]}
-                      {:module "typing" :members ["Optional" "List"]}
+               :deps [{:module "typing" :members ["Optional" "List"]}
+                      {:module "pydantic" :members ["*"]}
                       {:module "..base" :members ["*"]}]
                :classes [(generate-class ir-schema
                                          (map generate-class (:backbone-elements ir-schema)))])})
