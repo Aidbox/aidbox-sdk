@@ -9,11 +9,42 @@ on:
       - ".github/workflows/lint.yaml"
       - "test/aidbox_sdk/snapshots/**"
       - "resources/sdk/**"
+  pull_request:
+    branches-ignore:
+      - "**"
 
 jobs:
-  lint:
+  detect-changes:
     runs-on: ubuntu-latest
+    outputs:
+      typescript-changed: ${{ steps.detect-changes.outputs.typescript-changed }}
+      python-changed: ${{ steps.detect-changes.outputs.python-changed }}
 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Detect file changes
+        id: detect-changes
+        run: |
+          # Fetch all changes between commits
+          git fetch --prune --unshallow || true
+          CHANGED_FILES=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }})
+          echo "Changed files: $CHANGED_FILES"
+
+          # Check if TypeScript or Python files have changed
+          if echo "$CHANGED_FILES" | grep -qE '^test/aidbox_sdk/snapshots/typescript/|^resources/sdk/typescript/'; then
+            echo "typescript-changed=true" >> $GITHUB_OUTPUT
+          fi
+
+          if echo "$CHANGED_FILES" | grep -qE '^test/aidbox_sdk/snapshots/python/|^resources/sdk/python/'; then
+            echo "python-changed=true" >> $GITHUB_OUTPUT
+          fi
+
+  lint-typescript:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.typescript-changed }}
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -28,16 +59,6 @@ jobs:
           cache: "npm"
           cache-dependency-path: test/aidbox_sdk/snapshots/typescript/package-lock.json
 
-      # - name: Cache Node modules
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: |
-      #       ~/.npm
-      #       **/node_modules
-      #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-      #     restore-keys: |
-      #       ${{ runner.os }}-node-
-
       - name: Install system and client dependencies
         run: |
           sudo apt -y update
@@ -45,3 +66,34 @@ jobs:
 
       - name: Run ESLint
         run: cd test/aidbox_sdk/snapshots/typescript && npm run lint
+
+  lint-python:
+    needs: detect-changes
+    if: ${{ needs.detect-changes.outputs.python-changed }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Merge Python SDK files
+        run: |
+          cp -r -u resources/sdk/python/* test/aidbox_sdk/snapshots/python/
+
+      - name: Clear pip cache
+        run: rm -rf $HOME/.cache/pip
+
+      - name: Setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+
+      - name: Install system
+        run: |
+          sudo apt -y update
+          python -m pip install --upgrade pip
+
+      - name: Install python dependencies
+        run: |
+          cd test/aidbox_sdk/snapshots/python && pip install --prefer-binary './[dev]'
+
+      - name: Run python lint
+        run: cd test/aidbox_sdk/snapshots/python && pylint **/*.py
