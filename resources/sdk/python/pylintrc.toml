@@ -25,5 +25,6 @@ disable = [
   "too-few-public-methods", "unused-wildcard-import",
   "missing-final-newline", "invalid-name",
   "relative-beyond-top-level", "missing-module-docstring",
-  "duplicate-code", "line-too-long"
+  "duplicate-code", "line-too-long",
+  "redefined-builtin", # this one is strange
 ]
