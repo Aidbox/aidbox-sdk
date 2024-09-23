@@ -1,5 +1,5 @@
-from pydantic import *
 from typing import Optional, List
+from pydantic import *
 from ..base import *
 
 class GraphDefinition_Link_Target_Compartment(BackboneElement):

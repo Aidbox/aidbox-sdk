@@ -104,3 +104,12 @@
     )
 
   :rcf)
+
+(comment
+  (sdk/generate! :python
+                 "http://localhost:8765/api/sdk/fhir-packages"
+                 {:output-dir "out"
+                  :auth-token "YmFzaWM6c2VjcmV0"
+                  :exit (fn [_] nil)})
+
+  :rcf)

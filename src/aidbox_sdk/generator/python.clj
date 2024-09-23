@@ -66,8 +66,10 @@
   [x]
   (str/replace x #"[\.#]" "-"))
 
-(defn datatypes-file-path []
-  (io/file "base/__init__.py"))
+(defn datatypes-file-path [ir-schema]
+  (io/file "base/"
+           (str (->pascal-case (or (:name ir-schema)
+                                   (url->resource-name (:url ir-schema)))) ".py")))
 
 (defn resource-file-path [ir-schema]
   (io/file (package->directory (:package ir-schema))
@@ -150,13 +152,13 @@
         base-class-name (when-not (str/blank? base-class)
                           (uppercase-first-letter base-class))]
     (str
-     (when (seq inner-classes)
-       (str (str/join "\n\n" inner-classes) "\n\n"))
+      (when (seq inner-classes)
+        (str (str/join "\n\n" inner-classes) "\n\n"))
 
-     "class " class-name' "(" base-class-name "):"
-     (when-not (str/blank? properties)
-       "\n")
-     properties)))
+      "class " class-name' "(" base-class-name "):"
+      "\n"
+      properties
+      (when-not (seq properties) "  pass"))))
 
 (defn generate-module
   [& {:keys [deps classes]
@@ -174,15 +176,17 @@
 (defrecord PythonCodeGenerator []
   CodeGenerator
   (generate-datatypes [_ ir-schemas]
-    [{:path (datatypes-file-path)
-      :content (generate-module
-                :deps [{:module "typing" :members ["Optional" "List"]}
-                       {:module "pydantic" :members ["*"]}]
-                :classes (map (fn [ir-schema]
-                                (generate-class ir-schema
-                                                (map generate-class (:backbone-elements ir-schema))
-                                                ))
-                              ir-schemas))}])
+    (let [ir-schemas (sort-by :base ir-schemas)]
+      (map (fn [ir-schema]
+             {:path (datatypes-file-path ir-schema)
+              :content (generate-module
+                         :deps (concat
+                                 [{:module "future" :members ["annotations"]}
+                                  {:module "typing" :members ["Optional" "List"]}
+                                  {:module "pydantic" :members ["*"]}]
+                                 (map (fn [d] {:module (str "." d) :members [d]}) (:deps ir-schema)))
+                         :classes [(generate-class ir-schema (map generate-class (:backbone-elements ir-schema)))])})
+           ir-schemas)))
 
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)

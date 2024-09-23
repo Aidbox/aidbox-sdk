@@ -1,5 +1,5 @@
-from pydantic import *
 from typing import Optional, List
+from pydantic import *
 from ..base import *
 
 class StructureMap_Group_Rule_Source(BackboneElement):
