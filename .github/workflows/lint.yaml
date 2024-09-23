@@ -9,6 +9,9 @@ on:
       - ".github/workflows/lint.yaml"
       - "test/aidbox_sdk/snapshots/**"
       - "resources/sdk/**"
+  pull_request:
+    branches-ignore:
+      - "**"
 
 jobs:
   detect-changes:
