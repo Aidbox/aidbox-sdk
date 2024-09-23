@@ -69,7 +69,7 @@ jobs:
 
   lint-python:
     needs: detect-changes
-    if: ${{ needs.detect-changes.outputs.python-changed == 'true' }}
+    if: ${{ needs.detect-changes.outputs.python-changed }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
