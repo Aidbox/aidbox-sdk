@@ -43,8 +43,6 @@ jobs:
 
   lint-typescript:
     needs: detect-changes
-    # env:
-    #   CHANGED: ${{ needs.detect-changes.outputs.typescript-changed }}
     if: ${{ needs.detect-changes.outputs.typescript-changed }}
     runs-on: ubuntu-latest
     steps:
@@ -83,14 +81,6 @@ jobs:
       - name: Clear pip cache
         run: rm -rf $HOME/.cache/pip
 
-      - name: install rust
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-          . "$HOME/.cargo/env"
-
-      - name: Install build dependencies
-        run: sudo apt-get install -y build-essential
-
       - name: Setup python
         uses: actions/setup-python@v4
         with:
@@ -103,7 +93,6 @@ jobs:
 
       - name: Install python dependencies
         run: |
-          export RUST_BACKTRACE=1
           cd test/aidbox_sdk/snapshots/python && pip install --prefer-binary './[dev]'
 
       - name: Run python lint
