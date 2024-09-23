@@ -35,7 +35,7 @@ class Coverage(DomainResource):
     subscriber: Optional[Reference] = None
     payor: list[Reference] = []
     status: str
-    class_: Optional[List[Coverage_Class_]] = None
+    class_: Optional[List[Coverage_Class]] = None
     identifier: Optional[List[Identifier]] = None
     order: Optional[int] = None
     network: Optional[str] = None

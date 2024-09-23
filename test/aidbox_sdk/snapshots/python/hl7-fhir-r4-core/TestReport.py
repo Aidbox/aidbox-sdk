@@ -21,7 +21,7 @@ class TestReport_Setup_Action_Operation(BackboneElement):
     message: Optional[str] = None
 
 class TestReport_Setup_Action(BackboneElement):
-    assert_: Optional[TestReport_Setup_Action_Assert_] = None
+    assert_: Optional[TestReport_Setup_Action_Assert] = None
     operation: Optional[TestReport_Setup_Action_Operation] = None
 
 class TestReport_Setup(BackboneElement):

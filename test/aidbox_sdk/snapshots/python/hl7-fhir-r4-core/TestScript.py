@@ -67,7 +67,7 @@ class TestScript_Setup_Action_Operation(BackboneElement):
     accept: Optional[str] = None
 
 class TestScript_Setup_Action(BackboneElement):
-    assert_: Optional[TestScript_Setup_Action_Assert_] = None
+    assert_: Optional[TestScript_Setup_Action_Assert] = None
     operation: Optional[TestScript_Setup_Action_Operation] = None
 
 class TestScript_Setup(BackboneElement):

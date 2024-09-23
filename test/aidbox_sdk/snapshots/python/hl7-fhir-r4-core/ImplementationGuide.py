@@ -78,7 +78,7 @@ class ImplementationGuide(DomainResource):
     fhir_version: list[str] = []
     license: Optional[str] = None
     jurisdiction: Optional[List[CodeableConcept]] = None
-    global_: Optional[List[ImplementationGuide_Global_]] = None
+    global_: Optional[List[ImplementationGuide_Global]] = None
     depends_on: Optional[List[ImplementationGuide_DependsOn]] = None
     name: str
     use_context: Optional[List[UsageContext]] = None
