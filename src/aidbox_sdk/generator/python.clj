@@ -204,7 +204,7 @@
                          :deps (concat
                                  [{:module "__future__" :members ["annotations"]}
                                   {:module "typing" :members ["Optional" "List"]}
-                                  {:module "pydantic" :members ["*"]}]
+                                  #_{:module "pydantic" :members ["*"]}]
                                  (map (fn [d] {:module (str "." d) :members [d]}) (:deps ir-schema)))
                          :classes [(generate-class ir-schema (map generate-class (:backbone-elements ir-schema)))])})
            ir-schemas)))
@@ -213,7 +213,7 @@
     {:path (resource-file-path ir-schema)
      :content (generate-module
                 :deps (concat [{:module "typing" :members ["Optional" "List"]}
-                               {:module "pydantic" :members ["*"]}]
+                               #_{:module "pydantic" :members ["*"]}]
                               (map (fn [d] {:module (str "..base." d) :members [d]}) (:deps ir-schema)))
                :classes [(generate-class ir-schema
                                          (map generate-class (:backbone-elements ir-schema)))])})
@@ -235,7 +235,7 @@
             {:path (constraint-file-path schema constraint-name)
              :content (generate-module
                         :deps  (concat [{:module "typing" :members ["Optional" "List"]}
-                                        {:module "pydantic" :members ["*"]}]
+                                        #_{:module "pydantic" :members ["*"]}]
                                        (map (fn [d] {:module (str "..base." d) :members [d]}) (:deps schema)))
                         :classes (generate-class (assoc schema :url constraint-name)
                                                  (map generate-class (:backbone-elements schema))))})
