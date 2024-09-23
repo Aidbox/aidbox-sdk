@@ -1,6 +1,9 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.CodeableConcept import CodeableConcept
+from base.DomainResource import DomainResource
+from base.Reference import Reference
+from base.Identifier import Identifier
 
 class ImmunizationEvaluation(DomainResource):
     patient: Reference

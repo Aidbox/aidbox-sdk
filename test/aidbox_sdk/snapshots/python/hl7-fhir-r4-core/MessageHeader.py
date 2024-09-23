@@ -1,6 +1,11 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.CodeableConcept import CodeableConcept
+from base.Coding import Coding
+from base.ContactPoint import ContactPoint
+from base.DomainResource import DomainResource
+from base.Reference import Reference
+from base.BackboneElement import BackboneElement
 
 class MessageHeader_Response(BackboneElement):
     code: str

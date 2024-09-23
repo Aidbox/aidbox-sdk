@@ -1,6 +1,18 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.Annotation import Annotation
+from base.Age import Age
+from base.Period import Period
+from base.CodeableConcept import CodeableConcept
+from base.Expression import Expression
+from base.Range import Range
+from base.RelatedArtifact import RelatedArtifact
+from base.Timing import Timing
+from base.Duration import Duration
+from base.DomainResource import DomainResource
+from base.Reference import Reference
+from base.Identifier import Identifier
+from base.BackboneElement import BackboneElement
 
 class RequestGroup_Action_RelatedAction(BackboneElement):
     action_id: str

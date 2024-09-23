@@ -1,6 +1,18 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.Annotation import Annotation
+from base.Attachment import Attachment
+from base.Period import Period
+from base.CodeableConcept import CodeableConcept
+from base.Coding import Coding
+from base.Signature import Signature
+from base.Timing import Timing
+from base.Quantity import Quantity
+from base.DomainResource import DomainResource
+from base.Money import Money
+from base.Reference import Reference
+from base.Identifier import Identifier
+from base.BackboneElement import BackboneElement
 
 class Contract_Rule(BackboneElement):
     content_reference: Optional[Reference] = None

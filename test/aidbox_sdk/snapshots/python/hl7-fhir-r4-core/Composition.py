@@ -1,6 +1,12 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.Period import Period
+from base.CodeableConcept import CodeableConcept
+from base.DomainResource import DomainResource
+from base.Reference import Reference
+from base.Identifier import Identifier
+from base.BackboneElement import BackboneElement
+from base.Narrative import Narrative
 
 class Composition_Section(BackboneElement):
     ordered_by: Optional[CodeableConcept] = None

@@ -1,6 +1,12 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.Attachment import Attachment
+from base.Coding import Coding
+from base.Quantity import Quantity
+from base.DomainResource import DomainResource
+from base.Reference import Reference
+from base.Identifier import Identifier
+from base.BackboneElement import BackboneElement
 
 class QuestionnaireResponse_Item_Answer(BackboneElement):
     value_reference: Optional[Reference] = None

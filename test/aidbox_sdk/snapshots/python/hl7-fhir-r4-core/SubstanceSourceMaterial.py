@@ -1,6 +1,9 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.CodeableConcept import CodeableConcept
+from base.DomainResource import DomainResource
+from base.Identifier import Identifier
+from base.BackboneElement import BackboneElement
 
 class SubstanceSourceMaterial_Organism_Author(BackboneElement):
     author_type: Optional[CodeableConcept] = None

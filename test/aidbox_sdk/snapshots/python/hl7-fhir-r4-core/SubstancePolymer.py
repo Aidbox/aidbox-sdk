@@ -1,6 +1,10 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.Attachment import Attachment
+from base.CodeableConcept import CodeableConcept
+from base.SubstanceAmount import SubstanceAmount
+from base.DomainResource import DomainResource
+from base.BackboneElement import BackboneElement
 
 class SubstancePolymer_Repeat_RepeatUnit_DegreeOfPolymerisation(BackboneElement):
     amount: Optional[SubstanceAmount] = None

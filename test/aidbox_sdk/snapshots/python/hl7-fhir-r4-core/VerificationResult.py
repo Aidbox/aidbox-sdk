@@ -1,6 +1,11 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.CodeableConcept import CodeableConcept
+from base.Signature import Signature
+from base.Timing import Timing
+from base.DomainResource import DomainResource
+from base.Reference import Reference
+from base.BackboneElement import BackboneElement
 
 class VerificationResult_Validator(BackboneElement):
     organization: Reference

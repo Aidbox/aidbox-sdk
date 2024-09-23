@@ -1,6 +1,9 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.Period import Period
+from base.DomainResource import DomainResource
+from base.Reference import Reference
+from base.Identifier import Identifier
 
 class ResearchSubject(DomainResource):
     study: Reference

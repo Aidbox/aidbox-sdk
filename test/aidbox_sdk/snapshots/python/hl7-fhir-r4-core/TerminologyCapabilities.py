@@ -1,6 +1,10 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.UsageContext import UsageContext
+from base.ContactDetail import ContactDetail
+from base.CodeableConcept import CodeableConcept
+from base.DomainResource import DomainResource
+from base.BackboneElement import BackboneElement
 
 class TerminologyCapabilities_Expansion_Parameter(BackboneElement):
     name: str

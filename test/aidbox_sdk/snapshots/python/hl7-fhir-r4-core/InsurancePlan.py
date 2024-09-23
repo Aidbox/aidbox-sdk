@@ -1,6 +1,16 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.Address import Address
+from base.Period import Period
+from base.CodeableConcept import CodeableConcept
+from base.ContactPoint import ContactPoint
+from base.Quantity import Quantity
+from base.HumanName import HumanName
+from base.DomainResource import DomainResource
+from base.Money import Money
+from base.Reference import Reference
+from base.Identifier import Identifier
+from base.BackboneElement import BackboneElement
 
 class InsurancePlan_Coverage_Benefit_Limit(BackboneElement):
     code: Optional[CodeableConcept] = None

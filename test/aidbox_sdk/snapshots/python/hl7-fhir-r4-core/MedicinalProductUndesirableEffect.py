@@ -1,6 +1,9 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.CodeableConcept import CodeableConcept
+from base.Population import Population
+from base.DomainResource import DomainResource
+from base.Reference import Reference
 
 class MedicinalProductUndesirableEffect(DomainResource):
     subject: Optional[List[Reference]] = None

@@ -1,6 +1,8 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.CodeableConcept import CodeableConcept
+from base.DomainResource import DomainResource
+from base.BackboneElement import BackboneElement
 
 class OperationOutcome_Issue(BackboneElement):
     code: str

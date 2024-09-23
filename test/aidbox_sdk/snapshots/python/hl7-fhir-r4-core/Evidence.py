@@ -1,6 +1,14 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.UsageContext import UsageContext
+from base.Annotation import Annotation
+from base.Period import Period
+from base.ContactDetail import ContactDetail
+from base.CodeableConcept import CodeableConcept
+from base.RelatedArtifact import RelatedArtifact
+from base.DomainResource import DomainResource
+from base.Reference import Reference
+from base.Identifier import Identifier
 
 class Evidence(DomainResource):
     description: Optional[str] = None

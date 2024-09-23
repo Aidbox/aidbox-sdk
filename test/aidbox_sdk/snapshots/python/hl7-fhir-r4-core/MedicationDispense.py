@@ -1,6 +1,13 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.Annotation import Annotation
+from base.CodeableConcept import CodeableConcept
+from base.Dosage import Dosage
+from base.Quantity import Quantity
+from base.DomainResource import DomainResource
+from base.Reference import Reference
+from base.Identifier import Identifier
+from base.BackboneElement import BackboneElement
 
 class MedicationDispense_Substitution(BackboneElement):
     type: Optional[CodeableConcept] = None

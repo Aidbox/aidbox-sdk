@@ -1,6 +1,10 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.Attachment import Attachment
+from base.CodeableConcept import CodeableConcept
+from base.DomainResource import DomainResource
+from base.Identifier import Identifier
+from base.BackboneElement import BackboneElement
 
 class SubstanceNucleicAcid_Subunit_Sugar(BackboneElement):
     name: Optional[str] = None

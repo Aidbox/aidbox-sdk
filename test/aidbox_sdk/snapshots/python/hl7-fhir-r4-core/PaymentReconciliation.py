@@ -1,6 +1,12 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.Period import Period
+from base.CodeableConcept import CodeableConcept
+from base.DomainResource import DomainResource
+from base.Money import Money
+from base.Reference import Reference
+from base.Identifier import Identifier
+from base.BackboneElement import BackboneElement
 
 class PaymentReconciliation_ProcessNote(BackboneElement):
     text: Optional[str] = None

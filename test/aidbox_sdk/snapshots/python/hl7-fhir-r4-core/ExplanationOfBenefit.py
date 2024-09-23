@@ -1,6 +1,16 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.Address import Address
+from base.Attachment import Attachment
+from base.Period import Period
+from base.CodeableConcept import CodeableConcept
+from base.Coding import Coding
+from base.Quantity import Quantity
+from base.DomainResource import DomainResource
+from base.Money import Money
+from base.Reference import Reference
+from base.Identifier import Identifier
+from base.BackboneElement import BackboneElement
 
 class ExplanationOfBenefit_Insurance(BackboneElement):
     focal: bool

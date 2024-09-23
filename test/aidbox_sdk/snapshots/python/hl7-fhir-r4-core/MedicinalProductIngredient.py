@@ -1,6 +1,11 @@
 from typing import Optional, List
 from pydantic import *
-from ..base import *
+from base.CodeableConcept import CodeableConcept
+from base.DomainResource import DomainResource
+from base.Ratio import Ratio
+from base.Reference import Reference
+from base.Identifier import Identifier
+from base.BackboneElement import BackboneElement
 
 class MedicinalProductIngredient_Substance(BackboneElement):
     code: CodeableConcept
