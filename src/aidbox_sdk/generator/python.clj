@@ -34,6 +34,7 @@
 
     "string"       "str"
     "code"         "str"
+    "xhtml"        "str"
     "markdown"     "str"
     "id"           "str"
 
