@@ -1,0 +1,28 @@
+[
+    {
+        "name": "app.aidbox.main",
+        "version": "0.0.1",
+        "dependencies": { "hl7.fhir.r4.core": "4.0.1" },
+        "resourceType": "Package",
+        "technical-id": "2d5ec72f-a946-496a-a02c-bfd97e159e80",
+        "href": "http://localhost:3333/r4/fhir-packages/app.aidbox.main%230.0.1/schemas"
+    },
+    {
+        "license": "CC0-1.0",
+        "url": "http://hl7.org/fhir/R4",
+        "dependencies": {},
+        "author": "HL7 Inc",
+        "homepage": "http://hl7.org/fhir",
+        "name": "hl7.fhir.r4.core",
+        "tools-version": 3,
+        "canonical": "http://hl7.org/fhir",
+        "title": "FHIR R4 package : Core",
+        "type": "fhir.core",
+        "version": "4.0.1",
+        "resourceType": "Package",
+        "fhirVersions": ["4.0.1"],
+        "href": "http://localhost:3333/r4/fhir-packages/hl7.fhir.r4.core%234.0.1/schemas",
+        "description": "Definitions (API, structures and terminologies) for the R4 version of the FHIR standard",
+        "technical-id": "6b24387e-a83e-49da-b630-a7421f66bb0a"
+    }
+]

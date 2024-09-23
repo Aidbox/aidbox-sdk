@@ -8,6 +8,9 @@ test:
 test-snapshots:
 	clj -M:test -m kaocha.runner --focus-meta :snapshot
 
+serve-mocks:
+	clj -M -m mock-server.main
+
 PATH_TO_JAR := $(project_dir)/$(jar_path)
 
 AGENT_OPTS := caller-filter-file=$(project_dir)/trace-filter.json,config-output-dir=$(project_dir)/META

@@ -1,0 +1,35 @@
+[
+    {
+        "name": "app.aidbox.main",
+        "version": "0.0.1",
+        "dependencies": {
+            "hl7.fhir.r5.core": "5.0.0"
+        },
+        "resourceType": "Package",
+        "technical-id": "d40ee64d-8f76-4b3b-8295-7881ecf0782a",
+        "href": "http://localhost:3333/r5/fhir-packages/app.aidbox.main%230.0.1/schemas"
+    },
+    {
+        "directories": {
+            "lib": "package",
+            "example": "example"
+        },
+        "license": "CC0-1.0",
+        "url": "http://hl7.org/fhir/R5/",
+        "dependencies": {},
+        "author": "HL7 Inc",
+        "homepage": "http://hl7.org/fhir/R5/",
+        "name": "hl7.fhir.r5.core",
+        "tools-version": 3,
+        "canonical": "http://hl7.org/fhir",
+        "title": "FHIR Core package",
+        "type": "Core",
+        "version": "5.0.0",
+        "date": "20230326152102",
+        "resourceType": "Package",
+        "fhirVersions": ["5.0.0"],
+        "href": "http://localhost:3333/r5/fhir-packages/hl7.fhir.r5.core%235.0.0/schemas",
+        "description": "FHIR Core package - the NPM package that contains all the definitions for the base FHIR specification (built Sun, Mar 26, 2023 15:21+1100+11:00)",
+        "technical-id": "d115902a-ef99-4926-b097-3deaa148acb3"
+    }
+]

@@ -1,19 +1,19 @@
 {:paths ["src"]
- :deps {com.github.clj-easy/graal-build-time {:mvn/version "1.0.5"}
-        org.clj-commons/clj-http-lite        {:mvn/version "1.0.13"}
-        org.clojure/clojure                  {:mvn/version "1.11.3"}
-        org.clojure/data.json                {:mvn/version "2.5.0"}
-        metosin/malli                        {:mvn/version "0.16.3"}
-        org.clojure/tools.cli                {:mvn/version "1.1.230"}}
+ :deps  {com.github.clj-easy/graal-build-time {:mvn/version "1.0.5"}
+         org.clj-commons/clj-http-lite        {:mvn/version "1.0.13"}
+         org.clojure/clojure                  {:mvn/version "1.11.3"}
+         org.clojure/data.json                {:mvn/version "2.5.0"}
+         http-kit/http-kit                    {:mvn/version "2.8.0"}
+         metosin/malli                        {:mvn/version "0.16.3"}
+         org.clojure/tools.cli                {:mvn/version "1.1.230"}}
 
  :aliases
  {:dev {:extra-paths ["dev" "test"]
-        :extra-deps {com.health-samurai/matcho  {:mvn/version "0.3.11"}}}
+        :extra-deps  {com.health-samurai/matcho {:mvn/version "0.3.11"}}}
 
   :nrepl
   {:extra-paths ["dev"]
-   :extra-deps  {cider/cider-nrepl {:mvn/version "LATEST"}}
-
+   :extra-deps  {cider/cider-nrepl {:mvn/version "0.50.2"}}
    :main-opts   ["-m" "nrepl.cmdline"
                  "-b" "0.0.0.0"
                  "--middleware"
