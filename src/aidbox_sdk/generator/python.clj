@@ -103,13 +103,18 @@
     (str prop "_")
     prop))
 
+(defn remove-guard-from-class-name [class-name]
+  (if (= \_ (last class-name))
+    (subs class-name 0 (dec (count class-name)))
+    class-name))
+
 (defn generate-property
   "Generates class property from schema element."
   [element]
   (let [name (guard-python-property-name (->snake-case (:name element)))
         lang-type (if (= "BackboneElement" (:type element))
-                    (->backbone-type element)
-                    (->lang-type (:type element)))
+                    (remove-guard-from-class-name (->backbone-type element))
+                    (remove-guard-from-class-name (->lang-type (:type element))))
         type      (cond
                     ;; required and array
                     (and (:required element)
@@ -174,8 +179,7 @@
       "\n"
       properties
       (when-not (seq properties)
-        (str (apply str (repeat 4 " "))
-             "pass")))))
+        (u/add-indent "pass")))))
 
 (defn generate-module
   [& {:keys [deps classes]
