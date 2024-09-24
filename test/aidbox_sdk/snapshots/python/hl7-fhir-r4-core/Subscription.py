@@ -1,8 +1,7 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.ContactPoint import ContactPoint
-from ..base.DomainResource import DomainResource
-from ..base.BackboneElement import BackboneElement
+from base import ContactPoint
+from base import DomainResource
+from base import BackboneElement
 
 class Subscription_Channel(BackboneElement):
     type: str

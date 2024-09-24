@@ -1,15 +1,14 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.Address import Address
-from ..base.Attachment import Attachment
-from ..base.Period import Period
-from ..base.CodeableConcept import CodeableConcept
-from ..base.Quantity import Quantity
-from ..base.DomainResource import DomainResource
-from ..base.Money import Money
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
-from ..base.BackboneElement import BackboneElement
+from base import Address
+from base import Attachment
+from base import Period
+from base import CodeableConcept
+from base import Quantity
+from base import DomainResource
+from base import Money
+from base import Reference
+from base import Identifier
+from base import BackboneElement
 
 class ClaimResponse_Insurance(BackboneElement):
     focal: bool

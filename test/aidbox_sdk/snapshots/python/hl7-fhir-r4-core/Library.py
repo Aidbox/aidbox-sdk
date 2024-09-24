@@ -1,16 +1,15 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.UsageContext import UsageContext
-from ..base.Attachment import Attachment
-from ..base.Period import Period
-from ..base.ContactDetail import ContactDetail
-from ..base.DataRequirement import DataRequirement
-from ..base.CodeableConcept import CodeableConcept
-from ..base.RelatedArtifact import RelatedArtifact
-from ..base.DomainResource import DomainResource
-from ..base.ParameterDefinition import ParameterDefinition
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
+from base import UsageContext
+from base import Attachment
+from base import Period
+from base import ContactDetail
+from base import DataRequirement
+from base import CodeableConcept
+from base import RelatedArtifact
+from base import DomainResource
+from base import ParameterDefinition
+from base import Reference
+from base import Identifier
 
 class Library(DomainResource):
     description: Optional[str] = None

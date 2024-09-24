@@ -2,8 +2,10 @@
   (:require
    [aidbox-sdk.generator :as generator]
    [aidbox-sdk.generator.helpers :refer [->pascal-case ->snake-case
-                                         uppercase-first-letter]]
+                                         uppercase-first-letter
+                                         starts-with-capital?]]
    [aidbox-sdk.generator.utils :as u]
+   [clojure.set :as set]
    [clojure.java.io :as io]
    [clojure.string :as str])
   (:import
@@ -70,10 +72,8 @@
   [x]
   (str/replace x #"[\.#]" "-"))
 
-(defn datatypes-file-path [ir-schema]
-  (io/file "base/"
-           (str (->pascal-case (or (:name ir-schema)
-                                   (url->resource-name (:url ir-schema)))) ".py")))
+(defn datatypes-file-path []
+  (io/file "base/__init__.py"))
 
 (defn resource-file-path [ir-schema]
   (io/file (package->directory (:package ir-schema))
@@ -86,7 +86,7 @@
 (defn search-param-filepath [ir-schema]
   (io/file "search" (str (:name ir-schema) "SearchParameters.py")))
 
-(defn generate-polymorphic-property [element]
+(defn generate-polymorphic-property [_element]
   nil)
 
 (defn ->backbone-type [element]
@@ -109,12 +109,25 @@
     class-name))
 
 (defn generate-property
-  "Generates class property from schema element."
-  [element]
+  "Generates class property from schema element.
+
+  Use string instead of classname if `forward-reference?` is true:
+  class Element:
+      extension: Optional['Extension']"
+  [element forward-reference?]
   (let [name (guard-python-property-name (->snake-case (:name element)))
         lang-type (if (= "BackboneElement" (:type element))
-                    (remove-guard-from-class-name (->backbone-type element))
-                    (remove-guard-from-class-name (->lang-type (:type element))))
+                    (->backbone-type element)
+                    (->lang-type (:type element)))
+        lang-type
+        (cond->> lang-type
+
+          :always
+          remove-guard-from-class-name
+
+          (and forward-reference? (starts-with-capital? lang-type))
+          (format "'%s'"))
+
         type      (cond
                     ;; required and array
                     (and (:required element)
@@ -153,29 +166,34 @@
       (generate-polymorphic-property element)
       (str name ": " type (when default-value (str " = " default-value))))))
 
+(def special-classes #{"Element" "Resource"})
+
 (defn generate-class
   "Generates Python class from IR (intermediate representation) schema."
   [ir-schema & [inner-classes]]
   (let [base-class (url->resource-name (:base ir-schema))
         schema-name (or (:url ir-schema) (:name ir-schema))
         class-name' (class-name schema-name)
+        special-class? (special-classes class-name')
         elements (->> (:elements ir-schema)
                       (map #(if (and (= (:base %) "Bundle_Entry")
                                      (= (:name %) "resource"))
                               (assoc % :value "T")
                               %)))
         properties (->> elements
-                        (map generate-property)
+                        (map #(generate-property % special-class?))
                         (remove nil?)
                         (map u/add-indent)
                         (str/join "\n"))
-        base-class-name (when-not (str/blank? base-class)
-                          (uppercase-first-letter base-class))]
+        base-class-name (some-> (when-not (str/blank? base-class)
+                                  (uppercase-first-letter base-class)))
+        base-class-name (when base-class-name
+                          (str "(" base-class-name ")"))]
     (str
       (when (seq inner-classes)
         (str (str/join "\n\n" inner-classes) "\n\n"))
 
-      "class " class-name' "(" base-class-name "):"
+      "class " class-name' base-class-name ":"
       "\n"
       properties
       (when-not (seq properties)
@@ -190,6 +208,61 @@
        (flatten)
        (str/join "\n\n")))
 
+(defn gen [ir-schema]
+  (generate-class ir-schema (map generate-class (:backbone-elements ir-schema))))
+
+(defn generate-datatypes-python-classes* [ir-schemas classes already-generated deferred-schemas]
+  (if-let [ir-schema (first ir-schemas)]
+    (cond
+
+      (already-generated (class-name (or (:url ir-schema) (:name ir-schema))))
+      (recur (rest ir-schemas) classes already-generated deferred-schemas)
+
+      ;; no deps and base => we can easily generate
+      (or (and (empty? (:deps ir-schema))
+               (not (:base ir-schema)))
+
+          ;; deps are generated => generate
+          (and (seq (:deps ir-schema))
+               (clojure.set/subset? (:deps ir-schema) already-generated))
+
+          (special-classes (class-name (or (:url ir-schema) (:name ir-schema)))))
+      (recur
+        (rest ir-schemas)
+        (conj classes (gen ir-schema))
+        (conj already-generated (class-name (or (:url ir-schema) (:name ir-schema))))
+        deferred-schemas)
+
+      ;; no deps but extends => skipping, we need to generate base first
+      (or (and (empty? (:deps ir-schema))
+               (:base ir-schema))
+
+          ;; not all deps are generated => skip
+          (and (seq (:deps ir-schema))
+               (not (clojure.set/subset? (:deps ir-schema) already-generated))))
+      (recur (rest ir-schemas)
+             classes
+             already-generated
+             (conj deferred-schemas ir-schema))
+
+      :else
+      (throw (Exception. (str "Can't generate "
+                              (class-name (or (:url ir-schema) (:name ir-schema)))))))
+    (cond
+      (seq deferred-schemas)
+      (->> deferred-schemas
+           (mapv gen)
+           (concat classes)
+           (into []))
+      :else
+      classes)))
+
+(defn generate-datatypes-python-classes [ir-schemas]
+  (generate-datatypes-python-classes* (->> ir-schemas (sort-by
+                                                        (fn [{:keys [base deps]}]
+                                                          (+ (count deps) (if base 500 0)))) vec)
+                                      [] #{} []))
+
 ;;
 ;; Main
 ;;
@@ -197,32 +270,30 @@
 (defrecord PythonCodeGenerator []
   CodeGenerator
   (generate-datatypes [_ ir-schemas]
-    (let [ir-schemas (sort-by :base ir-schemas)]
-      (map (fn [ir-schema]
-             {:path (datatypes-file-path ir-schema)
-              :content (generate-module
-                         :deps (concat
-                                 [{:module "__future__" :members ["annotations"]}
-                                  {:module "typing" :members ["Optional" "List"]}
-                                  #_{:module "pydantic" :members ["*"]}]
-                                 (map (fn [d] {:module (str "." d) :members [d]}) (:deps ir-schema)))
-                         :classes [(generate-class ir-schema (map generate-class (:backbone-elements ir-schema)))])})
-           ir-schemas)))
+    [{:path (datatypes-file-path)
+      :content (generate-module
+                 :deps [{:module "__future__" :members ["annotations"]}
+                        {:module "typing" :members ["Optional" "List"]}]
+                 :classes
+                 (generate-datatypes-python-classes ir-schemas))}])
 
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)
      :content (generate-module
-                :deps (concat [{:module "typing" :members ["Optional" "List"]}
-                               #_{:module "pydantic" :members ["*"]}]
-                              (map (fn [d] {:module (str "..base." d) :members [d]}) (:deps ir-schema)))
-               :classes [(generate-class ir-schema
-                                         (map generate-class (:backbone-elements ir-schema)))])})
+                :deps (concat [{:module "typing" :members ["Optional" "List"]}]
+                              (map (fn [d] {:module "base" :members [d]})
+                                   (:deps ir-schema)))
+                :classes [(generate-class ir-schema
+                                          (map generate-class (:backbone-elements ir-schema)))])})
 
   (generate-search-params [_ ir-schemas]
     (map (fn [ir-schema]
            {:path (search-param-filepath ir-schema)
             :content (generate-module
-                      :deps [{:module "typing" :members ["Optional"]}]
+                      :deps (cond-> [{:module "typing" :members ["Optional"]}]
+                              (:base ir-schema)
+                              (conj {:module (str "." (format "%sSearchParameters" (:base ir-schema)))
+                                     :members [(format "%sSearchParameters" (:base ir-schema))]}))
                       :classes [(generate-class
                                  {:name (format "%sSearchParameters" (:name ir-schema))
                                   :base (when (:base ir-schema)

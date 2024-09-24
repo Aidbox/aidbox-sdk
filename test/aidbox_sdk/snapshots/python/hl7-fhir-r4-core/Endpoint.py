@@ -1,12 +1,11 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.Period import Period
-from ..base.CodeableConcept import CodeableConcept
-from ..base.Coding import Coding
-from ..base.ContactPoint import ContactPoint
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
+from base import Period
+from base import CodeableConcept
+from base import Coding
+from base import ContactPoint
+from base import DomainResource
+from base import Reference
+from base import Identifier
 
 class Endpoint(DomainResource):
     connection_type: Coding

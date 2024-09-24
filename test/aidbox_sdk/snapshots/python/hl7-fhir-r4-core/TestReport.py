@@ -1,9 +1,8 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
-from ..base.BackboneElement import BackboneElement
+from base import DomainResource
+from base import Reference
+from base import Identifier
+from base import BackboneElement
 
 class TestReport_Participant(BackboneElement):
     uri: str

@@ -1,13 +1,12 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.Address import Address
-from ..base.Attachment import Attachment
-from ..base.ContactPoint import ContactPoint
-from ..base.HumanName import HumanName
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
-from ..base.BackboneElement import BackboneElement
+from base import Address
+from base import Attachment
+from base import ContactPoint
+from base import HumanName
+from base import DomainResource
+from base import Reference
+from base import Identifier
+from base import BackboneElement
 
 class Person_Link(BackboneElement):
     target: Reference

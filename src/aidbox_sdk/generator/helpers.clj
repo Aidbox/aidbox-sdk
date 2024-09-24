@@ -3,6 +3,8 @@
    [clojure.data.json :as json]
    [clojure.string :as str]))
 
+(set! *warn-on-reflection* true)
+
 (defn words
   "Takes a string and makes collection of words.
 
@@ -24,6 +26,9 @@
   Pascal case removes all _ and - characters"
   [string]
   (str (str/upper-case (first string)) (subs string 1)))
+
+(defn starts-with-capital? [^String s]
+  (Character/isUpperCase (.charAt s 0)))
 
 (defn vector->map [v]
   (update-vals (group-by :url v) first))

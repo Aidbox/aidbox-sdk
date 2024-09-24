@@ -1,15 +1,14 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.Annotation import Annotation
-from ..base.CodeableConcept import CodeableConcept
-from ..base.Range import Range
-from ..base.Quantity import Quantity
-from ..base.Duration import Duration
-from ..base.DomainResource import DomainResource
-from ..base.Ratio import Ratio
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
-from ..base.BackboneElement import BackboneElement
+from base import Annotation
+from base import CodeableConcept
+from base import Range
+from base import Quantity
+from base import Duration
+from base import DomainResource
+from base import Ratio
+from base import Reference
+from base import Identifier
+from base import BackboneElement
 
 class Goal_Target(BackboneElement):
     detail_range: Optional[Range] = None

@@ -1,12 +1,11 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.CodeableConcept import CodeableConcept
-from ..base.Range import Range
-from ..base.Quantity import Quantity
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
-from ..base.BackboneElement import BackboneElement
+from base import CodeableConcept
+from base import Range
+from base import Quantity
+from base import DomainResource
+from base import Reference
+from base import Identifier
+from base import BackboneElement
 
 class SubstanceReferenceInformation_Gene(BackboneElement):
     gene: Optional[CodeableConcept] = None

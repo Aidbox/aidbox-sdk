@@ -1,10 +1,9 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.CodeableConcept import CodeableConcept
-from ..base.ProdCharacteristic import ProdCharacteristic
-from ..base.Quantity import Quantity
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
+from base import CodeableConcept
+from base import ProdCharacteristic
+from base import Quantity
+from base import DomainResource
+from base import Reference
 
 class MedicinalProductManufactured(DomainResource):
     quantity: Quantity

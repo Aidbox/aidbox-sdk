@@ -1,11 +1,10 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.Annotation import Annotation
-from ..base.CodeableConcept import CodeableConcept
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
-from ..base.BackboneElement import BackboneElement
+from base import Annotation
+from base import CodeableConcept
+from base import DomainResource
+from base import Reference
+from base import Identifier
+from base import BackboneElement
 
 class List_Entry(BackboneElement):
     date: Optional[str] = None

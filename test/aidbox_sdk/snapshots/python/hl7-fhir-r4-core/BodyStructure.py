@@ -1,10 +1,9 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.Attachment import Attachment
-from ..base.CodeableConcept import CodeableConcept
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
+from base import Attachment
+from base import CodeableConcept
+from base import DomainResource
+from base import Reference
+from base import Identifier
 
 class BodyStructure(DomainResource):
     image: Optional[List[Attachment]] = None

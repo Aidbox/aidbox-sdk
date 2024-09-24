@@ -1,14 +1,13 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.UsageContext import UsageContext
-from ..base.Period import Period
-from ..base.ContactDetail import ContactDetail
-from ..base.CodeableConcept import CodeableConcept
-from ..base.DomainResource import DomainResource
-from ..base.Money import Money
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
-from ..base.BackboneElement import BackboneElement
+from base import UsageContext
+from base import Period
+from base import ContactDetail
+from base import CodeableConcept
+from base import DomainResource
+from base import Money
+from base import Reference
+from base import Identifier
+from base import BackboneElement
 
 class ChargeItemDefinition_PropertyGroup_PriceComponent(BackboneElement):
     code: Optional[CodeableConcept] = None

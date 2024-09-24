@@ -1,11 +1,10 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.Period import Period
-from ..base.CodeableConcept import CodeableConcept
-from ..base.Signature import Signature
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
-from ..base.BackboneElement import BackboneElement
+from base import Period
+from base import CodeableConcept
+from base import Signature
+from base import DomainResource
+from base import Reference
+from base import BackboneElement
 
 class Provenance_Agent(BackboneElement):
     who: Reference

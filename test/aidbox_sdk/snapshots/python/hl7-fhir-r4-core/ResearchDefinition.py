@@ -1,13 +1,12 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.UsageContext import UsageContext
-from ..base.Period import Period
-from ..base.ContactDetail import ContactDetail
-from ..base.CodeableConcept import CodeableConcept
-from ..base.RelatedArtifact import RelatedArtifact
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
+from base import UsageContext
+from base import Period
+from base import ContactDetail
+from base import CodeableConcept
+from base import RelatedArtifact
+from base import DomainResource
+from base import Reference
+from base import Identifier
 
 class ResearchDefinition(DomainResource):
     description: Optional[str] = None

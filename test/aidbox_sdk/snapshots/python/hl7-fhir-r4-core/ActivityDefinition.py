@@ -1,21 +1,20 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.UsageContext import UsageContext
-from ..base.Age import Age
-from ..base.Period import Period
-from ..base.ContactDetail import ContactDetail
-from ..base.CodeableConcept import CodeableConcept
-from ..base.Expression import Expression
-from ..base.Dosage import Dosage
-from ..base.Range import Range
-from ..base.RelatedArtifact import RelatedArtifact
-from ..base.Timing import Timing
-from ..base.Quantity import Quantity
-from ..base.Duration import Duration
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
-from ..base.BackboneElement import BackboneElement
+from base import UsageContext
+from base import Age
+from base import Period
+from base import ContactDetail
+from base import CodeableConcept
+from base import Expression
+from base import Dosage
+from base import Range
+from base import RelatedArtifact
+from base import Timing
+from base import Quantity
+from base import Duration
+from base import DomainResource
+from base import Reference
+from base import Identifier
+from base import BackboneElement
 
 class ActivityDefinition_Participant(BackboneElement):
     role: Optional[CodeableConcept] = None

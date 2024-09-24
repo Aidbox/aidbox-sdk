@@ -1,12 +1,11 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.CodeableConcept import CodeableConcept
-from ..base.MarketingStatus import MarketingStatus
-from ..base.Coding import Coding
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
-from ..base.BackboneElement import BackboneElement
+from base import CodeableConcept
+from base import MarketingStatus
+from base import Coding
+from base import DomainResource
+from base import Reference
+from base import Identifier
+from base import BackboneElement
 
 class MedicinalProduct_ManufacturingBusinessOperation(BackboneElement):
     regulator: Optional[Reference] = None

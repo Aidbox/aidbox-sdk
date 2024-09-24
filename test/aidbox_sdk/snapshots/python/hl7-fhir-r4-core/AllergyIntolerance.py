@@ -1,14 +1,13 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.Annotation import Annotation
-from ..base.Age import Age
-from ..base.Period import Period
-from ..base.CodeableConcept import CodeableConcept
-from ..base.Range import Range
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
-from ..base.BackboneElement import BackboneElement
+from base import Annotation
+from base import Age
+from base import Period
+from base import CodeableConcept
+from base import Range
+from base import DomainResource
+from base import Reference
+from base import Identifier
+from base import BackboneElement
 
 class AllergyIntolerance_Reaction(BackboneElement):
     note: Optional[List[Annotation]] = None

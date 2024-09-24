@@ -1,14 +1,13 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.CodeableConcept import CodeableConcept
-from ..base.MarketingStatus import MarketingStatus
-from ..base.ProdCharacteristic import ProdCharacteristic
-from ..base.Quantity import Quantity
-from ..base.DomainResource import DomainResource
-from ..base.ProductShelfLife import ProductShelfLife
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
-from ..base.BackboneElement import BackboneElement
+from base import CodeableConcept
+from base import MarketingStatus
+from base import ProdCharacteristic
+from base import Quantity
+from base import DomainResource
+from base import ProductShelfLife
+from base import Reference
+from base import Identifier
+from base import BackboneElement
 
 class MedicinalProductPackaged_BatchIdentifier(BackboneElement):
     outer_packaging: Identifier

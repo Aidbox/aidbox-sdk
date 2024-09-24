@@ -1,17 +1,16 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.Annotation import Annotation
-from ..base.Period import Period
-from ..base.CodeableConcept import CodeableConcept
-from ..base.Range import Range
-from ..base.Timing import Timing
-from ..base.Quantity import Quantity
-from ..base.DomainResource import DomainResource
-from ..base.SampledData import SampledData
-from ..base.Ratio import Ratio
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
-from ..base.BackboneElement import BackboneElement
+from base import Annotation
+from base import Period
+from base import CodeableConcept
+from base import Range
+from base import Timing
+from base import Quantity
+from base import DomainResource
+from base import SampledData
+from base import Ratio
+from base import Reference
+from base import Identifier
+from base import BackboneElement
 
 class Observation_ReferenceRange(BackboneElement):
     age: Optional[Range] = None

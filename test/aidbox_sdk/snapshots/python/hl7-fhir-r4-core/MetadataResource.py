@@ -1,9 +1,8 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.UsageContext import UsageContext
-from ..base.ContactDetail import ContactDetail
-from ..base.CodeableConcept import CodeableConcept
-from ..base.DomainResource import DomainResource
+from base import UsageContext
+from base import ContactDetail
+from base import CodeableConcept
+from base import DomainResource
 
 class MetadataResource(DomainResource):
     description: Optional[str] = None

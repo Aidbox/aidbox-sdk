@@ -1,11 +1,10 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.Period import Period
-from ..base.CodeableConcept import CodeableConcept
-from ..base.Coding import Coding
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
-from ..base.BackboneElement import BackboneElement
+from base import Period
+from base import CodeableConcept
+from base import Coding
+from base import DomainResource
+from base import Reference
+from base import BackboneElement
 
 class AuditEvent_Source(BackboneElement):
     site: Optional[str] = None

@@ -1,18 +1,17 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.UsageContext import UsageContext
-from ..base.Period import Period
-from ..base.ContactDetail import ContactDetail
-from ..base.DataRequirement import DataRequirement
-from ..base.CodeableConcept import CodeableConcept
-from ..base.Expression import Expression
-from ..base.RelatedArtifact import RelatedArtifact
-from ..base.Timing import Timing
-from ..base.Duration import Duration
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
-from ..base.BackboneElement import BackboneElement
+from base import UsageContext
+from base import Period
+from base import ContactDetail
+from base import DataRequirement
+from base import CodeableConcept
+from base import Expression
+from base import RelatedArtifact
+from base import Timing
+from base import Duration
+from base import DomainResource
+from base import Reference
+from base import Identifier
+from base import BackboneElement
 
 class ResearchElementDefinition_Characteristic(BackboneElement):
     study_effective_timing: Optional[Timing] = None

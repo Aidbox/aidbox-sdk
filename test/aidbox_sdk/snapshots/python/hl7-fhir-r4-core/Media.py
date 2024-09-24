@@ -1,12 +1,11 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.Annotation import Annotation
-from ..base.Attachment import Attachment
-from ..base.Period import Period
-from ..base.CodeableConcept import CodeableConcept
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
-from ..base.Identifier import Identifier
+from base import Annotation
+from base import Attachment
+from base import Period
+from base import CodeableConcept
+from base import DomainResource
+from base import Reference
+from base import Identifier
 
 class Media(DomainResource):
     device_name: Optional[str] = None

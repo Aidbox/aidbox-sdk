@@ -1,10 +1,9 @@
 from typing import Optional, List
-from pydantic import *
-from ..base.CodeableConcept import CodeableConcept
-from ..base.Population import Population
-from ..base.DomainResource import DomainResource
-from ..base.Reference import Reference
-from ..base.BackboneElement import BackboneElement
+from base import CodeableConcept
+from base import Population
+from base import DomainResource
+from base import Reference
+from base import BackboneElement
 
 class MedicinalProductContraindication_OtherTherapy(BackboneElement):
     medication_reference: Optional[Reference] = None
