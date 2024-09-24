@@ -1,14 +1,14 @@
-build-jar:
+build-jar: ## Build uberjar
 	clj -T:build uberjar
 
 .PHONY: test
-test:
+test: ## Run tests
 	clj -M:test -m kaocha.runner --skip-meta :snapshot
 
-test-snapshots:
+test-snapshots: ## Run snapshot tests
 	clj -M:test -m kaocha.runner --focus-meta :snapshot
 
-serve-mocks:
+serve-mocks: ## Run mock server
 	clj -M -m mock-server.main
 
 PATH_TO_JAR := $(project_dir)/$(jar_path)
@@ -24,8 +24,14 @@ COMPILE_OPTS := \
 	--enable-url-protocols=http,https \
   -H:ReflectionConfigurationFiles=$(project_dir)/META/reflect-config.json \
   -H:Name=aidbox-sdk
-compile-native-image: generate-reflect-config
+compile-native-image: generate-reflect-config ## Compile jar to native binary
 	native-image -jar $(PATH_TO_JAR) $(COMPILE_OPTS) $(image_name)
 
-repl:
+repl: ## Start nREPL
 	clj -Mtest:nrepl
+
+.PHONY: help
+help: ## Show help
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+
+.DEFAULT_GOAL := help
