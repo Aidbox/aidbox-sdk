@@ -1,12 +1,12 @@
 (ns mock-server.main
-  (:require [org.httpkit.server :as server]
-            [clojure.java.io :as io]
-            [clojure.data.json :as json]))
+  (:require
+   [org.httpkit.server :as server]
+   [clojure.java.io :as io]))
 
 (defn not-found []
   {:status 404
    :headers {"Content-Type" "application/json"}
-   :body (json/write-str {:status 404})})
+   :body "{\"status\":404}"})
 
 (defn app [req]
   (case (:uri req)

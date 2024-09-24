@@ -8,8 +8,11 @@ test: ## Run tests
 test-snapshots: ## Run snapshot tests
 	clj -M:test -m kaocha.runner --focus-meta :snapshot
 
-serve-mocks: ## Run mock server
-	clj -M -m mock-server.main
+run-mock-server: ## Run mock server
+	clj -M -m mock-server.main &
+
+stop-mock-server: ## Stop mock server
+	kill -9 `pgrep -f "clojure.main -m mock-server.main"`
 
 PATH_TO_JAR := $(project_dir)/$(jar_path)
 
