@@ -33,14 +33,6 @@
     ;; else
     (not-found)))
 
-(defn -main []
-  (server/run-server app {:port 3333}))
+(defn run [] (server/run-server app {:port 3333}))
 
-(comment
-  (def my-server (server/run-server app {:port 3333}))
-
-  ;; stop server
-  (my-server)
-
- ;
-  )
+(defn -main [] (run))

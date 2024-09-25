@@ -13,14 +13,15 @@
    [clojure.spec.alpha :as s]
    [clojure.data]
    [clojure.java.io :as io]
-   [aidbox-sdk.generator.typescript :as gen.typescript]))
+   [aidbox-sdk.generator.typescript :as gen.typescript]
+   [clojure.data.json :as json]))
 
 (defonce aidbox-schemas (atom nil))
 
 (defn load-aidbox-schemas []
   (reset! aidbox-schemas
           (import/retrieve
-           (import/resource "http://localhost:8765/api/sdk/fhir-packages") {:auth "YmFzaWM6c2VjcmV0"}))
+           (import/resource "http://localhost:3333/r4/fhir-packages") {:auth "YmFzaWM6c2VjcmV0"}))
   nil)
 
 (comment
@@ -28,17 +29,13 @@
 
   (defonce r4-schemas  (import/retrieve (import/resource "resources/r4") {}))
   (defonce r4b-schemas (import/retrieve (import/resource "resources/r4b") {}))
-  (defonce r5-schemas  (import/retrieve (import/resource "resources/schemas/r5") {}))
-
-  )
-
+  (defonce r5-schemas  (import/retrieve (import/resource "resources/schemas/r5") {})))
 
 (defn kinds          [schemas] (distinct (map :kind schemas)))
 (defn resource-types [schemas] (distinct (map :resourceType schemas)))
 (defn packages       [schemas] (distinct (map :package schemas)))
 
-(defn exclude-keys [m keys]
-  (apply dissoc m keys))
+(defn exclude-keys [m keys] (apply dissoc m keys))
 
 (defn filter-by-url [url schemas]
   (filter #(= url (:url %)) schemas))
@@ -100,16 +97,45 @@
         constraint-ir-schemas   (converter/convert-constraints constraint-schemas
                                                                (remove fhir/constraint? ir-schemas))]
 
-    ir-schemas
-    )
+    (map models/validate-fhir-schema fhir-schemas)
 
-  :rcf)
+    #_(filter-by-url  "http://hl7.org/fhir/StructureDefinition/Resource" fhir-schemas))
+
+;
+  )
 
 (comment
-  (sdk/generate! :python
-                 "http://localhost:8765/api/sdk/fhir-packages"
-                 {:output-dir "out"
+  ;; Mock Server
+
+  ;; run server
+  (do (require '[mock-server.main :as server])
+      (def mock-server (server/run)))
+
+  ;; stop server
+  (mock-server)
+
+  ;
+  )
+
+
+(comment
+  (sdk/generate! :dotnet
+                 "http://localhost:3333/r4/fhir-packages"
+                 {:output-dir "dist/dotnet"
                   :auth-token "YmFzaWM6c2VjcmV0"
                   :exit (fn [_] nil)})
 
-  :rcf)
+  (sdk/generate! :typescript
+                 "http://localhost:3333/r4/fhir-packages"
+                 {:output-dir "dist/typescript"
+                  :auth-token "YmFzaWM6c2VjcmV0"
+                  :exit (fn [_] nil)})
+
+  (sdk/generate! :python
+                 "http://localhost:3333/r4/fhir-packages"
+                 {:output-dir "dist/python"
+                  :auth-token "YmFzaWM6c2VjcmV0"
+                  :exit (fn [_] nil)})
+
+;
+  )
