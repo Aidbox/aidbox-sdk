@@ -71,9 +71,9 @@
   "Generates directory name from package name.
 
   Example:
-  hl7.fhir.r4.core -> hl7-fhir-r4-core"
+  hl7.fhir.r4.core -> hl7_fhir_r4_core"
   [x]
-  (str/replace x #"[\.#]" "-"))
+  (str/replace x #"[\.#]" "_"))
 
 (defn datatypes-file-path []
   (io/file "base/__init__.py"))
