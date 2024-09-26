@@ -35,11 +35,14 @@
 (defn remove-invalid-schemas [schemas]
   (remove #(nil? (:package-meta %)) schemas))
 
-(defn merge-duplicates [schemas]
+(defn add-resource-type-for-fhir-schemas [schemas]
   (->> schemas
-       (group-by :url)
-       (map (fn [[_url same-url-schemas]]
-              (apply merge same-url-schemas)))))
+       (map (fn [schema]
+              (if-not (:resourceType schema)
+                (assoc schema :resourceType "FHIRSchema")
+                schema)
+
+              ))))
 
 (defn prepare-schemas [schemas]
   (map #(->> (get-in % [:package-meta :name])
@@ -71,7 +74,7 @@
        (flatten)
        (remove-invalid-schemas)
        (prepare-schemas)
-       (merge-duplicates)))
+       (add-resource-type-for-fhir-schemas)))
 
 (defn- next-timeout
   "Timeout calculation for retrying like in kafka.
