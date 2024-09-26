@@ -359,3 +359,36 @@
 
                  result
                  constraint-schemas))))))
+
+;;
+;; Topological Sorting of IR Schemas
+;;
+
+(defn- build-dependency-graph [schemas]
+  (let [name->map (reduce (fn [acc v] (assoc acc (:url v) v)) schemas)]
+    (reduce (fn [graph {:keys [url base]}]
+              (if (and base (contains? name->map base))
+                (update graph url conj base)
+                graph))
+            (zipmap (map :url schemas) (repeat #{}))
+            schemas)))
+
+(defn- topological-sort
+  "https://en.wikipedia.org/wiki/Topological_sorting"
+  [graph]
+  (when (seq graph)
+    (when-let [depless (keep (fn [[k v]] (when (empty? v) k)) graph)]
+      (concat depless
+              (topological-sort
+               (into {}
+                     (map (fn [[k v]] [k (apply disj v depless)]))
+                     (apply dissoc graph depless)))))))
+
+(defn sort-by-base
+  "Sorts IR schemas by base class in topological order.
+  This ensures that base classes are generated before their inheriting classes."
+  [ir-schemas]
+  (->> ir-schemas
+       build-dependency-graph
+       topological-sort
+       (map (fn [url] (fhir/find-by-url url ir-schemas)))))

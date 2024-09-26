@@ -53,6 +53,7 @@
     :typescript typescript/generator
     :java java/generator))
 
+
 (defn generate! [target-language input options]
   (let [output-dir (io/file (:output-dir options))
         save-files! #(save-files! output-dir %)
@@ -95,8 +96,10 @@
     (println "---")
 
     (println "Generating datatypes")
-    (save-files! (generator/generate-datatypes generator' (into base-ir-schemas
-                                                                datatype-ir-schemas)))
+    (save-files! (generator/generate-datatypes
+                  generator'
+                  (converter/sort-by-base
+                   (into base-ir-schemas datatype-ir-schemas))))
 
     (println "Generating resources")
     (save-files! (map generate-resource-module resource-ir-schemas))

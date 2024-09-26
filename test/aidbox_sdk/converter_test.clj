@@ -75,6 +75,19 @@
         (sut/convert-constraints fixtures/observation-constraints
                                  [fixtures/observation-ir-schema])))))
 
+(deftest test-sort-by-base
+  (match
+   (sut/sort-by-base
+    [{:url "http://hl7.org/fhir/StructureDefinition/Resource" :base nil}
+     {:url "http://hl7.org/fhir/StructureDefinition/Element" :base nil}
+     {:url "http://hl7.org/fhir/StructureDefinition/SampledData"
+      :base "http://hl7.org/fhir/StructureDefinition/Element"}])
+
+    [{:url "http://hl7.org/fhir/StructureDefinition/Resource", :base nil}
+     {:url "http://hl7.org/fhir/StructureDefinition/Element", :base nil}
+     {:url "http://hl7.org/fhir/StructureDefinition/SampledData",
+      :base "http://hl7.org/fhir/StructureDefinition/Element"}]))
+
 (comment
   (fixt/load-data!)
 
