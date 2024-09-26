@@ -18,7 +18,7 @@ PATH_TO_JAR := $(project_dir)/$(jar_path)
 
 AGENT_OPTS := caller-filter-file=$(project_dir)/trace-filter.json,config-output-dir=$(project_dir)/META
 generate-reflect-config:
-	java -agentlib:native-image-agent=$(AGENT_OPTS) -jar $(PATH_TO_JAR) generate dotnet $(project_dir)/resources/schemas --output-dir $(project_dir)/out
+	java -agentlib:native-image-agent=$(AGENT_OPTS) -jar $(PATH_TO_JAR) generate dotnet $(project_dir)/resources/schemas/r5 --output-dir $(project_dir)/out
 
 
 COMPILE_OPTS := \
