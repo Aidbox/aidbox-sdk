@@ -2,6 +2,7 @@
   (:require
    [aidbox-sdk.fhir :as fhir]
    [aidbox-sdk.generator.helpers :refer [->pascal-case safe-conj
+                                         words
                                          uppercase-first-letter vector->map]]
    [clojure.set :as set]
    [clojure.string :as str]
@@ -12,10 +13,12 @@
 (defn url->resource-name
   "There are :id and :name in schemas but they are not reliable source."
   [url]
-  (str/replace
-   (last (str/split (str url) #"/"))
-   #"\||\."
-   "-"))
+  (str/join "-"
+            (words
+             (str/replace
+              (last (str/split (str url) #"/"))
+              #"\||\."
+              "-"))))
 
 (defn flatten-backbones [backbone-elements accumulator]
   (reduce (fn [acc item]
@@ -144,6 +147,7 @@
           (url->resource-name (:url schema)))
          (safe-conj
           (hash-map :base (get schema :base)
+                    :resource-name (url->resource-name (get schema :url))
                     :base-resource-name (when (get schema :base)
                                           (url->resource-name (get schema :base)))
                     :package (get schema :package)
