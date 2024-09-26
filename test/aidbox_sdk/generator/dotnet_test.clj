@@ -4,8 +4,8 @@
    [aidbox-sdk.generator :as sut]
    [aidbox-sdk.generator.dotnet :refer [generator] :as gen.dotnet]
    [clojure.java.io :as io]
-   [clojure.test :refer [deftest is testing]]))
-
+   [clojure.test :refer [deftest is testing]]
+   [clojure.string :as str]))
 
 (deftest test-generate-property
   (testing "simple case"
@@ -14,6 +14,7 @@
                                           :base "Patient",
                                           :array false,
                                           :required false,
+                                          :type "boolean"
                                           :value "bool"}))))
 
   (testing "required"
@@ -22,6 +23,7 @@
                                           :base "Patient_Link",
                                           :array false,
                                           :required true,
+                                          :type "string"
                                           :value "string"}))))
 
   (testing "array optional"
@@ -30,6 +32,7 @@
                                           :base "Patient",
                                           :array true,
                                           :required false,
+                                          :type "Address"
                                           :value "Base.Address"}))))
 
   (testing "array required"
@@ -46,12 +49,68 @@
     )
 
   (testing "element with meta"
-    ;; TODO
-    )
+    (is (= "public new Meta Meta { get; } = new() { Profile = [\"http://hl7.org/fhir/StructureDefinition/vitalsigns\"] };"
+           (gen.dotnet/generate-property {:name "meta",
+                                          :required true,
+                                          :value "Meta",
+                                          :profile "http://hl7.org/fhir/StructureDefinition/vitalsigns",
+                                          :type "Meta"}))))
 
   (testing "element with choices"
-    ;; TODO
-    ))
+    (is (= (str/join "\n"
+                     ["public object? Value    "
+                      "    {"
+                      "        get"
+                      "        {"
+                      "            if (ValueReference is not null)"
+                      "            {"
+                      "                return ValueReference;"
+                      "            }"
+                      "    "
+                      "            if (ValueInteger is not null)"
+                      "            {"
+                      "                return ValueInteger;"
+                      "            }"
+                      "    "
+                      "            return null;"
+                      "        }"
+                      "    "
+                      "        set"
+                      "        {"
+                      "            if (value?.GetType() == typeof(Base.ResourceReference))"
+                      "            {"
+                      "                ValueReference = (Base.ResourceReference)value;"
+                      "                return;"
+                      "            }"
+                      "    "
+                      "            if (value?.GetType() == typeof(int))"
+                      "            {"
+                      "                ValueInteger = (int)value;"
+                      "                return;"
+                      "            }"
+                      "    "
+                      "            throw new ArgumentException(\"Invalid type provided\");"
+                      "        }"
+                      "    }"])
+           (gen.dotnet/generate-property {:name "value",
+                                          :choices
+                                          [{:name "valueReference"
+                                            :base "Observation"
+                                            :array false
+                                            :required false
+                                            :value "Base.ResourceReference"
+                                            :type "Reference"
+                                            :choice-option true}
+                                           {:name "valueInteger"
+                                            :base "Observation"
+                                            :array false
+                                            :required false
+                                            :value "int"
+                                            :type "integer"
+                                            :choice-option true}],
+                                          :base "Observation",
+                                          :array false,
+                                          :required false})))))
 
 #_(deftest test-generate-class
 
@@ -69,14 +128,50 @@
    (= (sut/generate-resource-module generator fixtures/patient-ir-schema)
       {:path (io/file "hl7-fhir-r4-core/Patient.cs"),
        :content
-       "using Aidbox.FHIR.Base;\nusing Aidbox.FHIR.Utils;\n\nnamespace Aidbox.FHIR.R4.Core;\n\npublic class Patient : DomainResource, IResource\n{\n    public bool? MultipleBirthBoolean { get; set; }\n    public Base.Address[]? Address { get; set; }\n    public string? DeceasedDateTime { get; set; }\n    public Base.ResourceReference? ManagingOrganization { get; set; }\n    public bool? DeceasedBoolean { get; set; }\n    public Base.HumanName[]? Name { get; set; }\n    public string? BirthDate { get; set; }\n    public int? MultipleBirthInteger { get; set; }\n    public object? MultipleBirth    \n    {\n        get\n        {\n            if (MultipleBirthBoolean is not null)\n            {\n                return MultipleBirthBoolean;\n            }\n    \n            if (MultipleBirthInteger is not null)\n            {\n                return MultipleBirthInteger;\n            }\n    \n            return null;\n        }\n    \n        set\n        {\n            if (value?.GetType() == typeof(bool))\n            {\n                MultipleBirthBoolean = (bool)value;\n                return;\n            }\n    \n            if (value?.GetType() == typeof(int))\n            {\n                MultipleBirthInteger = (int)value;\n                return;\n            }\n    \n            throw new ArgumentException(\"Invalid type provided\");\n        }\n    }\n    public object? Deceased    \n    {\n        get\n        {\n            if (DeceasedDateTime is not null)\n            {\n                return DeceasedDateTime;\n            }\n    \n            if (DeceasedBoolean is not null)\n            {\n                return DeceasedBoolean;\n            }\n    \n            return null;\n        }\n    \n        set\n        {\n            if (value?.GetType() == typeof(string))\n            {\n                DeceasedDateTime = (string)value;\n                return;\n            }\n    \n            if (value?.GetType() == typeof(bool))\n            {\n                DeceasedBoolean = (bool)value;\n                return;\n            }\n    \n            throw new ArgumentException(\"Invalid type provided\");\n        }\n    }\n    public Base.Attachment[]? Photo { get; set; }\n    public Patient_Link[]? Link { get; set; }\n    public bool? Active { get; set; }\n    public Patient_Communication[]? Communication { get; set; }\n    public Base.Identifier[]? Identifier { get; set; }\n    public Base.ContactPoint[]? Telecom { get; set; }\n    public Base.ResourceReference[]? GeneralPractitioner { get; set; }\n    public string? Gender { get; set; }\n    public Base.CodeableConcept? MaritalStatus { get; set; }\n    public Patient_Contact[]? Contact { get; set; }\n\n    public class Patient_Link : BackboneElement\n    {\n        public required string Type { get; set; }\n        public required Base.ResourceReference Other { get; set; }\n    }\n\n    public class Patient_Communication : BackboneElement\n    {\n        public required Base.CodeableConcept Language { get; set; }\n        public bool? Preferred { get; set; }\n    }\n\n    public class Patient_Contact : BackboneElement\n    {\n        public Base.HumanName? Name { get; set; }\n        public string? Gender { get; set; }\n        public Base.Period? Period { get; set; }\n        public Base.Address? Address { get; set; }\n        public Base.ContactPoint[]? Telecom { get; set; }\n        public Base.ResourceReference? Organization { get; set; }\n        public Base.CodeableConcept[]? Relationship { get; set; }\n    }\n}"})))
+       "using Aidbox.FHIR.Base;\nusing Aidbox.FHIR.Utils;\n\nnamespace Aidbox.FHIR.R4.Core;\n\npublic class Patient : DomainResource\n{\n    public bool? MultipleBirthBoolean { get; set; }\n    public Base.Address[]? Address { get; set; }\n    public string? DeceasedDateTime { get; set; }\n    public Base.ResourceReference? ManagingOrganization { get; set; }\n    public bool? DeceasedBoolean { get; set; }\n    public Base.HumanName[]? Name { get; set; }\n    public string? BirthDate { get; set; }\n    public int? MultipleBirthInteger { get; set; }\n    public object? MultipleBirth    \n    {\n        get\n        {\n            if (MultipleBirthBoolean is not null)\n            {\n                return MultipleBirthBoolean;\n            }\n    \n            if (MultipleBirthInteger is not null)\n            {\n                return MultipleBirthInteger;\n            }\n    \n            return null;\n        }\n    \n        set\n        {\n            if (value?.GetType() == typeof(bool))\n            {\n                MultipleBirthBoolean = (bool)value;\n                return;\n            }\n    \n            if (value?.GetType() == typeof(int))\n            {\n                MultipleBirthInteger = (int)value;\n                return;\n            }\n    \n            throw new ArgumentException(\"Invalid type provided\");\n        }\n    }\n    public object? Deceased    \n    {\n        get\n        {\n            if (DeceasedDateTime is not null)\n            {\n                return DeceasedDateTime;\n            }\n    \n            if (DeceasedBoolean is not null)\n            {\n                return DeceasedBoolean;\n            }\n    \n            return null;\n        }\n    \n        set\n        {\n            if (value?.GetType() == typeof(string))\n            {\n                DeceasedDateTime = (string)value;\n                return;\n            }\n    \n            if (value?.GetType() == typeof(bool))\n            {\n                DeceasedBoolean = (bool)value;\n                return;\n            }\n    \n            throw new ArgumentException(\"Invalid type provided\");\n        }\n    }\n    public Base.Attachment[]? Photo { get; set; }\n    public PatientLink[]? Link { get; set; }\n    public bool? Active { get; set; }\n    public PatientCommunication[]? Communication { get; set; }\n    public Base.Identifier[]? Identifier { get; set; }\n    public Base.ContactPoint[]? Telecom { get; set; }\n    public Base.ResourceReference[]? GeneralPractitioner { get; set; }\n    public string? Gender { get; set; }\n    public Base.CodeableConcept? MaritalStatus { get; set; }\n    public PatientContact[]? Contact { get; set; }\n\n    public class PatientLink : BackboneElement\n    {\n        public required string Type { get; set; }\n        public required Base.ResourceReference Other { get; set; }\n    }\n\n    public class PatientCommunication : BackboneElement\n    {\n        public required Base.CodeableConcept Language { get; set; }\n        public bool? Preferred { get; set; }\n    }\n\n    public class PatientContact : BackboneElement\n    {\n        public Base.HumanName? Name { get; set; }\n        public string? Gender { get; set; }\n        public Base.Period? Period { get; set; }\n        public Base.Address? Address { get; set; }\n        public Base.ContactPoint[]? Telecom { get; set; }\n        public Base.ResourceReference? Organization { get; set; }\n        public Base.CodeableConcept[]? Relationship { get; set; }\n    }\n}"})))
+
+
 
 (deftest test-generate-search-params
   (is
    (= (sut/generate-search-params generator fixtures/patient-search-params-ir-schemas)
       [{:path (io/file "search/PatientSearchParameters.cs"),
         :content
-        "namespace Aidbox.FHIR.Search;\n\npublic class PatientSearchParameters : DomainResourceSearchParameters\n{\n    public string? Id { get; set; }\n    public string? Active { get; set; }\n    public string? Address { get; set; }\n    public string? AddressCity { get; set; }\n    public string? AddressCountry { get; set; }\n    public string? AddressPostalcode { get; set; }\n    public string? AddressState { get; set; }\n    public string? AddressUse { get; set; }\n    public string? Age { get; set; }\n    public string? BirthOrderBoolean { get; set; }\n    public string? Birthdate { get; set; }\n    public string? DeathDate { get; set; }\n    public string? Deceased { get; set; }\n    public string? Email { get; set; }\n    public string? Ethnicity { get; set; }\n    public string? Family { get; set; }\n    public string? Gender { get; set; }\n    public string? GeneralPractitioner { get; set; }\n    public string? Given { get; set; }\n    public string? Identifier { get; set; }\n    public string? Language { get; set; }\n    public string? Link { get; set; }\n    public string? MothersMaidenName { get; set; }\n    public string? Name { get; set; }\n    public string? Organization { get; set; }\n    public string? PartAgree { get; set; }\n    public string? Phone { get; set; }\n    public string? Phonetic { get; set; }\n    public string? Race { get; set; }\n    public string? Telecom { get; set; }\n}"}])))
+        (str/join "\n" ["namespace Aidbox.FHIR.Search;"
+                        ""
+                        "public class PatientSearchParameters : DomainResourceSearchParameters"
+                        "{"
+                        "    public string? Id { get; set; }"
+                        "    public string? Active { get; set; }"
+                        "    public string? Address { get; set; }"
+                        "    public string? AddressCity { get; set; }"
+                        "    public string? AddressCountry { get; set; }"
+                        "    public string? AddressPostalcode { get; set; }"
+                        "    public string? AddressState { get; set; }"
+                        "    public string? AddressUse { get; set; }"
+                        "    public string? Age { get; set; }"
+                        "    public string? BirthOrderBoolean { get; set; }"
+                        "    public string? Birthdate { get; set; }"
+                        "    public string? DeathDate { get; set; }"
+                        "    public string? Deceased { get; set; }"
+                        "    public string? Email { get; set; }"
+                        "    public string? Ethnicity { get; set; }"
+                        "    public string? Family { get; set; }"
+                        "    public string? Gender { get; set; }"
+                        "    public string? GeneralPractitioner { get; set; }"
+                        "    public string? Given { get; set; }"
+                        "    public string? Identifier { get; set; }"
+                        "    public string? Language { get; set; }"
+                        "    public string? Link { get; set; }"
+                        "    public string? MothersMaidenName { get; set; }"
+                        "    public string? Name { get; set; }"
+                        "    public string? Organization { get; set; }"
+                        "    public string? PartAgree { get; set; }"
+                        "    public string? Phone { get; set; }"
+                        "    public string? Phonetic { get; set; }"
+                        "    public string? Race { get; set; }"
+                        "    public string? Telecom { get; set; }"
+                        "}"])}])))
 
 ;; TODO
 #_(deftest generate-constraints

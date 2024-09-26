@@ -8,7 +8,39 @@
   (:import
    [aidbox_sdk.generator CodeGenerator]))
 
-(defn polymorphic-element->property [element]
+(defn ->lang-type [fhir-type]
+  (case fhir-type
+    ;; Primitive Types
+    "boolean"      "bool"
+    "instant"      "string"
+    "time"         "string"
+    "date"         "string"
+    "dateTime"     "string"
+    "decimal"      "number"
+
+    "integer"      "int"
+    "unsignedInt"  "long"
+    "positiveInt"  "long"
+
+    "integer64"    "long"
+    "base64Binary" "string"
+
+    "uri"          "string"
+    "url"          "string"
+    "canonical"    "string"
+    "oid"          "string"
+    "uuid"         "string"
+
+    "string"       "string"
+    "code"         "string"
+    "markdown"     "string"
+    "id"           "string"
+    "xhtml"        "string"
+
+    ;; else
+    fhir-type))
+
+(defn generate-polymorphic-property [element]
   (str "public object?"
        " "
        (uppercase-first-letter (:name element))
@@ -81,39 +113,39 @@
 (defn url->resource-name [url]
   (last (str/split (str url) #"/")))
 
+(defn ->backbone-type [element]
+  (str/replace (str (:base element) (uppercase-first-letter (:name element))) "[-_]" ""))
+
 (defn generate-property
   "Generates class property from schema element."
-  [element]
-  (let [name (uppercase-first-letter (:name element))
-        type (str
-              ;; TODO this is not enough
-              ;; In order to properly put "new" modifier we must know if
-              ;; there is a same property in ancestor classes
-              (when (:meta element)
-                "new ")
-              (when (and (:required element)
-                         (not (:meta element))) "required ")
-              (or (:value element) (:type element))
-              (:generic element)
-              (when (:array element) "[]")
-              (when (and (not (:required element))
-                         (not (:literal element))) "?"))
-        accessor (if (or (:meta element)
-                         (:codeable-concept-pattern element))
-                   "{ get; }"
-                   "{ get; set; }")]
-    (if (contains? element :choices)
-      (polymorphic-element->property element)
-      (str "public " type " " name " " accessor
-           (when (and (:required element)
-                      (:codeable-concept-pattern element)) " = new()")
-           (:meta element)))))
+  [{:keys [name array required value type choices] :as element}]
+  (let [name      (uppercase-first-letter name)
+        lang-type (str/replace (or value type "") #"_" "")
+        type      (str
+                   (when required "required ")
+                   lang-type
+                   (:generic element)
+                   (when array "[]")
+                   (when (and (not required)
+                              (not (:literal element))) "?"))]
+    (cond choices
+          (generate-polymorphic-property element)
+
+          (= (:type element) "Meta")
+          (if (:profile element)
+              (format "public new Meta Meta { get; } = new() { Profile = [\"%s\"] };" (:profile element))
+              (format "public %s Meta { get; set; }" name))
+
+          :else
+          (str "public " type " " name " { get; set; }"
+               (when (and (:required element)
+                          (:codeable-concept-pattern element)) " = new()")
+               (:meta element)))))
 
 (defn class-name
   "Generate class name from schema url."
-  [url]
-  (let [n (uppercase-first-letter
-           (url->resource-name url))]
+  [resource-name]
+  (let [n (->pascal-case resource-name)]
     (cond
       (= n "Expression")  "ResourceExpression"
       (= n "Reference")   "ResourceReference"
@@ -123,7 +155,10 @@
   (let [base-class (url->resource-name (:base schema))
         schema-name (or (:url schema) (:name schema))
         generic (when (= (:type schema) "Bundle") "<T>")
-        class-name' (class-name (str schema-name generic))
+        class-name' (class-name (str (or (:resource-name schema)
+                                     ;; need for BackboneElement
+                                         (:name schema)
+                                         "") generic))
         elements (->> (:elements schema)
                       (map #(if (and (= (:base %) "Bundle_Entry")
                                      (= (:name %) "resource"))
@@ -135,9 +170,6 @@
                         (map u/add-indent)
                         (str/join "\n"))
 
-        base-class (cond (= base-class "Resource") "Base.Resource"
-                         (= base-class "DomainResource") "DomainResource, IResource"
-                         :else base-class)
         base-class-name (when-not (str/blank? base-class)
                           (str " : " (uppercase-first-letter base-class)))]
 
@@ -160,9 +192,7 @@
            enums []
            delegates []}}]
   (->> (conj []
-             (if deps
-               (apply u/using (map :module deps))
-               [])
+             (if deps (apply u/using (map :module deps)) [])
              (u/namespace name')
              classes
              interfaces
@@ -170,6 +200,7 @@
              enums
              delegates)
        (flatten)
+       (remove str/blank?)
        (str/join "\n\n")))
 
 (defn package->directory
@@ -222,10 +253,8 @@
     [{:path (datatypes-file-path)
       :content (generate-module
                 :name "Aidbox.FHIR.Base"
-                :classes (map (fn [ir-schema]
-                                (generate-class ir-schema
-                                                (map generate-class (:backbone-elements ir-schema))))
-                              ir-schemas))}])
+                :deps []
+                :classes (map generate-class ir-schemas))}])
 
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)
@@ -238,24 +267,25 @@
 
   (generate-search-params [_ ir-schemas]
     (map (fn [ir-schema]
-           {:path (io/file "search" (str (:name ir-schema) "SearchParameters.cs"))
-            :content
-            (generate-module
-             :name "Aidbox.FHIR.Search"
-             :classes (generate-class
-                       {:name (str (:name ir-schema) "SearchParameters")
-                        :base (when (:base ir-schema)
-                                (str (:base ir-schema) "SearchParameters"))
-                        :elements (map (fn [el] (update el :name ->pascal-case))
-                                       (:elements ir-schema))}))})
-         ir-schemas))
+             {:path (io/file "search" (str (:name ir-schema) "SearchParameters.cs"))
+              :content
+              (generate-module
+               :name "Aidbox.FHIR.Search"
+               :classes (generate-class
+                         {:name (str (:name ir-schema) "SearchParameters")
+                          :resource-name (str (:name ir-schema) "SearchParameters")
+                          :base (when (:base ir-schema)
+                                  (str (:base ir-schema) "SearchParameters"))
+                          :elements (map (fn [el] (update el :name ->pascal-case))
+                                         (:elements ir-schema))}))})
+           ir-schemas))
 
   (generate-constraints [_ constraint-ir-schemas]
     (mapv (fn [[name' schema]]
-            {:path (constraint-file-path schema name')
-             :content (generate-constraint-module
-                       (assoc schema :url name'))})
-          constraint-ir-schemas))
+              {:path (constraint-file-path schema name')
+               :content (generate-constraint-module
+                         (assoc schema :url name'))})
+            constraint-ir-schemas))
 
   (generate-sdk-files [_] (generator/prepare-sdk-files :dotnet)))
 

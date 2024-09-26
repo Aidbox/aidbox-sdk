@@ -92,13 +92,15 @@
         (generate-polymorphic-property element)
 
         (= type "Meta")
-        (format "%s: Meta & { profile: [\"%s\"] }" name profile)
+        (if profile
+          (format "%s: Meta & { profile: [\"%s\"] };" name profile)
+          (format "%s: Meta;" name))
 
         :else
         (let [type' (if (= "BackboneElement" type)
                       (->backbone-type element)
                       (->lang-type (:type element)))]
-          (str name (when-not required "?") ": " type' (when array "[]") ";"))))
+          (str (->camel-case name) (when-not required "?") ": " type' (when array "[]") ";"))))
 
 (defn generate-class
   "Generates TypeScript type from IR (intermediate representation) schema."
@@ -192,11 +194,11 @@
                 :classes [(generate-class ir-schema
                                           (map generate-class (:backbone-elements ir-schema)))]})})
 
-  (generate-search-params [_ ir-schemas] []
+  (generate-search-params [_ ir-schemas]
     (map (fn [ir-schema]
            {:path (search-param-filepath ir-schema)
             :content (generate-module
-                      :deps (:deps ir-schema)
+                      :deps (map #(format "%sSearchParameters" %) (:deps ir-schema))
                       :classes [(generate-class
                                  {:name (format "%sSearchParameters" (:name ir-schema))
                                   :base (when (:base ir-schema)

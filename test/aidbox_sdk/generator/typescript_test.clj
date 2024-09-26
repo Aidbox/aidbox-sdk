@@ -65,11 +65,17 @@
     )
 
   (testing "element with meta"
-    (is (= "meta: Meta & { profile: [\"http://hl7.org/fhir/StructureDefinition/vitalsigns\"] }"
-           (gen.typescript/generate-property {:name "meta",
-                                              :required true,
-                                              :value "Meta",
-                                              :profile "http://hl7.org/fhir/StructureDefinition/vitalsigns",
+    (is (= "meta: Meta & { profile: [\"http://hl7.org/fhir/StructureDefinition/vitalsigns\"] };"
+           (gen.typescript/generate-property {:name "meta"
+                                              :required true
+                                              :value "Meta"
+                                              :profile "http://hl7.org/fhir/StructureDefinition/vitalsigns"
+                                              :type "Meta"})))
+
+    (is (= "meta: Meta;"
+           (gen.typescript/generate-property {:name "meta"
+                                              :required true
+                                              :value "Meta"
                                               :type "Meta"}))))
 
   (testing "element with choices"

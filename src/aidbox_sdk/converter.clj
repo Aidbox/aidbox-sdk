@@ -250,6 +250,9 @@
   (->> all-schemas
        (map (fn [schema]
               {:name (:id schema)
+               :deps (if-let [base (:base schema)]
+                       [(->pascal-case (url->resource-name base))]
+                       [])
                :base (when-let [base (:base schema)]
                        (->pascal-case (url->resource-name base)))
                :elements (->> (resolve-elements search-params-schemas (:id schema))
