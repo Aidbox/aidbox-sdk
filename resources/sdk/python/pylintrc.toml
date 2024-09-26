@@ -27,4 +27,6 @@ disable = [
   "relative-beyond-top-level", "missing-module-docstring",
   "duplicate-code", "line-too-long",
   "redefined-builtin", # this one is strange
+  "too-many-instance-attributes",
+  "unused-import"
 ]
