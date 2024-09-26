@@ -217,61 +217,6 @@
        (flatten)
        (str/join "\n\n")))
 
-(defn gen [ir-schema]
-  (generate-class ir-schema (map generate-class (:backbone-elements ir-schema))))
-
-(defn generate-datatypes-python-classes* [ir-schemas classes already-generated deferred-schemas]
-  (if-let [ir-schema (first ir-schemas)]
-    (cond
-
-      (already-generated (class-name (or (:url ir-schema) (:name ir-schema))))
-      (recur (rest ir-schemas) classes already-generated deferred-schemas)
-
-      ;; no deps and base => we can easily generate
-      (or (and (empty? (:deps ir-schema))
-               (not (:base ir-schema)))
-
-          ;; deps are generated => generate
-          (and (seq (:deps ir-schema))
-               (clojure.set/subset? (:deps ir-schema) already-generated))
-
-          (special-classes (class-name (or (:url ir-schema) (:name ir-schema)))))
-      (recur
-        (rest ir-schemas)
-        (conj classes (gen ir-schema))
-        (conj already-generated (class-name (or (:url ir-schema) (:name ir-schema))))
-        deferred-schemas)
-
-      ;; no deps but extends => skipping, we need to generate base first
-      (or (and (empty? (:deps ir-schema))
-               (:base ir-schema))
-
-          ;; not all deps are generated => skip
-          (and (seq (:deps ir-schema))
-               (not (clojure.set/subset? (:deps ir-schema) already-generated))))
-      (recur (rest ir-schemas)
-             classes
-             already-generated
-             (conj deferred-schemas ir-schema))
-
-      :else
-      (throw (Exception. (str "Can't generate "
-                              (class-name (or (:url ir-schema) (:name ir-schema)))))))
-    (cond
-      (seq deferred-schemas)
-      (->> deferred-schemas
-           (mapv gen)
-           (concat classes)
-           (into []))
-      :else
-      classes)))
-
-(defn generate-datatypes-python-classes [ir-schemas]
-  (generate-datatypes-python-classes* (->> ir-schemas (sort-by
-                                                        (fn [{:keys [base deps]}]
-                                                          (+ (count deps) (if base 500 0)))) vec)
-                                      [] #{} []))
-
 (defn valid-base-for-search-param? [ir-schema]
   (and (:base ir-schema) (not= (:base ir-schema) "Base")))
 
@@ -284,11 +229,11 @@
   (generate-datatypes [_ ir-schemas]
     [{:path (datatypes-file-path)
       :content (generate-module
-                 :deps [{:module "__future__" :members ["annotations"]}
-                        {:module "typing" :members ["Optional" "List"]}
-                        {:module "dataclasses" :members ["dataclass", "field"]}]
-                 :classes
-                 (generate-datatypes-python-classes ir-schemas))}])
+                :deps [{:module "__future__" :members ["annotations"]}
+                       {:module "typing" :members ["Optional" "List"]}
+                       {:module "dataclasses" :members ["dataclass", "field"]}]
+                :classes
+                (map generate-class ir-schemas))}])
 
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)
