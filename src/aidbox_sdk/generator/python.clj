@@ -48,13 +48,16 @@
 (defn url->resource-name [reference]
   (last (str/split (str reference) #"/")))
 
+(defn class-alias [class-name]
+  (get {"List" "FhirList"} class-name class-name))
+
 (defn class-name
   "Generate class name from schema url."
   [url]
   (-> url
       url->resource-name
-      uppercase-first-letter
-      (str/replace #"-" "_")))
+      ->pascal-case
+      class-alias))
 
 (defn generate-deps [deps]
   (->> deps
@@ -290,7 +293,7 @@
      :content (generate-module
                 :deps (concat [{:module "typing" :members ["Optional" "List"]}
                                {:module "dataclasses" :members ["dataclass"]}]
-                              (map (fn [d] {:module "base" :members [d]})
+                              (map (fn [d] {:module "base" :members [(class-alias d)]})
                                    (:deps ir-schema)))
                 :classes [(generate-class ir-schema
                                           (map generate-class (:backbone-elements ir-schema)))])})
