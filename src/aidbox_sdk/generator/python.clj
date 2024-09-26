@@ -93,7 +93,7 @@
   nil)
 
 (defn ->backbone-type [element]
-  (str (:base element) "_" (uppercase-first-letter (:name element))))
+  (str (->pascal-case (:base element)) (uppercase-first-letter (:name element))))
 
 (def restricted-python-words
   #{"False" "None" "True" "and" "as" "assert" "async" "await" "break" "class"
