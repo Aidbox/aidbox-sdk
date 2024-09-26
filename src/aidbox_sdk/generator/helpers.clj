@@ -24,8 +24,8 @@
   "NOTE: Do not confuse with `capitalize` and `->pascal-case` functions.
   Capitalize function lowercasing all letters after first.
   Pascal case removes all _ and - characters"
-  [string]
-  (str (str/upper-case (first string)) (subs string 1)))
+  [s]
+  (str (str/upper-case (get s 0 "")) (str/join (rest s))))
 
 (defn starts-with-capital? [^String s]
   (Character/isUpperCase (.charAt s 0)))
