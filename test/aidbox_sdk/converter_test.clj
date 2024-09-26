@@ -4,30 +4,9 @@
    [aidbox-sdk.fixtures :as fixt]
    [matcho.core :refer [match]]
    [aidbox-sdk.fixtures.schemas :as fixtures]
-   [clojure.test :refer [are deftest is testing use-fixtures]]))
+   [clojure.test :refer [deftest is testing use-fixtures]]))
 
 (use-fixtures :once fixt/prepare-examples)
-
-(deftest test-converter-utils
-  (testing "url->resource-name"
-    (are [x y] (= x y)
-      "date"
-      (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/date")
-
-      "ContactDetail"
-      (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/ContactDetail")
-
-      "Immunization"
-      (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/Immunization")
-
-      "openEHR-exposureDate"
-      (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/openEHR-exposureDate")
-
-      "iso21090-ADXP-deliveryAddressLine"
-      (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/iso21090-ADXP-deliveryAddressLine")
-
-      "us-core-patient-6-0-0"
-      (sut/url->resource-name "http://hl7.org/fhir/us/core/structuredefinition/us-core-patient|6.0.0"))))
 
 (deftest test-resolve-element-references
   (match
@@ -50,6 +29,27 @@
        :array true,
        :summary true,
        :elements {:referenceRange {:array true, :type "Reference"}}}}}))
+
+(deftest test-url->resource-name
+  (testing "one word"
+    (is (= "Immunization"
+           (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/Immunization"))))
+
+  (testing "multiple words"
+    (is (= "Test-Report"
+           (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/TestReport"))))
+
+  (testing "with abbreviation"
+    (is (= "open-EHR-exposure-Date"
+           (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/openEHR-exposureDate"))))
+
+  (testing "with digits"
+    (is (= "iso21090-ADXP-delivery-Address-Line"
+           (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/iso21090-ADXP-deliveryAddressLine"))))
+
+  (testing "starting with digit"
+    (is (= "schema-11179-object-Class-Property"
+           (sut/url->resource-name "http://hl7.org/fhir/StructureDefinition/11179-objectClassProperty")))))
 
 (deftest test-resolve-choices
   (is (= fixtures/schemas-with-element-choices-resolved

@@ -12,7 +12,7 @@
   titlecase letter accordingly.
   About unicode properties: https://www.regular-expressions.info/unicode.html#category"
   [s]
-  (remove str/blank? (str/split s #"(?=[\p{Lu}\p{Lt}])|[-_\s]")))
+  (remove str/blank? (str/split s #"(?<=[\p{Ll}])(?=[\p{Lu}\p{Lt}])|[-_\s]")))
 
 (defn ->pascal-case [s]
   (str/join (map str/capitalize (words s))))
