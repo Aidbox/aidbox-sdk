@@ -119,8 +119,8 @@
 (defn generate-property
   "Generates class property from schema element."
   [{:keys [name array required value type choices] :as element}]
-  (let [name      (uppercase-first-letter name)
-        lang-type (str/replace (or value type "") #"_" "")
+  (let [name'     (->pascal-case name)
+        lang-type (str/replace (or value type "") #"[_-]" "")
         type      (str
                    (when required "required ")
                    lang-type
@@ -133,11 +133,11 @@
 
           (= (:type element) "Meta")
           (if (:profile element)
-              (format "public new Meta Meta { get; } = new() { Profile = [\"%s\"] };" (:profile element))
-              (format "public %s Meta { get; set; }" name))
+            (format "public new Meta Meta { get; } = new() { Profile = [\"%s\"] };" (:profile element))
+            (format "public %s Meta { get; set; }" name'))
 
           :else
-          (str "public " type " " name " { get; set; }"
+          (str "public " type " " name' " { get; set; }"
                (when (and (:required element)
                           (:codeable-concept-pattern element)) " = new()")
                (:meta element)))))
@@ -267,25 +267,25 @@
 
   (generate-search-params [_ ir-schemas]
     (map (fn [ir-schema]
-             {:path (io/file "search" (str (:name ir-schema) "SearchParameters.cs"))
-              :content
-              (generate-module
-               :name "Aidbox.FHIR.Search"
-               :classes (generate-class
-                         {:name (str (:name ir-schema) "SearchParameters")
-                          :resource-name (str (:name ir-schema) "SearchParameters")
-                          :base (when (:base ir-schema)
-                                  (str (:base ir-schema) "SearchParameters"))
-                          :elements (map (fn [el] (update el :name ->pascal-case))
-                                         (:elements ir-schema))}))})
-           ir-schemas))
+           {:path (io/file "search" (str (:name ir-schema) "SearchParameters.cs"))
+            :content
+            (generate-module
+             :name "Aidbox.FHIR.Search"
+             :classes (generate-class
+                       {:name (str (:name ir-schema) "SearchParameters")
+                        :resource-name (str (:name ir-schema) "SearchParameters")
+                        :base (when (:base ir-schema)
+                                (str (:base ir-schema) "SearchParameters"))
+                        :elements (map (fn [el] (update el :name ->pascal-case))
+                                       (:elements ir-schema))}))})
+         ir-schemas))
 
   (generate-constraints [_ constraint-ir-schemas]
     (mapv (fn [[name' schema]]
-              {:path (constraint-file-path schema name')
-               :content (generate-constraint-module
-                         (assoc schema :url name'))})
-            constraint-ir-schemas))
+            {:path (constraint-file-path schema name')
+             :content (generate-constraint-module
+                       (assoc schema :url name'))})
+          constraint-ir-schemas))
 
   (generate-sdk-files [_] (generator/prepare-sdk-files :dotnet)))
 
