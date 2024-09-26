@@ -3,6 +3,8 @@
   :derivation "specialization",
   :name "Extension",
   :type "Extension",
+  :resource-name "Extension"
+  :base-resource-name "Element"
   :elements
   [{:name "valueBase64Binary",
     :base "Extension",

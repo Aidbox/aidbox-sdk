@@ -1,10 +1,10 @@
 (ns aidbox-sdk.generator.typescript-test
   (:require
    [aidbox-sdk.fixtures :as fixt]
-   [aidbox-sdk.fixtures.schemas :as fixtures]
    [aidbox-sdk.generator :as sut]
    [aidbox-sdk.generator.typescript :refer [generator] :as gen.typescript]
    [clojure.java.io :as io]
+   [clojure.string :as str]
    [clojure.test :refer [deftest is testing use-fixtures]]))
 
 (use-fixtures :once fixt/prepare-examples)
@@ -65,7 +65,7 @@
     )
 
   (testing "element with meta"
-    (is (= "meta: Meta = { profile: \"http://hl7.org/fhir/StructureDefinition/vitalsigns\" }"
+    (is (= "meta: Meta & { profile: [\"http://hl7.org/fhir/StructureDefinition/vitalsigns\"] }"
            (gen.typescript/generate-property {:name "meta",
                                               :required true,
                                               :value "Meta",
@@ -96,7 +96,24 @@
 
 (deftest test-generate-class
   (testing "base"
-    (is (= "export type Patient = DomainResource & {\n    address?: Address[];\n    managingOrganization?: Reference;\n    name?: HumanName[];\n    birthDate?: string;\n    multipleBirth?: boolean | number;\n    deceased?: string | boolean;\n    photo?: Attachment[];\n    link?: PatientLink[];\n    active?: boolean;\n    communication?: PatientCommunication[];\n    identifier?: Identifier[];\n    telecom?: ContactPoint[];\n    generalPractitioner?: Reference[];\n    gender?: string;\n    maritalStatus?: CodeableConcept;\n    contact?: PatientContact[];\n};"
+    (is (= (str/join "\n" ["export type Patient = DomainResource & {"
+                           "    address?: Address[];"
+                           "    managingOrganization?: Reference;"
+                           "    name?: HumanName[];"
+                           "    birthDate?: string;"
+                           "    multipleBirth?: boolean | number;"
+                           "    deceased?: string | boolean;"
+                           "    photo?: Attachment[];"
+                           "    link?: PatientLink[];"
+                           "    active?: boolean;"
+                           "    communication?: PatientCommunication[];"
+                           "    identifier?: Identifier[];"
+                           "    telecom?: ContactPoint[];"
+                           "    generalPractitioner?: Reference[];"
+                           "    gender?: string;"
+                           "    maritalStatus?: CodeableConcept;"
+                           "    contact?: PatientContact[];"
+                           "};"])
            (gen.typescript/generate-class (fixt/get-data :patient-ir-schema)))))
 
   (testing "empty elements"
@@ -106,13 +123,51 @@
                                            :type "Base",
                                            :elements (),
                                            :url "http://hl7.org/fhir/StructureDefinition/Base",
+                                           :resource-name "Base"
                                            :base-resource-name nil,
                                            :backbone-elements (),
                                            :base nil,
                                            :deps #{}}))))
 
   (testing "with inner classes"
-    (is (= "export type PatientLink = BackboneElement & {\n    type: string;\n    other: Reference;\n};\n\nexport type PatientCommunication = BackboneElement & {\n    language: CodeableConcept;\n    preferred?: boolean;\n};\n\nexport type PatientContact = BackboneElement & {\n    name?: HumanName;\n    gender?: string;\n    period?: Period;\n    address?: Address;\n    telecom?: ContactPoint[];\n    organization?: Reference;\n    relationship?: CodeableConcept[];\n};\n\nexport type Patient = DomainResource & {\n    address?: Address[];\n    managingOrganization?: Reference;\n    name?: HumanName[];\n    birthDate?: string;\n    multipleBirth?: boolean | number;\n    deceased?: string | boolean;\n    photo?: Attachment[];\n    link?: PatientLink[];\n    active?: boolean;\n    communication?: PatientCommunication[];\n    identifier?: Identifier[];\n    telecom?: ContactPoint[];\n    generalPractitioner?: Reference[];\n    gender?: string;\n    maritalStatus?: CodeableConcept;\n    contact?: PatientContact[];\n};"
+    (is (= (str/join "\n" ["export type PatientLink = BackboneElement & {"
+                           "    type: string;"
+                           "    other: Reference;"
+                           "};"
+                           ""
+                           "export type PatientCommunication = BackboneElement & {"
+                           "    language: CodeableConcept;"
+                           "    preferred?: boolean;"
+                           "};"
+                           ""
+                           "export type PatientContact = BackboneElement & {"
+                           "    name?: HumanName;"
+                           "    gender?: string;"
+                           "    period?: Period;"
+                           "    address?: Address;"
+                           "    telecom?: ContactPoint[];"
+                           "    organization?: Reference;"
+                           "    relationship?: CodeableConcept[];"
+                           "};"
+                           ""
+                           "export type Patient = DomainResource & {"
+                           "    address?: Address[];"
+                           "    managingOrganization?: Reference;"
+                           "    name?: HumanName[];"
+                           "    birthDate?: string;"
+                           "    multipleBirth?: boolean | number;"
+                           "    deceased?: string | boolean;"
+                           "    photo?: Attachment[];"
+                           "    link?: PatientLink[];"
+                           "    active?: boolean;"
+                           "    communication?: PatientCommunication[];"
+                           "    identifier?: Identifier[];"
+                           "    telecom?: ContactPoint[];"
+                           "    generalPractitioner?: Reference[];"
+                           "    gender?: string;"
+                           "    maritalStatus?: CodeableConcept;"
+                           "    contact?: PatientContact[];"
+                           "};"])
            (gen.typescript/generate-class (fixt/get-data :patient-ir-schema)
                                           (map gen.typescript/generate-class (:backbone-elements (fixt/get-data :patient-ir-schema))))))))
 
@@ -167,7 +222,7 @@
 (comment
   (fixt/load-data!)
 
-  (fixt/get-data :patient-search-params-ir-schema)
+  (fixt/get-data :patient-ir-schema)
 
   @fixt/data
 

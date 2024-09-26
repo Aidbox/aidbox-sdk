@@ -2,6 +2,8 @@
  {:package "hl7.fhir.r4.core",
   :derivation "specialization",
   :name "Extension",
+  :resource-name "patient-nationality"
+  :base-resource-name "Element"
   :type "Extension",
   :elements
   [{:name "meta",

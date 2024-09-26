@@ -1,7 +1,8 @@
 (ns aidbox-sdk.generator.typescript
   (:require
    [aidbox-sdk.generator :as generator]
-   [aidbox-sdk.generator.helpers :refer [->pascal-case uppercase-first-letter]]
+   [aidbox-sdk.generator.helpers :refer [->pascal-case uppercase-first-letter
+                                         ->camel-case]]
    [aidbox-sdk.generator.utils :as u]
    [clojure.java.io :as io]
    [clojure.string :as str])
@@ -19,16 +20,19 @@
 (defn url->resource-name [reference]
   (last (str/split (str reference) #"/")))
 
+(defn resource-name->class-name [rn]
+  (->pascal-case rn))
+
 (defn datatypes-file-path []
   (io/file "datatypes.ts"))
 
 (defn resource-file-path [ir-schema]
   (io/file (package->directory (:package ir-schema))
-           (str (->pascal-case (url->resource-name (:url ir-schema))) ".ts")))
+           (str (->pascal-case (:resource-name ir-schema)) ".ts")))
 
 (defn constraint-file-path [ir-schema name]
   (io/file (package->directory (:package ir-schema))
-           (str (->pascal-case (url->resource-name name)) ".ts")))
+           (str (->pascal-case (:resource-name ir-schema)) ".ts")))
 
 (defn search-param-filepath [ir-schema]
   (io/file "search" (str (:name ir-schema) "SearchParameters.ts")))
@@ -68,11 +72,9 @@
     fhir-type))
 
 (defn class-name
-  "Generate class name from schema url."
-  [url]
-  (str/replace
-   (uppercase-first-letter (url->resource-name url))
-   #"_|-" ""))
+  "Generate class name from schema resource name."
+  [resource-name]
+  (->pascal-case resource-name))
 
 (defn generate-polymorphic-property [{:keys [name required choices]}]
   (let [type (->> choices
@@ -83,7 +85,7 @@
     (str name (when-not required "?") ": " type ";")))
 
 (defn ->backbone-type [element]
-  (str/replace (str (:base element) (uppercase-first-letter (:name element))) "_" ""))
+  (str/replace (str (:base element) (uppercase-first-letter (:name element))) #"[_-]" ""))
 
 (defn generate-property [{:keys [name array required type choices profile] :as element}]
   (cond choices
@@ -101,9 +103,14 @@
 (defn generate-class
   "Generates TypeScript type from IR (intermediate representation) schema."
   [ir-schema & [inner-classes]]
-  (let [base-class (url->resource-name (:base ir-schema))
-        schema-name (or (:url ir-schema) (:name ir-schema))
-        class-name' (class-name schema-name)
+  (let [base-class (class-name (or (:base-resource-name ir-schema)
+                                   ;; need for BackboneElement
+                                   (:base ir-schema)
+                                   ""))
+        class-name' (class-name (or (:resource-name ir-schema)
+                                    ;; need for BackboneElement
+                                    (:name ir-schema)
+                                    ""))
         properties (->> (:elements ir-schema)
                         (remove #(:choice-option %))
                         (map generate-property)
@@ -144,7 +151,9 @@
 (defn- path->name [path]
   (str/replace path #"(\.ts)|[\.\/]" ""))
 
-(defn generate-deps [deps]
+(defn generate-deps
+  "Takes a list of resource names and generates import declarations."
+  [deps]
   (->> deps
        (map (fn [{:keys [module members]}]
               (if (seq members)
@@ -156,7 +165,11 @@
   [& {:keys [deps classes]
       :or {classes []}}]
   (->> (conj []
-             (generate-deps deps)
+             (->> deps
+                  (map class-name)
+                  (map (fn [d] {:module (str "./" d) :members [d]}))
+                  generate-deps)
+
              classes)
        (flatten)
        (str/join "\n\n")))
@@ -168,16 +181,14 @@
       (map (fn [ir-schema]
              {:path (resource-file-path ir-schema)
               :content (generate-module
-                        :deps (map (fn [d] {:module (str "./" d) :members [d]})
-                                   (:deps ir-schema))
+                        :deps (:deps ir-schema)
                         :classes [(generate-class ir-schema (map generate-class (:backbone-elements ir-schema)))])})
            ir-schemas)))
 
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)
      :content (generate-module
-               {:deps (map (fn [d] {:module (str "./" d) :members [d]})
-                           (:deps ir-schema))
+               {:deps (:deps ir-schema)
                 :classes [(generate-class ir-schema
                                           (map generate-class (:backbone-elements ir-schema)))]})})
 
@@ -185,7 +196,7 @@
     (map (fn [ir-schema]
            {:path (search-param-filepath ir-schema)
             :content (generate-module
-                      :deps []
+                      :deps (:deps ir-schema)
                       :classes [(generate-class
                                  {:name (format "%sSearchParameters" (:name ir-schema))
                                   :base (when (:base ir-schema)
@@ -197,11 +208,11 @@
     (mapv (fn [[constraint-name schema]]
             {:path (constraint-file-path schema constraint-name)
              :content (generate-module
-                       :deps (map (fn [d] {:module (str "./" d) :members [d]})
-                                  (:deps schema))
+                       :deps (:deps schema)
                        :classes (generate-class (assoc schema :url constraint-name)
                                                 (map generate-class (:backbone-elements schema))))})
           ir-schemas))
-  (generate-sdk-files [this] (generator/prepare-sdk-files :typescript)))
+
+  (generate-sdk-files [_] (generator/prepare-sdk-files :typescript)))
 
 (def generator (->TypeScriptCodeGenerator))

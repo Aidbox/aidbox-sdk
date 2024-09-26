@@ -2,6 +2,7 @@
  :derivation "constraint",
  :name "Extension",
  :type "Extension",
+ :resource-name "organization-preferred-Contact"
  :elements
  [{:name "url",
    :base "Extension",

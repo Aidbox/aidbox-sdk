@@ -2,6 +2,7 @@
  :derivation "specialization",
  :name "Patient",
  :type "Patient",
+ :resource-name "Patient"
  :elements
  [{:name "multipleBirthBoolean",
    :base "Patient",

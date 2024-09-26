@@ -86,13 +86,13 @@
     :else (if type (str "Base." type) "string")))
 
 (defn- derive-basic-type [name element]
-  (get-type name (url->resource-name (:type element))))
+  (get-type name (str/replace (or (url->resource-name (:type element)) "") #"-" "")))
 
 (defn- transform-element [name element required]
   (->> (derive-basic-type name element)))
 
 (defn- resolve-backbone-elements [[k, v]]
-  (if (= (url->resource-name (:type v)) "BackboneElement") (vector k, v) (vector)))
+  (if (= (:type v) "BackboneElement") (vector k, v) (vector)))
 
 (defn- collect-types [parent-name required [k v]]
   (if (contains? v :choices)
@@ -127,6 +127,7 @@
               (seq (:elements schema)))
         backbone-elements (remove empty? (:backbone-elements data))]
     (-> data
+        (assoc :resource-name name)
         (assoc :backbone-elements
                (if (empty? backbone-elements)
                  []
@@ -337,7 +338,8 @@
        (apply-patterns (:url constraint)
                        (filter #(contains? (last %) :pattern)
                                (:elements constraint)))
-       ((fn [schema] (update schema :deps set/union #{"Meta"})))))
+       ((fn [schema] (update schema :deps set/union #{"Meta"})))
+       ((fn [schema] (assoc schema :resource-name (url->resource-name (:url constraint)) )))))
 
 (defn convert-constraints [constraint-schemas base-schemas]
   (let [base-schemas (vector->map base-schemas)]

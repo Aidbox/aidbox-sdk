@@ -20,6 +20,10 @@
 (defn ->snake-case [s]
   (str/join "_" (map str/lower-case (words s))))
 
+(defn ->camel-case [s]
+  (str/join (into [(first (words s))]
+                  (map str/capitalize (rest (words s))))))
+
 (defn uppercase-first-letter
   "NOTE: Do not confuse with `capitalize` and `->pascal-case` functions.
   Capitalize function lowercasing all letters after first.
