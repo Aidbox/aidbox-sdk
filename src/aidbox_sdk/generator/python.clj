@@ -156,12 +156,11 @@
                         (:meta element)
                         (format "Meta(profile=[\"%s\"])" (:profile element))
 
+                        (:array element)
+                        "field(default_factory=list)"
+
                         (not (:required element))
                         "None"
-
-                        (and (:required element)
-                             (:array element))
-                        "[]"
 
                         :else nil)]
 
@@ -284,7 +283,7 @@
       :content (generate-module
                  :deps [{:module "__future__" :members ["annotations"]}
                         {:module "typing" :members ["Optional" "List"]}
-                        {:module "dataclasses" :members ["dataclass"]}]
+                        {:module "dataclasses" :members ["dataclass", "field"]}]
                  :classes
                  (generate-datatypes-python-classes ir-schemas))}])
 
@@ -292,7 +291,7 @@
     {:path (resource-file-path ir-schema)
      :content (generate-module
                 :deps (concat [{:module "typing" :members ["Optional" "List"]}
-                               {:module "dataclasses" :members ["dataclass"]}]
+                               {:module "dataclasses" :members ["dataclass", "field"]}]
                               (map (fn [d] {:module "base" :members [(class-alias d)]})
                                    (:deps ir-schema)))
                 :classes [(generate-class ir-schema
@@ -303,7 +302,7 @@
            {:path (search-param-filepath ir-schema)
             :content (generate-module
                       :deps (cond-> [{:module "typing" :members ["Optional"]}
-                                     {:module "dataclasses" :members ["dataclass"]}]
+                                     {:module "dataclasses" :members ["dataclass", "field"]}]
                               (:base ir-schema)
                               (conj {:module (str "." (format "%sSearchParameters" (:base ir-schema)))
                                      :members [(format "%sSearchParameters" (:base ir-schema))]}))
@@ -319,7 +318,7 @@
             {:path (constraint-file-path schema constraint-name)
              :content (generate-module
                         :deps  (concat [{:module "typing" :members ["Optional" "List"]}
-                                        {:module "dataclasses" :members ["dataclass"]}
+                                        {:module "dataclasses" :members ["dataclass", "field"]}
                                         #_{:module "pydantic" :members ["*"]}]
                                        (map (fn [d] {:module (str "..base." d) :members [d]}) (:deps schema)))
                         :classes (generate-class (assoc schema :url constraint-name)
