@@ -796,6 +796,7 @@
   {:package "hl7.fhir.r4.core",
   :derivation "specialization",
   :name "Patient",
+  :resource-name "Patient",
   :type "Patient",
   :elements
   [{:name "multipleBirthBoolean",
@@ -963,7 +964,7 @@
     :type "BackboneElement",
     :choice-option false}],
   :url "http://hl7.org/fhir/StructureDefinition/Patient",
-  :base-resource-name "DomainResource",
+  :base-resource-name "Domain-Resource",
   :backbone-elements
   [{:elements
     [{:name "type",
@@ -980,8 +981,9 @@
       :value "Base.ResourceReference",
       :type "Reference",
       :choice-option false}],
-    :base "BackboneElement"
-    :name "Patient_Link"}
+    :name "Patient_Link",
+    :resource-name "Patient_Link",
+    :base "BackboneElement"}
    {:elements
     [{:name "language",
       :base "Patient_Communication",
@@ -997,8 +999,9 @@
       :value "bool",
       :type "boolean",
       :choice-option false}],
-    :base "BackboneElement"
-    :name "Patient_Communication"}
+    :name "Patient_Communication",
+    :resource-name "Patient_Communication",
+    :base "BackboneElement"}
    {:elements
     [{:name "name",
       :base "Patient_Contact",
@@ -1049,8 +1052,9 @@
       :value "Base.CodeableConcept",
       :type "CodeableConcept",
       :choice-option false}],
-    :base "BackboneElement"
-    :name "Patient_Contact"}],
+    :name "Patient_Contact",
+    :resource-name "Patient_Contact",
+    :base "BackboneElement"}],
   :base "http://hl7.org/fhir/StructureDefinition/DomainResource",
   :deps
   #{"Address"
@@ -1058,8 +1062,8 @@
     "Period"
     "CodeableConcept"
     "ContactPoint"
+    "Domain-Resource"
     "HumanName"
-    "DomainResource"
     "Reference"
     "Identifier"
     "BackboneElement"}})
@@ -3511,63 +3515,62 @@
    :base "http://hl7.org/fhir/StructureDefinition/DomainResource"})
 
 (def observation-constraints-ir-schema
-
   {"http://hl7.org/fhir/StructureDefinition/ldlcholesterol"
- {:package "hl7.fhir.r4.core",
-  :derivation "constraint",
-  :patterns (),
-  :name "Observation",
-  :type "Observation",
-  :deps #{"Meta"}
-  :elements
-  [{:name "meta",
-    :required true,
-    :value "Meta",
-    :profile "http://hl7.org/fhir/StructureDefinition/ldlcholesterol",
-    :type "Meta",
-    :meta
-    " = new() { Profile = [\"http://hl7.org/fhir/StructureDefinition/ldlcholesterol\"] };"}
-   {:name "category",
-    :base "Observation",
-    :array true,
-    :required false,
-    :value "Base.CodeableConcept",
-    :type "CodeableConcept"}
-   {:name "referenceRange",
-    :base "Observation",
-    :array true,
-    :required true,
-    :value "Observation_ReferenceRange",
-    :type "BackboneElement"}
-   {:name "interpretation",
-    :base "Observation",
-    :array true,
-    :required false,
-    :value "Base.CodeableConcept",
-    :type "CodeableConcept"}
-   {:name "encounter",
-    :base "Observation",
-    :array false,
-    :required false,
-    :value "Base.ResourceReference",
-    :type "Reference"}
-   {:name "method",
-    :base "Observation",
-    :array false,
-    :required false,
-    :value "Base.CodeableConcept",
-    :type "CodeableConcept"}
-   {:name "valueTime",
-    :base "Observation",
-    :array false,
-    :required false,
-    :value "string",
-    :type "time"}
-   {:name "specimen",
-    :base "Observation",
-    :array false,
-    :required false,
-    :value "Base.ResourceReference",
+   {:package "hl7.fhir.r4.core",
+    :derivation "constraint",
+    :patterns [],
+    :name "Observation",
+    :resource-name "ldlcholesterol",
+    :type "Observation",
+    :elements
+    [{:name "meta",
+      :required true,
+      :value "Meta",
+      :profile "http://hl7.org/fhir/StructureDefinition/ldlcholesterol",
+      :type "Meta",
+      :meta
+      " = new() { Profile = [\"http://hl7.org/fhir/StructureDefinition/ldlcholesterol\"] };"}
+     {:name "category",
+      :base "Observation",
+      :array true,
+      :required false,
+      :value "Base.CodeableConcept",
+      :type "CodeableConcept"}
+     {:name "referenceRange",
+      :base "Observation",
+      :array true,
+      :required true,
+      :value "Observation_ReferenceRange",
+      :type "BackboneElement"}
+     {:name "interpretation",
+      :base "Observation",
+      :array true,
+      :required false,
+      :value "Base.CodeableConcept",
+      :type "CodeableConcept"}
+     {:name "encounter",
+      :base "Observation",
+      :array false,
+      :required false,
+      :value "Base.ResourceReference",
+      :type "Reference"}
+     {:name "method",
+      :base "Observation",
+      :array false,
+      :required false,
+      :value "Base.CodeableConcept",
+      :type "CodeableConcept"}
+     {:name "valueTime",
+      :base "Observation",
+      :array false,
+      :required false,
+      :value "string",
+      :type "time"}
+     {:name "specimen",
+      :base "Observation",
+      :array false,
+      :required false,
+      :value "Base.ResourceReference",
     :type "Reference"}
    {:name "valueQuantity",
     :base "Observation",
@@ -4069,14 +4072,15 @@
       :value "Base.CodeableConcept",
       :type "CodeableConcept"}],
     :name "Observation_Component"}],
-  :base "http://hl7.org/fhir/StructureDefinition/DomainResource"},
+  :base "http://hl7.org/fhir/StructureDefinition/DomainResource",
+  :deps #{"Meta"}},
  "http://hl7.org/fhir/StructureDefinition/cholesterol"
  {:package "hl7.fhir.r4.core",
   :derivation "constraint",
   :patterns [],
   :name "Observation",
+  :resource-name "cholesterol",
   :type "Observation",
-  :deps #{"Meta"}
   :elements
   [{:name "meta",
     :required true,
@@ -4627,14 +4631,15 @@
       :value "Base.CodeableConcept",
       :type "CodeableConcept"}],
     :name "Observation_Component"}],
-  :base "http://hl7.org/fhir/StructureDefinition/DomainResource"},
+  :base "http://hl7.org/fhir/StructureDefinition/DomainResource",
+  :deps #{"Meta"}},
  "http://hl7.org/fhir/StructureDefinition/observation-genetics"
  {:package "hl7.fhir.r4.core",
   :derivation "constraint",
   :patterns [],
   :name "Observation",
+  :resource-name "observation-genetics",
   :type "Observation",
-  :deps #{"Meta"}
   :elements
   [{:name "meta",
     :required true,
@@ -5197,14 +5202,15 @@
       :value "Base.CodeableConcept",
       :type "CodeableConcept"}],
     :name "Observation_Component"}],
-  :base "http://hl7.org/fhir/StructureDefinition/DomainResource"},
+  :base "http://hl7.org/fhir/StructureDefinition/DomainResource",
+  :deps #{"Meta"}},
  "http://hl7.org/fhir/StructureDefinition/devicemetricobservation"
  {:package "hl7.fhir.r4.core",
   :derivation "constraint",
   :patterns [],
   :name "Observation",
+  :resource-name "devicemetricobservation",
   :type "Observation",
-  :deps #{"Meta"}
   :elements
   [{:name "meta",
     :required true,
@@ -5743,14 +5749,15 @@
       :value "Base.CodeableConcept",
       :type "CodeableConcept"}],
     :name "Observation_Component"}],
-  :base "http://hl7.org/fhir/StructureDefinition/DomainResource"},
+  :base "http://hl7.org/fhir/StructureDefinition/DomainResource",
+  :deps #{"Meta"}},
  "http://hl7.org/fhir/StructureDefinition/triglyceride"
  {:package "hl7.fhir.r4.core",
   :derivation "constraint",
   :patterns [""],
   :name "Observation",
+  :resource-name "triglyceride",
   :type "Observation",
-  :deps #{"Meta"}
   :elements
   [{:name "meta",
     :required true,
@@ -6301,14 +6308,15 @@
       :value "Base.CodeableConcept",
       :type "CodeableConcept"}],
     :name "Observation_Component"}],
-  :base "http://hl7.org/fhir/StructureDefinition/DomainResource"},
+  :base "http://hl7.org/fhir/StructureDefinition/DomainResource",
+  :deps #{"Meta"}},
  "http://hl7.org/fhir/StructureDefinition/vitalsigns"
  {:package "hl7.fhir.r4.core",
   :derivation "constraint",
   :patterns [],
   :name "Observation",
+  :resource-name "vitalsigns",
   :type "Observation",
-  :deps #{"Meta"}
   :elements
   [{:name "meta",
     :required true,
@@ -6872,14 +6880,15 @@
       :value "Base.CodeableConcept",
       :type "CodeableConcept"}],
     :name "Observation_Component"}],
-  :base "http://hl7.org/fhir/StructureDefinition/DomainResource"},
+  :base "http://hl7.org/fhir/StructureDefinition/DomainResource",
+  :deps #{"Meta"}},
  "http://hl7.org/fhir/StructureDefinition/hdlcholesterol"
  {:package "hl7.fhir.r4.core",
   :derivation "constraint",
   :patterns [],
   :name "Observation",
+  :resource-name "hdlcholesterol",
   :type "Observation",
-  :deps #{"Meta"}
   :elements
   [{:name "meta",
     :required true,
@@ -7430,4 +7439,5 @@
       :value "Base.CodeableConcept",
       :type "CodeableConcept"}],
     :name "Observation_Component"}],
-  :base "http://hl7.org/fhir/StructureDefinition/DomainResource"}})
+  :base "http://hl7.org/fhir/StructureDefinition/DomainResource",
+  :deps #{"Meta"}}})

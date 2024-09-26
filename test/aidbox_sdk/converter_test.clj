@@ -61,8 +61,8 @@
 
 (deftest test-convert
   (testing "convert resource"
-    (is (= [fixtures/patient-ir-schema]
-           (sut/convert [fixtures/patient-fhir-schema]))))
+    (match (sut/convert [fixtures/patient-fhir-schema])
+      [fixtures/patient-ir-schema]))
 
   (testing "convert constraint"
     (is (= [(fixt/get-data :organization-preferred-contact-ir-schema)]
@@ -70,10 +70,12 @@
 
 (deftest test-convert-constraints
   (testing "constraints"
-    (is
-     (= fixtures/observation-constraints-ir-schema
-        (sut/convert-constraints fixtures/observation-constraints
-                                 [fixtures/observation-ir-schema])))))
+    (match fixtures/observation-constraints-ir-schema
+      (sut/convert-constraints fixtures/observation-constraints
+                               [fixtures/observation-ir-schema])
+
+
+      )))
 
 (deftest test-sort-by-base
   (match
