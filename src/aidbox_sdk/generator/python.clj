@@ -272,6 +272,9 @@
                                                           (+ (count deps) (if base 500 0)))) vec)
                                       [] #{} []))
 
+(defn valid-base-for-search-param? [ir-schema]
+  (and (:base ir-schema) (not= (:base ir-schema) "Base")))
+
 ;;
 ;; Main
 ;;
@@ -303,12 +306,13 @@
             :content (generate-module
                       :deps (cond-> [{:module "typing" :members ["Optional"]}
                                      {:module "dataclasses" :members ["dataclass", "field"]}]
-                              (:base ir-schema)
+
+                              (valid-base-for-search-param? ir-schema)
                               (conj {:module (str "." (format "%sSearchParameters" (:base ir-schema)))
                                      :members [(format "%sSearchParameters" (:base ir-schema))]}))
                       :classes [(generate-class
                                  {:name (format "%sSearchParameters" (:name ir-schema))
-                                  :base (when (:base ir-schema)
+                                  :base (when (valid-base-for-search-param? ir-schema)
                                           (format "%sSearchParameters" (:base ir-schema)))
                                   :elements (:elements ir-schema)})])})
          ir-schemas))
