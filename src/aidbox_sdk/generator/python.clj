@@ -193,6 +193,13 @@
       (when (seq inner-classes)
         (str (str/join "\n\n" inner-classes) "\n\n"))
 
+      ;; kw_only restrict to create object like this: Address("a", "b")
+      ;; and you have to use Address(use="a", type="b")
+      ;; this is so dumb.
+      ;; no matter how you sort fields, there's warning
+      ;; https://stackoverflow.com/questions/72472220/dataclass-inheritance-fields-without-default-values-cannot-appear-after-fields
+      "@dataclass(kw_only=True)"
+      "\n"
       "class " class-name' base-class-name ":"
       "\n"
       properties
@@ -273,14 +280,16 @@
     [{:path (datatypes-file-path)
       :content (generate-module
                  :deps [{:module "__future__" :members ["annotations"]}
-                        {:module "typing" :members ["Optional" "List"]}]
+                        {:module "typing" :members ["Optional" "List"]}
+                        {:module "dataclasses" :members ["dataclass"]}]
                  :classes
                  (generate-datatypes-python-classes ir-schemas))}])
 
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)
      :content (generate-module
-                :deps (concat [{:module "typing" :members ["Optional" "List"]}]
+                :deps (concat [{:module "typing" :members ["Optional" "List"]}
+                               {:module "dataclasses" :members ["dataclass"]}]
                               (map (fn [d] {:module "base" :members [d]})
                                    (:deps ir-schema)))
                 :classes [(generate-class ir-schema
@@ -290,7 +299,8 @@
     (map (fn [ir-schema]
            {:path (search-param-filepath ir-schema)
             :content (generate-module
-                      :deps (cond-> [{:module "typing" :members ["Optional"]}]
+                      :deps (cond-> [{:module "typing" :members ["Optional"]}
+                                     {:module "dataclasses" :members ["dataclass"]}]
                               (:base ir-schema)
                               (conj {:module (str "." (format "%sSearchParameters" (:base ir-schema)))
                                      :members [(format "%sSearchParameters" (:base ir-schema))]}))
@@ -306,6 +316,7 @@
             {:path (constraint-file-path schema constraint-name)
              :content (generate-module
                         :deps  (concat [{:module "typing" :members ["Optional" "List"]}
+                                        {:module "dataclasses" :members ["dataclass"]}
                                         #_{:module "pydantic" :members ["*"]}]
                                        (map (fn [d] {:module (str "..base." d) :members [d]}) (:deps schema)))
                         :classes (generate-class (assoc schema :url constraint-name)
