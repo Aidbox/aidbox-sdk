@@ -16,7 +16,7 @@
 
 (defn load-schemas-from-aidbox []
   (importer/retrieve
-   (importer/resource "http://localhost:8765/api/sdk/fhir-packages")
+   (importer/resource "http://localhost:3333/r4/fhir-packages")
    {:auth "YmFzaWM6c2VjcmV0"}))
 
 (def m-load-schemas-from-aidbox (memoize load-schemas-from-aidbox))
