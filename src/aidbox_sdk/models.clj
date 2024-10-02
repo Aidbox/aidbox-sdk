@@ -1,6 +1,6 @@
 (ns aidbox-sdk.models
   (:require [malli.core :as m]
-            [malli.registry :as mr]
+            [malli.util :as mu]
             [aidbox-sdk.fixtures.schemas :as fix]))
 
 (def FHIRElement
@@ -46,33 +46,38 @@
                         [:summary {:optional true} :boolean]]}}
    ::fhir-element])
 
-(def FHIRSchema
+(def BaseFHIRSchema
   [:map
    [:url :string]
    [:type :string]
    [:name :string]
-   [:derivation [:enum "specialization" "constraint"]]
-   [:base {:optional true} :string]
 
    [:excluded {:optional true} [:vector :string]]
    [:required {:optional true} [:vector :string]]
 
-   [:elements {:optional false} [:map-of :keyword FHIRElement]]
+   [:elements {:optional true} [:map-of :keyword FHIRElement]]
 
    ;; NOTE: shapes of constraints and extensions are not specified here since
    ;; they are not used in generation
    [:constraints {:optional true} :any]
    [:extensions {:optional true} :any]])
 
+(def FHIRSchema
+  [:or BaseFHIRSchema
+   (-> BaseFHIRSchema
+       (mu/assoc :derivation [:enum "specialization" "constraint"])
+       (mu/assoc :base :string))])
+
 (def Type string?)
 
 (def NonPolymorphicElement
   [:map
+   [:name string?]
    [:base string?]
    [:array boolean?]
    [:required boolean?]
    [:value string?]
-   [:name string?]
+   [:choice-of string?]
    [:type Type]])
 
 (def PolymorphicElement
@@ -82,32 +87,34 @@
    [:array boolean?]
    [:required boolean?]
    [:value string?]
-   [:name string?]
-   [:choices [:vector NonPolymorphicElement]]])
+   [:choices {:optional true} [:sequential NonPolymorphicElement]]
+   [:type Type]])
 
 (def Element
   [:or
-   PolymorphicElement
-   NonPolymorphicElement])
+   NonPolymorphicElement
+   PolymorphicElement])
 
 (def BackboneElement
   [:map
-   [:name string?]
-   [:elements [:vector Element]]])
+   [:name :string]
+   [:elements [:sequential Element]]])
 
 (def IRSchema
   "Intermediate Representation Schema."
-  [:map {:closed true}
-   [:derivation [:enum "specialization" "constraint"]]
-   [:base string?]
-   [:url string?]
-   [:name string?]
-   [:type string?]
-   [:package string?]
+  [:map
+   [:derivation {:optional true} [:enum "specialization" "constraint"]]
+   [:resource-name :string]
+   [:base-resource-name :string]
+   [:base :string]
+   [:url :string]
+   [:name :string]
+   [:type :string]
+   [:package :string]
    [:elements
-    [:vector Element]]
+    [:sequential Element]]
    [:backbone-elements
-    [:vector BackboneElement]]])
+    [:sequential BackboneElement]]])
 
 (def SearchParamIRSchema
   [:map {:closed true}
@@ -122,3 +129,6 @@
 
 ;
   )
+(def validate-fhir-schema (m/coercer FHIRSchema))
+
+(def validate-ir-schema (m/coercer IRSchema))
