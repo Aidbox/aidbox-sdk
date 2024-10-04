@@ -52,12 +52,9 @@
   (get {"List" "FhirList"} class-name class-name))
 
 (defn class-name
-  "Generate class name from schema url."
-  [url]
-  (-> url
-      url->resource-name
-      ->pascal-case
-      class-alias))
+  "Generates class name for resource name."
+  [resource-name]
+  (-> resource-name ->pascal-case class-alias))
 
 (defn generate-deps [deps]
   (->> deps
@@ -80,11 +77,7 @@
 
 (defn resource-file-path [ir-schema]
   (io/file (package->directory (:package ir-schema))
-           (str (->pascal-case (:name ir-schema)) ".py")))
-
-(defn constraint-file-path [ir-schema name]
-  (io/file (package->directory (:package ir-schema))
-           (str (->pascal-case (url->resource-name name)) ".py")))
+           (str (->pascal-case (:resource-name ir-schema)) ".py")))
 
 (defn search-param-filepath [ir-schema]
   (io/file "search" (str (:name ir-schema) "SearchParameters.py")))
@@ -97,9 +90,9 @@
 
 (def restricted-python-words
   #{"False" "None" "True" "and" "as" "assert" "async" "await" "break" "class"
-   "continue" "def" "del" "elif" "else" "except" "finally" "for" "from" "global"
-   "if" "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass" "raise"
-   "return" "try" "while" "with" "yield"})
+    "continue" "def" "del" "elif" "else" "except" "finally" "for" "from" "global"
+    "if" "import" "in" "is" "lambda" "nonlocal" "not" "or" "pass" "raise"
+    "return" "try" "while" "with" "yield"})
 
 (defn guard-python-property-name [prop]
   (if (restricted-python-words prop)
@@ -173,9 +166,14 @@
 (defn generate-class
   "Generates Python class from IR (intermediate representation) schema."
   [ir-schema & [inner-classes]]
-  (let [base-class (url->resource-name (:base ir-schema))
-        schema-name (or (:url ir-schema) (:name ir-schema))
-        class-name' (class-name schema-name)
+  (let [base-class (class-name (or (:base-resource-name ir-schema)
+                                    ;; need for BackboneElement
+                                   (:base ir-schema)
+                                   ""))
+        class-name' (class-name (or (:resource-name ir-schema)
+                                    ;; need for BackboneElement
+                                    (:name ir-schema)
+                                    ""))
         special-class? (special-classes class-name')
         elements (->> (:elements ir-schema)
                       (map #(if (and (= (:base %) "Bundle_Entry")
@@ -187,26 +185,24 @@
                         (remove nil?)
                         (map u/add-indent)
                         (str/join "\n"))
-        base-class-name (some-> (when-not (str/blank? base-class)
-                                  (uppercase-first-letter base-class)))
-        base-class-name (when base-class-name
-                          (str "(" base-class-name ")"))]
+        base-class-literal (when-not (str/blank? base-class)
+                                     (format "(%s)" base-class))]
     (str
-      (when (seq inner-classes)
-        (str (str/join "\n\n" inner-classes) "\n\n"))
+     (when (seq inner-classes)
+       (str (str/join "\n\n" inner-classes) "\n\n"))
 
       ;; kw_only restrict to create object like this: Address("a", "b")
       ;; and you have to use Address(use="a", type="b")
       ;; this is so dumb.
       ;; no matter how you sort fields, there's warning
       ;; https://stackoverflow.com/questions/72472220/dataclass-inheritance-fields-without-default-values-cannot-appear-after-fields
-      "@dataclass(kw_only=True)"
-      "\n"
-      "class " class-name' base-class-name ":"
-      "\n"
-      properties
-      (when-not (seq properties)
-        (u/add-indent "pass")))))
+     "@dataclass(kw_only=True)"
+     "\n"
+     "class " class-name' base-class-literal ":"
+     "\n"
+     properties
+     (when-not (seq properties)
+       (u/add-indent "pass")))))
 
 (defn generate-module
   [& {:keys [deps classes]
@@ -264,18 +260,17 @@
          ir-schemas))
 
   (generate-constraints [_ constraint-ir-schemas]
-    (mapv (fn [[constraint-name schema]]
-            {:path (constraint-file-path schema constraint-name)
-             :content (generate-module
-                       :deps  (concat [{:module "typing" :members ["Optional" "List"]}
-                                       {:module "dataclasses" :members ["dataclass", "field"]}
-                                       #_{:module "pydantic" :members ["*"]}]
-                                      (->> (:deps schema)
-                                           (map ->pascal-case)
-                                           (map (fn [d] {:module "base" :members [d]}))))
-                       :classes (generate-class (assoc schema :url constraint-name)
-                                                (map generate-class (:backbone-elements schema))))})
-          constraint-ir-schemas))
+    (map (fn [ir-schema]
+           {:path (resource-file-path ir-schema)
+            :content (generate-module
+                      :deps (into [{:module "typing" :members ["Optional" "List"]}
+                                   {:module "dataclasses" :members ["dataclass", "field"]}]
+                                  (->> (:deps ir-schema)
+                                       (map ->pascal-case)
+                                       (map (fn [d] {:module "base" :members [d]}))))
+                      :classes [(generate-class ir-schema
+                                                (map generate-class (:backbone-elements ir-schema)))])})
+         constraint-ir-schemas))
 
   (generate-sdk-files [_] (generator/prepare-sdk-files :python)))
 

@@ -1477,7 +1477,8 @@
                          :value "bool"}],
                        :url "http://hl7.org/fhir/StructureDefinition/Coding",
                        :backbone-elements (),
-                       :base "http://hl7.org/fhir/StructureDefinition/Element"})
+                       :base "http://hl7.org/fhir/StructureDefinition/Element"
+                       :base-resource-name "Element"})
 
 (def patient-search-params-schemas
   [{:description
@@ -3521,6 +3522,7 @@
     :patterns [],
     :name "Observation",
     :resource-name "ldlcholesterol",
+    :base-resource-name "DomainResource"
     :type "Observation",
     :elements
     [{:name "meta",
@@ -3571,62 +3573,62 @@
       :array false,
       :required false,
       :value "Base.ResourceReference",
-    :type "Reference"}
-   {:name "valueQuantity",
-    :base "Observation",
-    :array false,
-    :required false,
-    :value "Base.Quantity",
-    :type "Quantity"}
-   {:name "value",
-    :choices
-    [{:name "valueTime",
-      :base "Observation",
-      :array false,
-      :required false,
-      :value "string",
-      :type "time"}
+      :type "Reference"}
      {:name "valueQuantity",
       :base "Observation",
       :array false,
       :required false,
       :value "Base.Quantity",
       :type "Quantity"}
-     {:name "valueString",
-      :base "Observation",
-      :array false,
-      :required false,
-      :value "string",
-      :type "string"}
-     {:name "valueRatio",
-      :base "Observation",
-      :array false,
-      :required false,
-      :value "Base.Ratio",
-      :type "Ratio"}
-     {:name "valueBoolean",
-      :base "Observation",
-      :array false,
-      :required false,
-      :value "bool",
-      :type "boolean"}
-     {:name "valueDateTime",
-      :base "Observation",
-      :array false,
-      :required false,
-      :value "string",
-      :type "dateTime"}
-     {:name "valueSampledData",
-      :base "Observation",
-      :array false,
-      :required false,
-      :value "Base.SampledData",
-      :type "SampledData"}
-     {:name "valueCodeableConcept",
-      :base "Observation",
-      :array false,
-      :required false,
-      :value "Base.CodeableConcept",
+     {:name "value",
+      :choices
+      [{:name "valueTime",
+        :base "Observation",
+        :array false,
+        :required false,
+        :value "string",
+        :type "time"}
+       {:name "valueQuantity",
+        :base "Observation",
+        :array false,
+        :required false,
+        :value "Base.Quantity",
+        :type "Quantity"}
+       {:name "valueString",
+        :base "Observation",
+        :array false,
+        :required false,
+        :value "string",
+        :type "string"}
+       {:name "valueRatio",
+        :base "Observation",
+        :array false,
+        :required false,
+        :value "Base.Ratio",
+        :type "Ratio"}
+       {:name "valueBoolean",
+        :base "Observation",
+        :array false,
+        :required false,
+        :value "bool",
+        :type "boolean"}
+       {:name "valueDateTime",
+        :base "Observation",
+        :array false,
+        :required false,
+        :value "string",
+        :type "dateTime"}
+       {:name "valueSampledData",
+        :base "Observation",
+        :array false,
+        :required false,
+        :value "Base.SampledData",
+        :type "SampledData"}
+       {:name "valueCodeableConcept",
+        :base "Observation",
+        :array false,
+        :required false,
+        :value "Base.CodeableConcept",
       :type "CodeableConcept"}
      {:name "valuePeriod",
       :base "Observation",
@@ -4080,6 +4082,7 @@
   :patterns [],
   :name "Observation",
   :resource-name "cholesterol",
+  :base-resource-name "DomainResource"
   :type "Observation",
   :elements
   [{:name "meta",
@@ -4639,6 +4642,7 @@
   :patterns [],
   :name "Observation",
   :resource-name "observation-genetics",
+  :base-resource-name "DomainResource"
   :type "Observation",
   :elements
   [{:name "meta",
@@ -5210,6 +5214,7 @@
   :patterns [],
   :name "Observation",
   :resource-name "devicemetricobservation",
+  :base-resource-name "DomainResource"
   :type "Observation",
   :elements
   [{:name "meta",
@@ -5757,6 +5762,7 @@
   :patterns [""],
   :name "Observation",
   :resource-name "triglyceride",
+  :base-resource-name "DomainResource"
   :type "Observation",
   :elements
   [{:name "meta",
@@ -6316,6 +6322,7 @@
   :patterns [],
   :name "Observation",
   :resource-name "vitalsigns",
+  :base-resource-name "DomainResource"
   :type "Observation",
   :elements
   [{:name "meta",
@@ -6888,6 +6895,7 @@
   :patterns [],
   :name "Observation",
   :resource-name "hdlcholesterol",
+  :base-resource-name "DomainResource"
   :type "Observation",
   :elements
   [{:name "meta",

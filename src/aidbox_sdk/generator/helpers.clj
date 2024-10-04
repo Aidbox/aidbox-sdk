@@ -26,8 +26,8 @@
 
 (defn uppercase-first-letter
   "NOTE: Do not confuse with `capitalize` and `->pascal-case` functions.
-  Capitalize function lowercasing all letters after first.
-  Pascal case removes all _ and - characters"
+  `capitalize` function lowercasing all letters after first.
+  `->pascal-case` removes all _ and - characters"
   [s]
   (str (str/upper-case (get s 0 "")) (str/join (rest s))))
 

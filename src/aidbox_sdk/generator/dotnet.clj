@@ -280,12 +280,12 @@
                                        (:elements ir-schema))}))})
          ir-schemas))
 
-  (generate-constraints [_ constraint-ir-schemas]
-    (mapv (fn [[name' schema]]
-            {:path (constraint-file-path schema name')
-             :content (generate-constraint-module
-                       (assoc schema :url name'))})
-          constraint-ir-schemas))
+  (generate-constraints [_ constrained-ir-schemas]
+    (map (fn [ir-schema]
+           {:path (resource-file-path ir-schema)
+            :content (generate-constraint-module
+                      (assoc ir-schema :url (:url ir-schema)))})
+         constrained-ir-schemas))
 
   (generate-sdk-files [_] (generator/prepare-sdk-files :dotnet)))
 

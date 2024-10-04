@@ -53,7 +53,6 @@
     :typescript typescript/generator
     :java java/generator))
 
-
 (defn generate! [target-language input options]
   (let [output-dir (io/file (:output-dir options))
         save-files! #(save-files! output-dir %)
@@ -82,8 +81,9 @@
         resource-ir-schemas     (converter/convert resource-schemas)
         search-param-ir-schemas (converter/convert-search-params search-param-schemas
                                                                  fhir-schemas)
-        constraint-ir-schemas   (converter/convert-constraints constraint-schemas
-                                                               (remove fhir/constraint? ir-schemas))
+        constraint-ir-schemas   (converter/apply-constraints
+                                 (filter fhir/specialization? ir-schemas)
+                                 constraint-schemas)
 
         generator' (lang->generator target-language)
 

@@ -17,12 +17,6 @@
   [x]
   (str/replace x #"[\.#]" "-"))
 
-(defn url->resource-name [reference]
-  (last (str/split (str reference) #"/")))
-
-(defn resource-name->class-name [rn]
-  (->pascal-case rn))
-
 (defn datatypes-file-path []
   (io/file "datatypes.ts"))
 
@@ -207,13 +201,13 @@
          ir-schemas))
 
   (generate-constraints [_ ir-schemas]
-    (mapv (fn [[constraint-name schema]]
-            {:path (constraint-file-path schema constraint-name)
-             :content (generate-module
-                       :deps (:deps schema)
-                       :classes (generate-class (assoc schema :url constraint-name)
-                                                (map generate-class (:backbone-elements schema))))})
-          ir-schemas))
+    (map (fn [ir-schema]
+           {:path (resource-file-path ir-schema)
+            :content (generate-module
+                      {:deps (:deps ir-schema)
+                       :classes [(generate-class ir-schema
+                                                 (map generate-class (:backbone-elements ir-schema)))]})})
+         ir-schemas))
 
   (generate-sdk-files [_] (generator/prepare-sdk-files :typescript)))
 

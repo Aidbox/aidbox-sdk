@@ -70,12 +70,9 @@
 
 (deftest test-convert-constraints
   (testing "constraints"
-    (match fixtures/observation-constraints-ir-schema
-      (sut/convert-constraints fixtures/observation-constraints
-                               [fixtures/observation-ir-schema])
-
-
-      )))
+    (match (vals fixtures/observation-constraints-ir-schema)
+      (sut/apply-constraints [fixtures/observation-ir-schema]
+                             fixtures/observation-constraints))))
 
 (deftest test-sort-by-base
   (match
