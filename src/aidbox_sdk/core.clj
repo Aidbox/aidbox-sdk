@@ -62,18 +62,22 @@
 
         base-type?       (every-pred fhir/fhir-schema? fhir/base-type?)
         datatype?        (every-pred fhir/fhir-schema? fhir/datatype? (complement fhir/primitive-type?))
-        domain-resource? (every-pred fhir/fhir-schema? fhir/domain-resource?)
         constraint?      (every-pred fhir/fhir-schema? fhir/constraint? (complement fhir/extension?))
         search-param?    (every-pred fhir/search-parameter? (complement fhir/search-parameter-from-extension?))
 
         fhir-schemas         (filter fhir/fhir-schema? all-schemas)
         base-schemas         (filter base-type?        all-schemas)
         datatype-schemas     (filter datatype?         all-schemas)
-        resource-schemas     (filter #(or (domain-resource? %)
-                                          (fhir/backbone-element? %))
-                                     all-schemas)
         constraint-schemas   (filter constraint?       all-schemas)
         search-param-schemas (filter search-param?     all-schemas)
+        resource-schemas     (filter #(and
+                                       (fhir/fhir-schema? %)
+                                       (not (fhir/base-type? %))
+                                       (not (fhir/datatype? %))
+                                       (or (fhir/resource-type? %)
+                                           (fhir/domain-resource? %)
+                                           (fhir/backbone-element? %)))
+                                     all-schemas)
 
         ir-schemas              (converter/convert fhir-schemas)
         base-ir-schemas         (converter/convert base-schemas)

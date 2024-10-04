@@ -142,6 +142,10 @@
   [schema]
   (= (:base schema) "http://hl7.org/fhir/StructureDefinition/DomainResource"))
 
+(defn resource-type?
+  [schema]
+  (= (:base schema) "http://hl7.org/fhir/StructureDefinition/Resource"))
+
 (defn search-parameter-from-extension? [search-parameter]
   (str/includes? (:id search-parameter) "-extensions-"))
 
