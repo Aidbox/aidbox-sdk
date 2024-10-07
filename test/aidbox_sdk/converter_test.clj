@@ -68,11 +68,22 @@
     (is (= [(fixt/get-data :organization-preferred-contact-ir-schema)]
            (sut/convert [(fixt/get-data :organization-preferred-contact-fhir-schema)])))))
 
-(deftest test-convert-constraints
+(deftest test-apply-constraints
   (testing "constraints"
     (match (vals fixtures/observation-constraints-ir-schema)
       (sut/apply-constraints [fixtures/observation-ir-schema]
-                             fixtures/observation-constraints))))
+                             fixtures/observation-constraints)))
+
+  (testing "another package constraints"
+    ;; TODO
+    (is (= ["hl7.fhir.r5.core" "hl7.fhir.us.core" "hl7.fhir.us.core"]
+           (map :package (sut/apply-constraints
+                          [fixtures/observation-ir-schema]
+                          [(fixt/get-data :vitalsigns-fhir-schema)
+                           (fixt/get-data :us-core-vital-signs-fhir-schema)
+                           (fixt/get-data :us-core-bmi-fhir-schema)]))))))
+
+(fixt/get-data :vitalsigns-fhir-schema)
 
 (deftest test-sort-by-base
   (match

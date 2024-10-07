@@ -399,6 +399,7 @@
       (update :deps set/union #{"Meta"})
 
       ;; copy constraint common fields
+      (assoc :package (:package constraint))
       (assoc :resource-name (url->resource-name (:url constraint)))
       (assoc :derivation (:derivation constraint))))
 
