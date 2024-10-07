@@ -51,9 +51,21 @@
   (testing "element with meta"
     (is (= "public new Meta Meta { get; } = new() { Profile = [\"http://hl7.org/fhir/StructureDefinition/vitalsigns\"] };"
            (gen.dotnet/generate-property {:name "meta",
-                                          :required true,
+                                          :required false,
                                           :value "Meta",
                                           :profile "http://hl7.org/fhir/StructureDefinition/vitalsigns",
+                                          :type "Meta"})))
+
+    (is (= "public required Meta Meta { get; set; }"
+           (gen.dotnet/generate-property {:name "meta",
+                                          :required true,
+                                          :value "Meta",
+                                          :type "Meta"})))
+
+    (is (= "public Meta Meta { get; set; }"
+           (gen.dotnet/generate-property {:name "meta"
+                                          :required false
+                                          :value "Meta"
                                           :type "Meta"}))))
 
   (testing "element with choices"

@@ -76,6 +76,12 @@
            (gen.typescript/generate-property {:name "meta"
                                               :required true
                                               :value "Meta"
+                                              :type "Meta"})))
+
+    (is (= "meta?: Meta;"
+           (gen.typescript/generate-property {:name "meta"
+                                              :required false
+                                              :value "Meta"
                                               :type "Meta"}))))
 
   (testing "element with choices"

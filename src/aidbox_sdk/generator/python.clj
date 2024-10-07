@@ -115,35 +115,35 @@
         lang-type (if (= "BackboneElement" (:type element))
                     (->backbone-type element)
                     (->lang-type (:type element)))
-        lang-type
-        (cond->> lang-type
 
-          :always
-          remove-guard-from-class-name
+        lang-type (cond->> lang-type
 
-          (and forward-reference? (starts-with-capital? lang-type))
-          (format "'%s'"))
+                    :always
+                    remove-guard-from-class-name
 
-        type      (cond
-                    ;; required and array
-                    (and (:required element)
-                         (:array element))
-                    (format "list[%s]" lang-type)
+                    (and forward-reference? (starts-with-capital? lang-type))
+                    (format "'%s'"))
 
-                    ;; not required and array
-                    (and (not (:required element))
-                         (:array element))
-                    (format "Optional[List[%s]]" lang-type)
+        type (cond
+               ;; required and array
+               (and (:required element)
+                    (:array element))
+               (format "list[%s]" lang-type)
 
-                    ;; required and not array
-                    (and (:required element)
-                         (not (:array element)))
-                    lang-type
+               ;; not required and array
+               (and (not (:required element))
+                    (:array element))
+               (format "Optional[List[%s]]" lang-type)
 
-                    ;; not required and not array
-                    (and (not (:required element))
-                         (not (:array element)))
-                    (format "Optional[%s]" lang-type))
+               ;; required and not array
+               (and (:required element)
+                    (not (:array element)))
+               lang-type
+
+               ;; not required and not array
+               (and (not (:required element))
+                    (not (:array element)))
+               (format "Optional[%s]" lang-type))
 
         default-value (cond
                         (:meta element)
@@ -186,7 +186,7 @@
                         (map u/add-indent)
                         (str/join "\n"))
         base-class-literal (when-not (str/blank? base-class)
-                                     (format "(%s)" base-class))]
+                             (format "(%s)" base-class))]
     (str
      (when (seq inner-classes)
        (str (str/join "\n\n" inner-classes) "\n\n"))

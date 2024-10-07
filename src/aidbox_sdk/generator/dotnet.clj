@@ -121,8 +121,9 @@
   [{:keys [name array required value type choices] :as element}]
   (let [name'     (->pascal-case name)
         lang-type (str/replace (or value type "") #"[_-]" "")
+        required' (if required "required " "")
         type      (str
-                   (when required "required ")
+                   required'
                    lang-type
                    (:generic element)
                    (when array "[]")
@@ -134,7 +135,7 @@
           (= (:type element) "Meta")
           (if (:profile element)
             (format "public new Meta Meta { get; } = new() { Profile = [\"%s\"] };" (:profile element))
-            (format "public %s Meta { get; set; }" name'))
+            (format "public %s%s Meta { get; set; }" required' name'))
 
           :else
           (str "public " type " " name' " { get; set; }"
