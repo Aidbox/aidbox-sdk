@@ -59,6 +59,12 @@
              "BackboneElement"}
            (-> (sut/resolve-dependencies [(dissoc (fixt/get-data :patient-ir-schema) :deps)])
                first
+               :deps))))
+
+  (testing "another package specialization demanding base types"
+    (is (= #{"Resource" "Element"}
+           (-> (sut/resolve-dependencies [(fixt/get-data :sdc-question-library-ir-schema-no-deps)])
+               first
                :deps)))))
 
 (deftest test-url->resource-name

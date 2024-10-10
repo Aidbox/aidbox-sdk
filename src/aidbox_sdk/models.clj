@@ -4,46 +4,48 @@
             [aidbox-sdk.fixtures.schemas :as fix]))
 
 (def FHIRElement
-  [:schema {:registry {::fhir-element
-                       [:map
-                        ;; shape
-                        [:array {:optional true} :boolean]
-                        [:scalar {:optional true} :boolean]
+  [:schema
+   {:registry
+    {::fhir-element
+     [:map
+      ;; shape
+      [:array {:optional true} :boolean]
+      [:scalar {:optional true} :boolean]
 
-                        ;; cardinality
-                        [:min {:optional true} :int]
-                        [:max {:optional true} :int]
+      ;; cardinality
+      [:min {:optional true} :int]
+      [:max {:optional true} :int]
 
-                        ;; choice type
-                        [:choiceOf {:optional true} :string]
-                        [:choices {:optional true} [:vector :string]]
+      ;; choice type
+      [:choiceOf {:optional true} :string]
+      [:choices {:optional true} [:vector :string]]
 
-                        ;; type reference
-                        [:type {:optional true} :string]
-                        [:elementReference {:optional true} [:vector :string]]
+      ;; type reference
+      [:type {:optional true} :string]
+      [:elementReference {:optional true} [:vector :string]]
 
-                        ;; nested elements (for BackboneElement type)
-                        [:elements {:optional true} [:map-of :keyword [:ref ::fhir-element]]]
-                        [:required {:optional true} [:vector :string]]
-                        [:excluded {:optional true} [:vector :string]]
+      ;; nested elements (for BackboneElement type)
+      [:elements {:optional true} [:map-of :keyword [:ref ::fhir-element]]]
+      [:required {:optional true} [:vector :string]]
+      [:excluded {:optional true} [:vector :string]]
 
-                        [:constraints {:optional true} :any]
-                        [:slicing {:optional true} :any]
-                        [:binding {:optional true} [:map
-                                                    [:valueSet :string]
-                                                    [:strength :string]]]
+      [:constraints {:optional true} :any]
+      [:slicing {:optional true} :any]
+      [:binding {:optional true} [:map
+                                  [:valueSet :string]
+                                  [:strength :string]]]
 
-                        ;; constants definition
-                        [:fixed {:optional true} :any]
-                        [:pattern {:optional true} :any]
+      ;; constants definition
+      [:fixed {:optional true} :any]
+      [:pattern {:optional true} :any]
 
-                        ;; reference target
-                        [:refers {:optional true} [:vector :string]]
+      ;; reference target
+      [:refers {:optional true} [:vector :string]]
 
-                        ;; informational
-                        [:modifier {:optional true} :boolean]
-                        [:mustSupport {:optional true} :boolean]
-                        [:summary {:optional true} :boolean]]}}
+      ;; informational
+      [:modifier {:optional true} :boolean]
+      [:mustSupport {:optional true} :boolean]
+      [:summary {:optional true} :boolean]]}}
    ::fhir-element])
 
 (def BaseFHIRSchema
@@ -57,12 +59,17 @@
 
    [:elements {:optional true} [:map-of :keyword FHIRElement]]
 
+   ;; NOTE: This field is not a part of FHIRSchema standars. But is has been added on
+   ;; import stage. Need for generation.
+   [:fhir-version :string]
+
    ;; NOTE: shapes of constraints and extensions are not specified here since
    ;; they are not used in generation
    [:constraints {:optional true} :any]
    [:extensions {:optional true} :any]])
 
 (def FHIRSchema
+  "NOTE: This is the enriched FHIR Schema version"
   [:or BaseFHIRSchema
    (-> BaseFHIRSchema
        (mu/assoc :derivation [:enum "specialization" "constraint"])

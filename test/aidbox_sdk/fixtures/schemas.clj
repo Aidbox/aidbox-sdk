@@ -662,7 +662,7 @@
    :technical-id
    "hl7.fhir.r4.core/4.0.1/FHIRSchema/http://hl7.org/fhir/StructureDefinition/Patient/4.0.1",
    :derivation "specialization",
-   :fhirVersion nil,
+   :fhir-version "hl7.fhir.r4.core",
    :name "Patient",
    :type "Patient",
    :resourceType "FHIRSchema",

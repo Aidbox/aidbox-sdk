@@ -238,7 +238,7 @@
   (map resolve-schema-choices schemas))
 
 (defn collect-dependencies [schema]
-  (let [primitive-element? (partial fhir/primitive-element? (:package schema))]
+  (let [primitive-element? (partial fhir/primitive-element? (:fhir-version schema))]
     (set/union
      (cond-> #{}
        (:base-resource-name schema) (conj (:base-resource-name schema))
@@ -289,6 +289,7 @@
   (->> all-schemas
        (map (fn [schema]
               {:name (:id schema)
+               :package (:package schema)
                :deps (if-let [base (:base schema)]
                        [(->pascal-case (url->resource-name base))]
                        [])

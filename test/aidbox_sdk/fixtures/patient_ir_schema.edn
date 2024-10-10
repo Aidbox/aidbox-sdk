@@ -1,4 +1,5 @@
 {:package "hl7.fhir.r4.core",
+ :fhir-version "hl7.fhir.r4.core",
  :derivation "specialization",
  :name "Patient",
  :type "Patient",
