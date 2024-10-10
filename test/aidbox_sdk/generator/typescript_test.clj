@@ -111,16 +111,19 @@
                            "    managingOrganization?: Reference;"
                            "    name?: HumanName[];"
                            "    birthDate?: string;"
+                           "    _birthDate: Element;"
                            "    multipleBirth?: boolean | number;"
                            "    deceased?: string | boolean;"
                            "    photo?: Attachment[];"
                            "    link?: PatientLink[];"
                            "    active?: boolean;"
+                           "    _active: Element;"
                            "    communication?: PatientCommunication[];"
                            "    identifier?: Identifier[];"
                            "    telecom?: ContactPoint[];"
                            "    generalPractitioner?: Reference[];"
                            "    gender?: string;"
+                           "    _gender: Element;"
                            "    maritalStatus?: CodeableConcept;"
                            "    contact?: PatientContact[];"
                            "};"])
@@ -165,16 +168,19 @@
                            "    managingOrganization?: Reference;"
                            "    name?: HumanName[];"
                            "    birthDate?: string;"
+                           "    _birthDate: Element;"
                            "    multipleBirth?: boolean | number;"
                            "    deceased?: string | boolean;"
                            "    photo?: Attachment[];"
                            "    link?: PatientLink[];"
                            "    active?: boolean;"
+                           "    _active: Element;"
                            "    communication?: PatientCommunication[];"
                            "    identifier?: Identifier[];"
                            "    telecom?: ContactPoint[];"
                            "    generalPractitioner?: Reference[];"
                            "    gender?: string;"
+                           "    _gender: Element;"
                            "    maritalStatus?: CodeableConcept;"
                            "    contact?: PatientContact[];"
                            "};"])
@@ -192,7 +198,7 @@
   (is
    (= {:path (io/file "hl7-fhir-r4-core/Patient.ts"),
        :content
-       "import { Address } from \"./Address\";\nimport { Attachment } from \"./Attachment\";\nimport { Period } from \"./Period\";\nimport { CodeableConcept } from \"./CodeableConcept\";\nimport { ContactPoint } from \"./ContactPoint\";\nimport { HumanName } from \"./HumanName\";\nimport { DomainResource } from \"./DomainResource\";\nimport { Reference } from \"./Reference\";\nimport { Identifier } from \"./Identifier\";\nimport { BackboneElement } from \"./BackboneElement\";\n\nexport type PatientLink = BackboneElement & {\n    type: string;\n    other: Reference;\n};\n\nexport type PatientCommunication = BackboneElement & {\n    language: CodeableConcept;\n    preferred?: boolean;\n};\n\nexport type PatientContact = BackboneElement & {\n    name?: HumanName;\n    gender?: string;\n    period?: Period;\n    address?: Address;\n    telecom?: ContactPoint[];\n    organization?: Reference;\n    relationship?: CodeableConcept[];\n};\n\nexport type Patient = DomainResource & {\n    address?: Address[];\n    managingOrganization?: Reference;\n    name?: HumanName[];\n    birthDate?: string;\n    multipleBirth?: boolean | number;\n    deceased?: string | boolean;\n    photo?: Attachment[];\n    link?: PatientLink[];\n    active?: boolean;\n    communication?: PatientCommunication[];\n    identifier?: Identifier[];\n    telecom?: ContactPoint[];\n    generalPractitioner?: Reference[];\n    gender?: string;\n    maritalStatus?: CodeableConcept;\n    contact?: PatientContact[];\n};"}
+       "import { Address } from \"./Address\";\nimport { Attachment } from \"./Attachment\";\nimport { Period } from \"./Period\";\nimport { CodeableConcept } from \"./CodeableConcept\";\nimport { ContactPoint } from \"./ContactPoint\";\nimport { HumanName } from \"./HumanName\";\nimport { DomainResource } from \"./DomainResource\";\nimport { Reference } from \"./Reference\";\nimport { Identifier } from \"./Identifier\";\nimport { BackboneElement } from \"./BackboneElement\";\n\nexport type PatientLink = BackboneElement & {\n    type: string;\n    other: Reference;\n};\n\nexport type PatientCommunication = BackboneElement & {\n    language: CodeableConcept;\n    preferred?: boolean;\n};\n\nexport type PatientContact = BackboneElement & {\n    name?: HumanName;\n    gender?: string;\n    period?: Period;\n    address?: Address;\n    telecom?: ContactPoint[];\n    organization?: Reference;\n    relationship?: CodeableConcept[];\n};\n\nexport type Patient = DomainResource & {\n    address?: Address[];\n    managingOrganization?: Reference;\n    name?: HumanName[];\n    birthDate?: string;\n    _birthDate: Element;\n    multipleBirth?: boolean | number;\n    deceased?: string | boolean;\n    photo?: Attachment[];\n    link?: PatientLink[];\n    active?: boolean;\n    _active: Element;\n    communication?: PatientCommunication[];\n    identifier?: Identifier[];\n    telecom?: ContactPoint[];\n    generalPractitioner?: Reference[];\n    gender?: string;\n    _gender: Element;\n    maritalStatus?: CodeableConcept;\n    contact?: PatientContact[];\n};"}
       (sut/generate-resource-module generator (fixt/get-data :patient-ir-schema)))))
 
 #_(deftest test-generate-search-params
