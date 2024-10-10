@@ -81,7 +81,7 @@
 (defn ->backbone-type [element]
   (str/replace (str (:base element) (uppercase-first-letter (:name element))) #"[_-]" ""))
 
-(defn generate-property [{:keys [name array required type choices profile] :as element}]
+(defn generate-property [{:keys [name array required type choices profile fhir-version] :as element}]
   (let [optional (if required "" "?")]
     (cond choices
           (generate-polymorphic-property element)
@@ -92,10 +92,13 @@
             (format "%s%s: Meta;" name optional))
 
           :else
-          (let [type' (if (= "BackboneElement" type)
-                        (->backbone-type element)
-                        (->lang-type (:type element)))]
-            (str (->camel-case name) optional ": " type' (when array "[]") ";")))))
+          (let [primitive-type? (fhir/primitive-element? fhir-version element)
+                type'           (if (= "BackboneElement" type)
+                                  (->backbone-type element)
+                                  (->lang-type (:type element)))]
+            (str (str (->camel-case name) optional ": " type' (when array "[]") ";")
+                 (when primitive-type?
+                   (str u/indent "\n" "_" (->camel-case name) ": Element;")))))))
 
 (defn generate-class
   "Generates TypeScript type from IR (intermediate representation) schema."
@@ -110,7 +113,9 @@
                                     ""))
         properties (->> (:elements ir-schema)
                         (remove #(:choice-option %))
+                        (map #(assoc % :fhir-version (:fhir-version ir-schema)))
                         (map generate-property)
+                        (flatten)
                         (remove nil?)
                         (map u/add-indent)
                         (str/join "\n"))]
