@@ -191,6 +191,7 @@
                     :resource-name (url->resource-name (get schema :url))
                     :base-resource-name (when (get schema :base)
                                           (url->resource-name (get schema :base)))
+                    :fhir-version (get schema :fhir-version)
                     :package (get schema :package)
                     :url (get schema :url)
                     :type (get schema :type)
@@ -261,6 +262,7 @@
 ;;
 ;; Convert main function
 ;;
+
 
 (defn convert [schemas]
   (->> schemas
@@ -361,7 +363,6 @@
                                  (:elements constraint)))
          ((fn [schema] (update schema :deps set/union #{"Meta"})))
          ((fn [schema] (assoc schema :resource-name (url->resource-name (:url constraint)))))))
-
 
 (defn apply-constraint [base-schema constraint]
   (-> base-schema

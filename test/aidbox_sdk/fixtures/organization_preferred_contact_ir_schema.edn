@@ -2,6 +2,7 @@
  :derivation "constraint",
  :name "Extension",
  :type "Extension",
+ :fhir-version "hl7.fhir.r4.core"
  :resource-name "organization-preferred-Contact"
  :elements
  [{:name "url",

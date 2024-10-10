@@ -10,18 +10,16 @@
 (use-fixtures :once fixt/prepare-examples)
 
 (deftest test-generate-deps
-  (testing "no members"
-    (is (= "import * as base from \"./base.ts\";"
-           (gen.typescript/generate-deps [{:module "./base.ts" :members []}]))))
+  (testing "import for base package"
+    (is (= "import { Bundle } from \"./Bundle\";"
+           (gen.typescript/generate-deps {:package "hl7.fhir.r4.core"
+                                          :deps #{"Bundle"}}))))
 
-  (testing "with members"
-    (is (= "import { Dosage } from \"../datatypes.ts\";"
-           (gen.typescript/generate-deps [{:module "../datatypes.ts" :members ["Dosage"]}]))))
-
-  (testing "multiple deps"
-    (is (= "import * as base from \"./base.ts\";\nimport { Dosage } from \"../datatypes.ts\";"
-           (gen.typescript/generate-deps [{:module "./base.ts" :members []}
-                                          {:module "../datatypes.ts" :members ["Dosage"]}])))))
+  (testing "import for package outside of base"
+    (is (= "import { Bundle } from \"../hl7-fhir-r4-core/Bundle\";"
+           (gen.typescript/generate-deps {:package "hl7.fhir.us.core"
+                                          :deps #{"Bundle"}
+                                          :fhir-version "hl7.fhir.r4.core"})))))
 
 (deftest test-generate-property
   (testing "simple case"

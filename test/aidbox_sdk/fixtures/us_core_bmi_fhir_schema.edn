@@ -1,0 +1,30 @@
+{:package "hl7.fhir.us.core",
+ :technical-id
+ "hl7.fhir.us.core/6.1.0/FHIRSchema/http://hl7.org/fhir/us/core/StructureDefinition/us-core-bmi/6.1.0",
+ :derivation "constraint",
+ :fhirVersion nil,
+ :name "us-core-bmi",
+ :type "Observation",
+ :resourceType "FHIRSchema",
+ :elements
+ {:code
+  {:type "CodeableConcept",
+   :pattern {:coding [{:code "39156-5", :system "http://loinc.org"}]},
+   :mustSupport true},
+  :valueQuantity
+  {:max 1,
+   :min 0,
+   :elements
+   {:code {:type "code", :fixed "kg/m2", :mustSupport true},
+    :unit {:type "string", :mustSupport true},
+    :value {:type "decimal", :mustSupport true},
+    :system
+    {:type "uri", :fixed "http://unitsofmeasure.org", :mustSupport true}},
+   :required ["value" "unit" "system" "code"],
+   :mustSupport true}},
+ :id "us-core-bmi",
+ :kind "resource",
+ :url "http://hl7.org/fhir/us/core/StructureDefinition/us-core-bmi",
+ :packageVersion "6.1.0",
+ :base "http://hl7.org/fhir/us/core/StructureDefinition/us-core-vital-signs",
+ :version "6.1.0"}

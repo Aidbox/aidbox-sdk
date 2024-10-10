@@ -5,12 +5,12 @@
                                          ->camel-case]]
    [aidbox-sdk.generator.utils :as u]
    [clojure.java.io :as io]
-   [clojure.string :as str])
+   [clojure.string :as str]
+   [aidbox-sdk.fhir :as fhir])
   (:import
    [aidbox_sdk.generator CodeGenerator]))
 
-(defn package->directory
-  "Generates directory name from package name.
+(defn package->directory "Generates directory name from package name.
 
   Example:
   hl7.fhir.r4.core -> hl7-fhir-r4-core"
@@ -149,24 +149,23 @@
   (str/replace path #"(\.ts)|[\.\/]" ""))
 
 (defn generate-deps
-  "Takes a list of resource names and generates import declarations."
-  [deps]
-  (->> deps
-       (map (fn [{:keys [module members]}]
-              (if (seq members)
-                (format "import { %s } from \"%s\";" (str/join ", " members) module)
-                (format "import * as %s from \"%s\";" (path->name module) module))))
-       (str/join "\n")))
+  "Takes an IR schema generates import declarations."
+  [{:keys [deps package fhir-version] :as ir-schema}]
+  (let [relative-path (if (fhir/base-package? ir-schema)
+                        "./"
+                        (str "../" (package->directory (:fhir-version ir-schema)) "/"))]
+    (->> (:deps ir-schema)
+         (map class-name)
+         (map (fn [d] {:module (str relative-path d) :members [d]}))
+         (map (fn [{:keys [module members]}]
+                (if (seq members) (format "import { %s } from \"%s\";" (str/join ", " members) module) (format "import * as %s from \"%s\";" (path->name module) module))))
+         (str/join "\n"))))
 
 (defn generate-module
   [& {:keys [deps classes]
       :or {classes []}}]
   (->> (conj []
-             (->> deps
-                  (map class-name)
-                  (map (fn [d] {:module (str "./" d) :members [d]}))
-                  generate-deps)
-
+             deps
              classes)
        (flatten)
        (str/join "\n\n")))
@@ -178,14 +177,14 @@
       (map (fn [ir-schema]
              {:path (resource-file-path ir-schema)
               :content (generate-module
-                        :deps (:deps ir-schema)
+                        :deps (generate-deps ir-schema)
                         :classes [(generate-class ir-schema (map generate-class (:backbone-elements ir-schema)))])})
            ir-schemas)))
 
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)
      :content (generate-module
-               {:deps (:deps ir-schema)
+               {:deps (generate-deps ir-schema)
                 :classes [(generate-class ir-schema
                                           (map generate-class (:backbone-elements ir-schema)))]})})
 
@@ -193,7 +192,7 @@
     (map (fn [ir-schema]
            {:path (search-param-filepath ir-schema)
             :content (generate-module
-                      :deps (map #(format "%sSearchParameters" %) (:deps ir-schema))
+                      :deps (generate-deps {:package "hl7.fhir.r4.core" :deps (map #(format "%sSearchParameters" %) (:deps ir-schema))})
                       :classes [(generate-class
                                  {:name (format "%sSearchParameters" (:name ir-schema))
                                   :base (when (:base ir-schema)
@@ -205,7 +204,7 @@
     (map (fn [ir-schema]
            {:path (resource-file-path ir-schema)
             :content (generate-module
-                      {:deps (:deps ir-schema)
+                      {:deps (generate-deps ir-schema)
                        :classes [(generate-class ir-schema
                                                  (map generate-class (:backbone-elements ir-schema)))]})})
          ir-schemas))

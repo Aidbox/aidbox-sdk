@@ -1,6 +1,7 @@
 {:package "hl7.fhir.r4.core",
  :technical-id
  "hl7.fhir.r4.core/4.0.1/FHIRSchema/http://hl7.org/fhir/StructureDefinition/organization-preferredContact/4.0.1",
+ :fhir-version "hl7.fhir.r4.core"
  :derivation "constraint",
  :fhirVersion nil,
  :excluded ["extension"],

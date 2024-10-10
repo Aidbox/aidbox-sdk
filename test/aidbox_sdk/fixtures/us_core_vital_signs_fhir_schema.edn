@@ -1,0 +1,262 @@
+{:package "hl7.fhir.us.core",
+  :technical-id
+  "hl7.fhir.us.core/6.1.0/FHIRSchema/http://hl7.org/fhir/us/core/StructureDefinition/us-core-vital-signs/6.1.0",
+  :derivation "constraint",
+  :fhirVersion nil,
+  :name "us-core-vital-signs",
+  :type "Observation",
+  :resourceType "FHIRSchema",
+  :elements
+  {:category
+   {:type "CodeableConcept",
+    :array true,
+    :slicing
+    {:rules "open",
+     :slices
+     {:VSCat
+      {:max 1,
+       :min 1,
+       :match
+       {:type "pattern",
+        :value
+        {:coding
+         {:code "vital-signs",
+          :system
+          "http://terminology.hl7.org/CodeSystem/observation-category"}}},
+       :schema
+       {:type "CodeableConcept",
+        :elements
+        {:coding
+         {:type "Coding",
+          :array true,
+          :elements
+          {:code {:type "code", :fixed "vital-signs", :mustSupport true},
+           :system
+           {:type "uri",
+            :fixed
+            "http://terminology.hl7.org/CodeSystem/observation-category",
+            :mustSupport true}},
+          :required ["system" "code"],
+          :mustSupport true}},
+        :required ["coding"],
+        :mustSupport true},
+       :sliceIsConstraining true}},
+     :ordered false,
+     :discriminator
+     [{:path "coding.code", :type "value"}
+      {:path "coding.system", :type "value"}],
+     :constraining-slice? true},
+    :mustSupport true},
+   :valueTime
+   {:type "time",
+    :binding
+    {:strength "extensible",
+     :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+    :choiceOf "value",
+    :mustSupport true},
+   :valueQuantity
+   {:type "Quantity",
+    :binding
+    {:strength "extensible",
+     :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+    :choiceOf "value",
+    :mustSupport true},
+   :value
+   {:choices
+    ["valueQuantity"
+     "valueCodeableConcept"
+     "valueString"
+     "valueBoolean"
+     "valueInteger"
+     "valueRange"
+     "valueRatio"
+     "valueSampledData"
+     "valueTime"
+     "valueDateTime"
+     "valuePeriod"]},
+   :valueString
+   {:type "string",
+    :binding
+    {:strength "extensible",
+     :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+    :choiceOf "value",
+    :mustSupport true},
+   :valueRatio
+   {:type "Ratio",
+    :binding
+    {:strength "extensible",
+     :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+    :choiceOf "value",
+    :mustSupport true},
+   :valueBoolean
+   {:type "boolean",
+    :binding
+    {:strength "extensible",
+     :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+    :choiceOf "value",
+    :mustSupport true},
+   :valueDateTime
+   {:type "dateTime",
+    :binding
+    {:strength "extensible",
+     :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+    :choiceOf "value",
+    :mustSupport true},
+   :component
+   {:elements
+    {:valueTime
+     {:type "time",
+      :binding
+      {:strength "extensible",
+       :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+      :choiceOf "value",
+      :mustSupport true},
+     :valueQuantity
+     {:type "Quantity",
+      :binding
+      {:strength "extensible",
+       :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+      :choiceOf "value",
+      :mustSupport true},
+     :value
+     {:choices
+      ["valueQuantity"
+       "valueCodeableConcept"
+       "valueString"
+       "valueBoolean"
+       "valueInteger"
+       "valueRange"
+       "valueRatio"
+       "valueSampledData"
+       "valueTime"
+       "valueDateTime"
+       "valuePeriod"]},
+     :valueString
+     {:type "string",
+      :binding
+      {:strength "extensible",
+       :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+      :choiceOf "value",
+      :mustSupport true},
+     :valueRatio
+     {:type "Ratio",
+      :binding
+      {:strength "extensible",
+       :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+      :choiceOf "value",
+      :mustSupport true},
+     :valueBoolean
+     {:type "boolean",
+      :binding
+      {:strength "extensible",
+       :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+      :choiceOf "value",
+      :mustSupport true},
+     :valueDateTime
+     {:type "dateTime",
+      :binding
+      {:strength "extensible",
+       :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+      :choiceOf "value",
+      :mustSupport true},
+     :valueSampledData
+     {:type "SampledData",
+      :binding
+      {:strength "extensible",
+       :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+      :choiceOf "value",
+      :mustSupport true},
+     :code
+     {:binding
+      {:strength "extensible",
+       :valueSet "http://hl7.org/fhir/us/core/ValueSet/us-core-vital-signs"},
+      :mustSupport true},
+     :valueCodeableConcept
+     {:type "CodeableConcept",
+      :binding
+      {:strength "extensible",
+       :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+      :choiceOf "value",
+      :mustSupport true},
+     :valuePeriod
+     {:type "Period",
+      :binding
+      {:strength "extensible",
+       :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+      :choiceOf "value",
+      :mustSupport true},
+     :valueRange
+     {:type "Range",
+      :binding
+      {:strength "extensible",
+       :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+      :choiceOf "value",
+      :mustSupport true},
+     :valueInteger
+     {:type "integer",
+      :binding
+      {:strength "extensible",
+       :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+      :choiceOf "value",
+      :mustSupport true},
+     :dataAbsentReason {:mustSupport true}},
+    :mustSupport true},
+   :valueSampledData
+   {:type "SampledData",
+    :binding
+    {:strength "extensible",
+     :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+    :choiceOf "value",
+    :mustSupport true},
+   :effectiveDateTime
+   {:type "dateTime", :choiceOf "effective", :mustSupport true},
+   :status {:mustSupport true},
+   :effective {:choices ["effectiveDateTime" "effectivePeriod"]},
+   :code
+   {:binding
+    {:strength "extensible",
+     :valueSet "http://hl7.org/fhir/us/core/ValueSet/us-core-vital-signs"},
+    :mustSupport true},
+   :valueCodeableConcept
+   {:type "CodeableConcept",
+    :binding
+    {:strength "extensible",
+     :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+    :choiceOf "value",
+    :mustSupport true},
+   :valuePeriod
+   {:type "Period",
+    :binding
+    {:strength "extensible",
+     :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+    :choiceOf "value",
+    :mustSupport true},
+   :valueRange
+   {:type "Range",
+    :binding
+    {:strength "extensible",
+     :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+    :choiceOf "value",
+    :mustSupport true},
+   :valueInteger
+   {:type "integer",
+    :binding
+    {:strength "extensible",
+     :valueSet "http://hl7.org/fhir/ValueSet/ucum-vitals-common"},
+    :choiceOf "value",
+    :mustSupport true},
+   :subject
+   {:type "Reference",
+    :refers
+    ["http://hl7.org/fhir/us/core/StructureDefinition/us-core-patient"],
+    :mustSupport true},
+   :dataAbsentReason {:mustSupport true},
+   :effectivePeriod
+   {:type "Period", :choiceOf "effective", :mustSupport true}},
+  :id "us-core-vital-signs",
+  :kind "resource",
+  :url "http://hl7.org/fhir/us/core/StructureDefinition/us-core-vital-signs",
+  :packageVersion "6.1.0",
+  :base "http://hl7.org/fhir/StructureDefinition/vitalsigns",
+  :version "6.1.0",
+  :required ["category"]}

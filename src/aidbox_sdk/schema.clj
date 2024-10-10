@@ -16,7 +16,6 @@
                       (filter #(str/ends-with? (.getName %) ".gz")))]
     (println "✅ Found packages:" (count packages))
     packages))
-
 (defn create-gzip-reader [path]
   (-> path
       (io/input-stream)
@@ -40,9 +39,7 @@
        (map (fn [schema]
               (if-not (:resourceType schema)
                 (assoc schema :resourceType "FHIRSchema")
-                schema)
-
-              ))))
+                schema)))))
 
 (defn prepare-schemas [schemas]
   (map #(->> (get-in % [:package-meta :name])
@@ -106,6 +103,18 @@
 (defn skip-root-package [packages]
   (rest packages))
 
+(defn get-fhir-version [package]
+  (let [allowed-base-packages #{"hl7.fhir.r4.core" "hl7.fhir.r4b.core" "hl7.fhir.r5.core"}]
+    (->> (keys (:dependencies package))
+         (map name)
+         (filter #(contains? allowed-base-packages %))
+         first)))
+
+(defn enrich-schema-with-fhir-version [schema version]
+  (if version
+    (assoc schema :fhir-version version)
+    (assoc schema :fhir-version (:package schema))))
+
 (defmethod retrieve :url
   [{:keys [source]} {:keys [exit] :as opts}]
   (let [extract-link (fn [package] (-> package :href))
@@ -122,7 +131,9 @@
                           []))]
     (->> fhir-packages
          ;; TODO using pmap for side effects is questionable
-         (pmap (fn [package]
-                 (println "Downloading schemas for:" (extract-name package))
-                 (fetch-n-parse (extract-link package) opts)))
+         (map (fn [package]
+                (let [base-package-name (get-fhir-version package)
+                      schemas (fetch-n-parse (extract-link package) opts)]
+                  (println "Downloading schemas for:" (extract-name package))
+                  (map #(enrich-schema-with-fhir-version % base-package-name)  schemas))))
          (flatten))))

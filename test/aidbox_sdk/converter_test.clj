@@ -30,6 +30,37 @@
        :summary true,
        :elements {:referenceRange {:array true, :type "Reference"}}}}}))
 
+(deftest test-resolve-dependencies
+  (testing "simple case"
+    (is (= #{"Address"
+             "Attachment"
+             "Period"
+             "CodeableConcept"
+             "ContactPoint"
+             "HumanName"
+             "DomainResource"
+             "Reference"
+             "Identifier"
+             "BackboneElement"}
+           (-> (sut/resolve-dependencies [(dissoc (fixt/get-data :patient-ir-schema) :deps)])
+               first
+               :deps))))
+
+  (testing "another package"
+    (is (= #{"Address"
+             "Attachment"
+             "Period"
+             "CodeableConcept"
+             "ContactPoint"
+             "HumanName"
+             "DomainResource"
+             "Reference"
+             "Identifier"
+             "BackboneElement"}
+           (-> (sut/resolve-dependencies [(dissoc (fixt/get-data :patient-ir-schema) :deps)])
+               first
+               :deps)))))
+
 (deftest test-url->resource-name
   (testing "one word"
     (is (= "Immunization"
@@ -82,8 +113,6 @@
                           [(fixt/get-data :vitalsigns-fhir-schema)
                            (fixt/get-data :us-core-vital-signs-fhir-schema)
                            (fixt/get-data :us-core-bmi-fhir-schema)]))))))
-
-(fixt/get-data :vitalsigns-fhir-schema)
 
 (deftest test-sort-by-base
   (match

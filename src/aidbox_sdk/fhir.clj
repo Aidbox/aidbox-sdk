@@ -159,3 +159,6 @@
   (filter #(= url (:url %)) schemas))
 
 (def find-by-url (comp first filter-by-url))
+
+(defn base-package? [schema]
+  (contains? #{"hl7.fhir.r4.core" "hl7.fhir.r4b.core" "hl7.fhir.r5.core"} (:package schema)))
