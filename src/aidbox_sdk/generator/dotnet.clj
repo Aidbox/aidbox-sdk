@@ -242,11 +242,7 @@
 
 (defn resource-file-path [ir-schema]
   (io/file (package->directory (:package ir-schema))
-           (str (:name ir-schema) ".cs")))
-
-(defn constraint-file-path [ir-schema name]
-  (io/file (package->directory (:package ir-schema))
-           (str (->pascal-case (url->resource-name name)) ".cs")))
+           (str (->pascal-case (:resource-name ir-schema)) ".cs")))
 
 (defrecord DotNetCodeGenerator []
   CodeGenerator
