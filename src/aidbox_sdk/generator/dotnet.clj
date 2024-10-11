@@ -4,7 +4,8 @@
    [aidbox-sdk.generator.helpers :refer [->pascal-case uppercase-first-letter]]
    [aidbox-sdk.generator.utils :as u]
    [clojure.java.io :as io]
-   [clojure.string :as str])
+   [clojure.string :as str]
+   [aidbox-sdk.fhir :as fhir])
   (:import
    [aidbox_sdk.generator CodeGenerator]))
 
@@ -244,6 +245,60 @@
   (io/file (package->directory (:package ir-schema))
            (str (->pascal-case (:resource-name ir-schema)) ".cs")))
 
+(defn generate-resource-map [schemas]
+  ;; TODO refactor
+  ;; The base or not base should be decided on converter layer
+  (->> schemas
+       (remove (fn [schema]
+                 (fhir/primitive-type? schema)))
+       (map (fn [schema]
+              (assoc schema :base? (or (fhir/base-type? schema)
+                                       (and (fhir/datatype? schema)
+                                            (not (fhir/primitive-type? schema)))))))
+       (sort-by :base?)
+       (reverse)
+       (map (fn [schema]
+              (let [class-name' (class-name (:resource-name schema))
+                    module-name (if (:base? schema)
+                                  "Base"
+                                  (package->module-name (:package schema)))]
+                (format "{ typeof(Aidbox.FHIR.%s.%s), \"%s\"}"
+                        module-name
+                        class-name'
+                        class-name'))))))
+
+(defn generate-utils-namespace [ir-schemas]
+  (str/join "\n" ["using System.Text.Json;"
+                  "using System.Text.Json.Serialization;"
+                  ""
+                  "namespace Aidbox.FHIR.Utils;"
+                  ""
+                  "public interface IResource { string? Id { get; set; } }"
+                  ""
+                  "public class LowercaseNamingPolicy : JsonNamingPolicy"
+                  "{"
+                  "    public override string ConvertName(string name) => name.ToLower();"
+                  "}"
+                  ""
+                  "public class Config"
+                  "{"
+                  "    public static readonly JsonSerializerOptions JsonSerializerOptions = new()"
+                  "    {"
+                  "        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,"
+                  "        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,"
+                  "        Converters = { new JsonStringEnumConverter(new LowercaseNamingPolicy()) },"
+                  "        WriteIndented = true"
+                  "    };"
+                  ""
+                  "    public static readonly Dictionary<Type, string> ResourceMap = new()"
+                  "    {"
+                  (->> (generate-resource-map ir-schemas)
+                       (map u/add-indent)
+                       (map u/add-indent)
+                       (str/join ",\n"))
+                  "    };"
+                  "}"]))
+
 (defrecord DotNetCodeGenerator []
   CodeGenerator
   (generate-datatypes [_ ir-schemas]
@@ -284,6 +339,9 @@
                       (assoc ir-schema :url (:url ir-schema)))})
          constrained-ir-schemas))
 
-  (generate-sdk-files [_] (generator/prepare-sdk-files :dotnet)))
+  (generate-sdk-files [_ ir-schemas]
+    (let [common-sdk-files (generator/prepare-sdk-files :dotnet)
+          utils (generate-utils-namespace ir-schemas)]
+      (conj common-sdk-files {:path (io/file "Utils.cs") :content utils}))))
 
 (def generator (->DotNetCodeGenerator))

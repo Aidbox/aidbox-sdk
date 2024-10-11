@@ -272,6 +272,6 @@
                                                 (map generate-class (:backbone-elements ir-schema)))])})
          constraint-ir-schemas))
 
-  (generate-sdk-files [_] (generator/prepare-sdk-files :python)))
+  (generate-sdk-files [_ _] (generator/prepare-sdk-files :python)))
 
 (def generator (->PythonCodeGenerator))

@@ -190,3 +190,25 @@
         {:path (io/file "hl7-fhir-r4-core/Patient.cs"),
          :content
          "using Aidbox.FHIR.Base;\nusing Aidbox.FHIR.Utils;\n\nnamespace Aidbox.FHIR.R4.Core;\n\npublic class Patient : DomainResource, IResource\n{\n    public bool? MultipleBirthBoolean { get; set; }\n    public Base.Address[]? Address { get; set; }\n    public string? DeceasedDateTime { get; set; }\n    public Base.ResourceReference? ManagingOrganization { get; set; }\n    public bool? DeceasedBoolean { get; set; }\n    public Base.HumanName[]? Name { get; set; }\n    public string? BirthDate { get; set; }\n    public int? MultipleBirthInteger { get; set; }\n    public object? MultipleBirth    \n    {\n        get\n        {\n            if (MultipleBirthBoolean is not null)\n            {\n                return MultipleBirthBoolean;\n            }\n    \n            if (MultipleBirthInteger is not null)\n            {\n                return MultipleBirthInteger;\n            }\n    \n            return null;\n        }\n    \n        set\n        {\n            if (value?.GetType() == typeof(bool))\n            {\n                MultipleBirthBoolean = (bool)value;return;\n            }\n    \n            if (value?.GetType() == typeof(int))\n            {\n                MultipleBirthInteger = (int)value;return;\n            }\n    \n            throw new ArgumentException(\"Invalid type provided\");\n        }\n    }\n    public object? Deceased    \n    {\n        get\n        {\n            if (DeceasedDateTime is not null)\n            {\n                return DeceasedDateTime;\n            }\n    \n            if (DeceasedBoolean is not null)\n            {\n                return DeceasedBoolean;\n            }\n    \n            return null;\n        }\n    \n        set\n        {\n            if (value?.GetType() == typeof(string))\n            {\n                DeceasedDateTime = (string)value;return;\n            }\n    \n            if (value?.GetType() == typeof(bool))\n            {\n                DeceasedBoolean = (bool)value;return;\n            }\n    \n            throw new ArgumentException(\"Invalid type provided\");\n        }\n    }\n    public Base.Attachment[]? Photo { get; set; }\n    public Patient_Link[]? Link { get; set; }\n    public bool? Active { get; set; }\n    public Patient_Communication[]? Communication { get; set; }\n    public Base.Identifier[]? Identifier { get; set; }\n    public Base.ContactPoint[]? Telecom { get; set; }\n    public Base.ResourceReference[]? GeneralPractitioner { get; set; }\n    public string? Gender { get; set; }\n    public Base.CodeableConcept? MaritalStatus { get; set; }\n    public Patient_Contact[]? Contact { get; set; }\n\n    public class Patient_Link : BackboneElement\n    {\n        public required string Type { get; set; }\n        public required Base.ResourceReference Other { get; set; }\n    }\n\n    public class Patient_Communication : BackboneElement\n    {\n        public required Base.CodeableConcept Language { get; set; }\n        public bool? Preferred { get; set; }\n    }\n\n    public class Patient_Contact : BackboneElement\n    {\n        public Base.HumanName? Name { get; set; }\n        public string? Gender { get; set; }\n        public Base.Period? Period { get; set; }\n        public Base.Address? Address { get; set; }\n        public Base.ContactPoint[]? Telecom { get; set; }\n        public Base.ResourceReference? Organization { get; set; }\n        public Base.CodeableConcept[]? Relationship { get; set; }\n    }\n}"})))
+
+(deftest test-generate-resource-map
+  (is
+   (= ["{ typeof(Aidbox.FHIR.Aidbox.FHIR.R4.Core.Observation), \"Observation\"}"
+       "{ typeof(Aidbox.FHIR.Aidbox.FHIR.Uv.Sdc.SdcQuestionLibrary), \"SdcQuestionLibrary\"}"]
+      (gen.dotnet/generate-resource-map [{:package "hl7.fhir.uv.sdc",
+                                          :name "Demographics",
+                                          :id "sdc-question-library"
+                                          :resource-name "sdc-question-library",
+                                          :type "Demographics",
+                                          :url "http://hl7.org/fhir/uv/sdc/StructureDefinition/sdc-question-library",
+                                          :base "http://hl7.org/fhir/StructureDefinition/Resource",
+                                          :fhir-version "hl7.fhir.r4.core"}
+                                         {:package "hl7.fhir.r4.core",
+                                          :derivation "specialization",
+                                          :name "Observation",
+                                          :resource-name "Observation",
+                                          :type "Observation",
+                                          :url "http://hl7.org/fhir/StructureDefinition/Observation",
+                                          :base-resource-name "Domain-Resource",
+                                          :base "http://hl7.org/fhir/StructureDefinition/DomainResource",
+                                          :fhir-version "hl7.fhir.r4.core"}]))))

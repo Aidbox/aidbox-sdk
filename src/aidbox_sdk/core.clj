@@ -115,7 +115,7 @@
     (save-files! (generator/generate-search-params generator' search-param-ir-schemas))
 
     (println "Generating common SDK files")
-    (save-files! (generator/generate-sdk-files generator'))
+    (save-files! (generator/generate-sdk-files generator' ir-schemas))
 
     (println "Finished succesfully!")
     (println "Output dir: " (.getAbsolutePath output-dir))))

@@ -188,6 +188,10 @@
           (url->resource-name (:url schema)))
          (safe-conj
           (hash-map :base (get schema :base)
+                    ;; FIXME `id`and `kind` need only for .NET resource map generation
+                    ;; remove them from IR Schema after refactoring
+                    :id (get schema :id)
+                    :kind (get schema :kind)
                     :resource-name (url->resource-name (get schema :url))
                     :base-resource-name (when (get schema :base)
                                           (url->resource-name (get schema :base)))

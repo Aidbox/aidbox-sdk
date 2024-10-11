@@ -214,6 +214,6 @@
                                                  (map generate-class (:backbone-elements ir-schema)))]})})
          ir-schemas))
 
-  (generate-sdk-files [_] (generator/prepare-sdk-files :typescript)))
+  (generate-sdk-files [_ _] (generator/prepare-sdk-files :typescript)))
 
 (def generator (->TypeScriptCodeGenerator))

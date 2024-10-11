@@ -3,6 +3,8 @@
  :name "Extension",
  :type "Extension",
  :fhir-version "hl7.fhir.r4.core"
+  :id "organization-preferredContact",
+  :kind "complex-type",
  :resource-name "organization-preferred-Contact"
  :elements
  [{:name "url",

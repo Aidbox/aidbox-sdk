@@ -796,6 +796,8 @@
   {:package "hl7.fhir.r4.core",
   :derivation "specialization",
   :name "Patient",
+  :id "Patient",
+  :kind "resource",
   :resource-name "Patient",
   :type "Patient",
   :elements
