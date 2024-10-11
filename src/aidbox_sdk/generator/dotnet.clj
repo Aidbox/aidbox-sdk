@@ -231,7 +231,7 @@
    :name (package->module-name (:package schema))
    :deps [{:module "Aidbox.FHIR.Base" :members []}
           {:module "Aidbox.FHIR.Utils" :members []}]
-   :classes (generate-class schema (map generate-class schema))))
+   :classes (generate-class schema (map generate-class (:backbone-elements schema)))))
 
 ;;
 ;; main
