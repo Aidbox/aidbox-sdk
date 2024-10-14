@@ -20,6 +20,7 @@
 ;;
 
 (defn create-directory! [^java.io.File dir]
+  (io/make-parents dir)
   (when-not (.mkdir dir)
     (throw (Exception. (str "Can't create directory: " dir)))))
 
