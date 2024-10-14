@@ -160,6 +160,6 @@
                                           (generate-backbone-classes ir-schema))]})})
   (generate-search-params [_ ir-schemas] [])
   (generate-constraints [_ ir-schemas] [])
-  (generate-sdk-files [this] []))
+  (generate-sdk-files [_ _] []))
 
 (def generator (->JavaCodeGenerator))
