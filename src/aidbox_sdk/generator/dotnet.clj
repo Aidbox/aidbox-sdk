@@ -260,9 +260,9 @@
        (map (fn [schema]
               (let [class-name' (class-name (:resource-name schema))
                     module-name (if (:base? schema)
-                                  "Base"
+                                  "Aidbox.FHIR.Base"
                                   (package->module-name (:package schema)))]
-                (format "{ typeof(Aidbox.FHIR.%s.%s), \"%s\"}"
+                (format "{ typeof(%s.%s), \"%s\"}"
                         module-name
                         class-name'
                         class-name'))))))
