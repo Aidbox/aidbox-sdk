@@ -136,7 +136,7 @@
           (= (:type element) "Meta")
           (if (:profile element)
             (format "public new Meta Meta { get; } = new() { Profile = [\"%s\"] };" (:profile element))
-            (format "public %s%s Meta { get; set; }" required' name'))
+            (format "public %sMeta %s { get; set; }" required' name'))
 
           :else
           (str "public " type " " name' " { get; set; }"
