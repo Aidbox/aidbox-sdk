@@ -193,8 +193,8 @@
 
 (deftest test-generate-resource-map
   (is
-   (= ["{ typeof(Aidbox.FHIR.Aidbox.FHIR.R4.Core.Observation), \"Observation\"}"
-       "{ typeof(Aidbox.FHIR.Aidbox.FHIR.Uv.Sdc.SdcQuestionLibrary), \"SdcQuestionLibrary\"}"]
+   (= ["{ typeof(Aidbox.FHIR.R4.Core.Observation), \"Observation\"}"
+       "{ typeof(Aidbox.FHIR.Uv.Sdc.SdcQuestionLibrary), \"SdcQuestionLibrary\"}"]
       (gen.dotnet/generate-resource-map [{:package "hl7.fhir.uv.sdc",
                                           :name "Demographics",
                                           :id "sdc-question-library"
