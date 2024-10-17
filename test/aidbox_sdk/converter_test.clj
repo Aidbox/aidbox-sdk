@@ -2,9 +2,9 @@
   (:require
    [aidbox-sdk.converter :as sut]
    [aidbox-sdk.fixtures :as fixt]
-   [matcho.core :refer [match]]
    [aidbox-sdk.fixtures.schemas :as fixtures]
-   [clojure.test :refer [deftest is testing use-fixtures]]))
+   [clojure.test :refer [deftest is testing use-fixtures]]
+   [matcho.core :refer [match]]))
 
 (use-fixtures :once fixt/prepare-examples)
 
@@ -103,9 +103,7 @@
 
   (testing "convert constraint"
     (is (= [(fixt/get-data :organization-preferred-contact-ir-schema)]
-           (sut/convert [(fixt/get-data :organization-preferred-contact-fhir-schema)])
-
-           ))))
+           (sut/convert [(fixt/get-data :organization-preferred-contact-fhir-schema)])))))
 
 (deftest test-apply-constraints
   (testing "constraints"

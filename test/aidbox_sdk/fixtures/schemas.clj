@@ -1442,45 +1442,62 @@
       :value "string"}],
     :name "TestReport_Test"}])
 
-(def coding-ir-schema {:package "hl7.fhir.r4.core",
-                       :derivation "specialization",
-                       :name "Coding",
-                       :type "Coding",
-                       :elements
-                       [{:name "code",
-                         :base "Coding",
-                         :array false,
-                         :required false,
-                         :value "string"
-                         :type "string"}
-                        {:name "system",
-                         :base "Coding",
-                         :array false,
-                         :required false,
-                         :value "string"
-                         :type "string"}
-                        {:name "display",
-                         :base "Coding",
-                         :array false,
-                         :required false,
-                         :type "string"
-                         :value "string"}
-                        {:name "version",
-                         :base "Coding",
-                         :array false,
-                         :required false,
-                         :type "string"
-                         :value "string"}
-                        {:name "userSelected",
-                         :base "Coding",
-                         :array false,
-                         :required false,
-                         :type "boolean"
-                         :value "bool"}],
-                       :url "http://hl7.org/fhir/StructureDefinition/Coding",
-                       :backbone-elements (),
-                       :base "http://hl7.org/fhir/StructureDefinition/Element"
-                       :base-resource-name "Element"})
+(def coding-ir-schema
+  {:package "hl7.fhir.r4.core",
+   :derivation "specialization",
+   :name "Coding",
+   :resource-name "Coding",
+   :type "Coding",
+   :elements
+   [{:name "code",
+     :base "Coding",
+     :array false,
+     :required false,
+     :value "string",
+     :type "code",
+     :choice-option false,
+     :service-type false}
+    {:name "system",
+     :base "Coding",
+     :array false,
+     :required false,
+     :value "string",
+     :type "uri",
+     :choice-option false,
+     :service-type false}
+    {:name "display",
+     :base "Coding",
+     :array false,
+     :required false,
+     :value "string",
+     :type "string",
+     :choice-option false,
+     :service-type false}
+    {:name "version",
+     :base "Coding",
+     :array false,
+     :required false,
+     :value "string",
+     :type "string",
+     :choice-option false,
+     :service-type false}
+    {:name "userSelected",
+     :base "Coding",
+     :array false,
+     :required false,
+     :value "bool",
+     :type "boolean",
+     :choice-option false,
+     :service-type false}],
+   :id "Coding",
+   :kind "complex-type",
+   :url "http://hl7.org/fhir/StructureDefinition/Coding",
+   :base-resource-name "Element",
+   :backbone-elements [],
+   :base "http://hl7.org/fhir/StructureDefinition/Element",
+   :service-type? true,
+   :fhir-version "hl7.fhir.r4.core",
+   :deps #{"Element"}})
 
 (def patient-search-params-schemas
   [{:description

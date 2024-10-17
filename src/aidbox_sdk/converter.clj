@@ -197,6 +197,7 @@
                                           (url->resource-name (get schema :base)))
                     :fhir-version (get schema :fhir-version)
                     :package (get schema :package)
+                    :service-type? (fhir/service-type? schema)
                     :url (get schema :url)
                     :type (get schema :type)
                     :derivation (get schema :derivation))))))
@@ -216,6 +217,23 @@
                  x))
              elements))))
 
+(defn add-service-type-flag
+  "Adds `service-type` flag to each element. The value will be `true` if type of
+  element belongs to service-types, and `false` otherwise."
+  [schema]
+  (letfn [(update-elements [elements]
+            (walk/postwalk
+             (fn [x]
+               (if (:type x)
+                 (let [service-type? (fhir/service-type-element? (:fhir-version schema) x)]
+                   (assoc x :service-type service-type?))
+                 x))
+             elements))]
+    (-> schema
+        (update :elements update-elements)
+        (update :backbone-elements (fn [backbone-elements]
+                                     (for [backbone backbone-elements]
+                                       (update backbone :elements update-elements)))))))
 ;;
 
 (defn find-elements-by-names [element-names schema]
@@ -267,7 +285,6 @@
 ;; Convert main function
 ;;
 
-
 (defn convert [schemas]
   (->> schemas
        (map resolve-element-references)
@@ -276,7 +293,8 @@
        (map (fn [schema]
               (update schema :backbone-elements #(resolve-choices (flatten-backbones % [])))))
        (resolve-choices)
-       (resolve-dependencies)))
+       (resolve-dependencies)
+       (map add-service-type-flag)))
 
 ;;
 ;; Search Params

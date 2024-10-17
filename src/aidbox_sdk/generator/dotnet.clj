@@ -9,37 +9,45 @@
   (:import
    [aidbox_sdk.generator CodeGenerator]))
 
+(def base-namespace "Aidbox.FHIR.Base")
+(def utils-namespace "Aidbox.FHIR.Utils")
+
+(def fhir-type->lang-type
+  {"boolean"      "bool"
+   "instant"      "string"
+   "time"         "string"
+   "date"         "string"
+   "dateTime"     "string"
+
+   "decimal"      "decimal"
+   "integer"      "int"
+   "unsignedInt"  "long"
+   "positiveInt"  "long"
+   "integer64"    "long"
+   "base64Binary" "string"
+
+   "uri"          "string"
+   "url"          "string"
+   "canonical"    "string"
+   "oid"          "string"
+   "uuid"         "string"
+
+   "string"       "string"
+   "code"         "string"
+   "markdown"     "string"
+   "id"           "string"
+   "xhtml"        "string"})
+
 (defn ->lang-type [fhir-type]
-  (case fhir-type
-    ;; Primitive Types
-    "boolean"      "bool"
-    "instant"      "string"
-    "time"         "string"
-    "date"         "string"
-    "dateTime"     "string"
-    "decimal"      "number"
+  (get fhir-type->lang-type fhir-type fhir-type))
 
-    "integer"      "int"
-    "unsignedInt"  "long"
-    "positiveInt"  "long"
-
-    "integer64"    "long"
-    "base64Binary" "string"
-
-    "uri"          "string"
-    "url"          "string"
-    "canonical"    "string"
-    "oid"          "string"
-    "uuid"         "string"
-
-    "string"       "string"
-    "code"         "string"
-    "markdown"     "string"
-    "id"           "string"
-    "xhtml"        "string"
-
-    ;; else
-    fhir-type))
+(defn get-type [{:keys [type service-type] :as _element}]
+  (cond
+    (= type "Expression") "Base.ResourceExpression"
+    (= type "Reference")  "Base.ResourceReference"
+    :else (if service-type
+            (str "Base." type)
+            (->lang-type type))))
 
 (defn generate-polymorphic-property [element]
   (str "public object?"
@@ -85,13 +93,13 @@
              (->> (:choices element)
                   (map (fn [choice]
                          (str (u/x2 u/indent)
-                              "if (value?.GetType() == typeof(" (:value choice) "))\n"
+                              "if (value?.GetType() == typeof(" (get-type choice) "))\n"
                               (u/x2 u/indent)
                               "{"
                               "\n"
                               u/indent
                               (u/x2 u/indent)
-                              (->pascal-case (:name choice)) " = (" (:value choice) ")value;"
+                              (->pascal-case (:name choice)) " = (" (get-type choice) ")value;"
                               "\n"
                               (u/x3 u/indent)
                               "return;"
@@ -111,70 +119,70 @@
             (map #(str u/indent %))
             (str/join "\n"))))
 
-(defn url->resource-name [url]
-  (last (str/split (str url) #"/")))
-
-(defn ->backbone-type [element]
-  (str/replace (str (:base element) (uppercase-first-letter (:name element))) "[-_]" ""))
-
 (defn generate-property
   "Generates class property from schema element."
-  [{:keys [name array required value type choices] :as element}]
+  [{:keys [name array required type choices service-type] :as element}]
   (let [name'     (->pascal-case name)
-        lang-type (str/replace (or value type "") #"[_-]" "")
+        type'     (get-type element)
+        lang-type (str/replace (or type' "") #"[_-]" "")
         required' (if required "required " "")
-        type      (str
-                   required'
-                   lang-type
-                   (:generic element)
-                   (when array "[]")
-                   (when (and (not required)
-                              (not (:literal element))) "?"))]
-    (cond choices
-          (generate-polymorphic-property element)
+        nullable  (if required "" "?")
+        type      (str required'
+                       lang-type
+                       (:generic element)
+                       (when array "[]")
+                       (when (and (not required)
+                                  (not (:literal element))) "?"))]
+    (cond
+      choices
+      #_(generate-polymorphic-property element)
+      nil
 
-          (= (:type element) "Meta")
-          (if (:profile element)
-            (format "public new Meta Meta { get; } = new() { Profile = [\"%s\"] };" (:profile element))
-            (format "public %sMeta %s { get; set; }" required' name'))
+      (= (:type element) "Meta")
+      (if (:profile element)
+        (format "public new Meta Meta { get; } = new() { Profile = [\"%s\"] };" (:profile element))
+        (format "public %sMeta%s %s { get; set; }" required' nullable name'))
 
-          :else
-          (str "public " type " " name' " { get; set; }"
-               (when (and (:required element)
-                          (:codeable-concept-pattern element)) " = new()")
-               (:meta element)))))
+      :else
+      (str "public " type " " name' " { get; set; }"
+           (when (and (:required element)
+                      (:codeable-concept-pattern element)) " = new()")
+           (:meta element)))))
+
+(defn url->resource-name [url]
+  (last (str/split (str url) #"/")))
 
 (defn class-name
   "Generate class name from schema url."
   [resource-name]
   (let [n (->pascal-case resource-name)]
     (cond
-      (= n "Expression")  "ResourceExpression"
-      (= n "Reference")   "ResourceReference"
+      (= n "Expression") "ResourceExpression"
+      (= n "Reference")  "ResourceReference"
       :else n)))
 
 (defn generate-class [schema & [inner-classes]]
-  (let [base-class (url->resource-name (:base schema))
-        schema-name (or (:url schema) (:name schema))
-        generic (when (= (:type schema) "Bundle") "<T>")
-        class-name' (class-name (str (or (:resource-name schema)
-                                     ;; need for BackboneElement
-                                         (:name schema)
-                                         "") generic))
-        elements (->> (:elements schema)
-                      (map #(if (and (= (:base %) "Bundle_Entry")
-                                     (= (:name %) "resource"))
-                              (assoc % :value "T")
-                              %)))
-
-        properties (->> elements
-                        (map generate-property)
-                        (map u/add-indent)
-                        (str/join "\n"))
-
+  (let [base-class  (url->resource-name (:base schema))
+        class-name' (if (= (:type schema) "Bundle")
+                      "Bundle<T>"
+                      (class-name (:resource-name schema)))
+        elements    (->> (:elements schema)
+                         ;; NOTE: this is a hack for Bundle since it's a generic
+                         ;; class and currently we do not have a solution for
+                         ;; generating generic classes
+                         (map #(if (and (= (:base %) "Bundle_Entry")
+                                        (= (:name %) "resource"))
+                                 (-> %
+                                     (assoc :type "T")
+                                     (assoc :service-type false))
+                                 %)))
+        properties  (->> elements
+                         (map generate-property)
+                         (remove nil?)
+                         (map u/add-indent)
+                         (str/join "\n"))
         base-class-name (when-not (str/blank? base-class)
-                          (str " : " (uppercase-first-letter base-class)))]
-
+                          (str " : " (class-name base-class)))]
     (str "public class " class-name' base-class-name "\n{"
          (when-not (str/blank? properties)
            "\n")
@@ -209,30 +217,18 @@
   "Generate directory name from package name.
   hl7.fhir.r4.core#4.0.1 -> hl7-fhir-r4-core"
   [x]
-  (-> x
-      (str/replace #"[\.#]" "-")))
+  (str/replace x #"[\.#]" "-"))
 
 (defn package->module-name
   "Convert package name to namespace.
   hl7.fhir.r4.core#4.0.1 -> Aidbox.FHIR.R4.Core"
   [x]
   (str "Aidbox.FHIR."
-       (->> (-> x
-                (str/replace #"hl7.fhir." "")
-                (str/split #"\."))
+       (->> (str/split
+             (str/replace x #"hl7.fhir." "")
+             #"\.")
             (map ->pascal-case)
             (str/join "."))))
-
-;;
-;; Constraints
-;;
-
-(defn generate-constraint-module [schema]
-  (generate-module
-   :name (package->module-name (:package schema))
-   :deps [{:module "Aidbox.FHIR.Base" :members []}
-          {:module "Aidbox.FHIR.Utils" :members []}]
-   :classes (generate-class schema (map generate-class (:backbone-elements schema)))))
 
 ;;
 ;; main
@@ -246,22 +242,15 @@
            (str (->pascal-case (:resource-name ir-schema)) ".cs")))
 
 (defn generate-resource-map [schemas]
-  ;; TODO refactor
-  ;; The base or not base should be decided on converter layer
   (->> schemas
-       (remove (fn [schema]
-                 (fhir/primitive-type? schema)))
-       (map (fn [schema]
-              (assoc schema :base? (or (fhir/base-type? schema)
-                                       (and (fhir/datatype? schema)
-                                            (not (fhir/primitive-type? schema)))))))
-       (sort-by :base?)
-       (reverse)
+       (remove fhir/primitive-type?)
+       (remove fhir/extension?)
+       (remove fhir/logical?)
+       (remove :service-type?)
+       (sort-by :resource-name)
        (map (fn [schema]
               (let [class-name' (class-name (:resource-name schema))
-                    module-name (if (:base? schema)
-                                  "Aidbox.FHIR.Base"
-                                  (package->module-name (:package schema)))]
+                    module-name (package->module-name (:package schema))]
                 (format "{ typeof(%s.%s), \"%s\"}"
                         module-name
                         class-name'
@@ -304,16 +293,16 @@
   (generate-datatypes [_ ir-schemas]
     [{:path (datatypes-file-path)
       :content (generate-module
-                :name "Aidbox.FHIR.Base"
+                :name base-namespace
                 :deps []
-                :classes (map generate-class ir-schemas))}])
+                :classes (map #(generate-class % (map generate-class (:backbone-elements %))) ir-schemas))}])
 
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)
      :content (generate-module
                :name (package->module-name (:package ir-schema))
-               :deps [{:module "Aidbox.FHIR.Base" :members []}
-                      {:module "Aidbox.FHIR.Utils" :members []}]
+               :deps [{:module base-namespace :members []}
+                      {:module utils-namespace :members []}]
                :classes [(generate-class ir-schema
                                          (map generate-class (:backbone-elements ir-schema)))])})
 
@@ -335,8 +324,13 @@
   (generate-constraints [_ constrained-ir-schemas]
     (map (fn [ir-schema]
            {:path (resource-file-path ir-schema)
-            :content (generate-constraint-module
-                      (assoc ir-schema :url (:url ir-schema)))})
+            :content (generate-module
+                      :name (package->module-name (:package ir-schema))
+                      :deps [{:module base-namespace :members []}
+                             {:module utils-namespace :members []}]
+                      :classes (generate-class
+                                ir-schema
+                                (map generate-class (:backbone-elements ir-schema))))})
          constrained-ir-schemas))
 
   (generate-sdk-files [_ ir-schemas]

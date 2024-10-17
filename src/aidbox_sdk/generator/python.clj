@@ -229,7 +229,7 @@
                        {:module "typing" :members ["Optional" "List"]}
                        {:module "dataclasses" :members ["dataclass", "field"]}]
                 :classes
-                (map generate-class ir-schemas))}])
+                (map #(generate-class % (map generate-class (:backbone-elements %))) ir-schemas))}])
 
   (generate-resource-module [_ ir-schema]
     {:path (resource-file-path ir-schema)

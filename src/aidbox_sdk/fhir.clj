@@ -5,7 +5,10 @@
 
 ;; Base Types and Datatypes
 
-(def r4-base-types #{"Element" "Resource" "DomainResource"})
+(def r4-base-types #{"Element" "Resource" "DomainResource"
+                     ;; NOTE: technically `Bundle` is not a base type,
+                     ;; but it's here for a reason.
+                     "Bundle"})
 
 (def r4-primitive-types
   #{"boolean" "integer" "string" "decimal" "uri" "url" "canonical" "base64Binary"
@@ -32,6 +35,13 @@
              r4-metadata-types
              r4-special-purpose-datatypes))
 
+(def r4-service-types
+  "This is special set of types that are not represented in FHIR in no way,
+  but are needed for SDK generation. Essentially, service schemas are:
+  base types + datatypes - primitive-types."
+  (set/union (set/difference r4-datatypes r4-primitive-types)
+             r4-base-types))
+
 (def r4b-base-types r4-base-types)
 
 (def r4b-primitive-types r4-primitive-types)
@@ -50,6 +60,13 @@
              r4b-general-purpose-datatypes
              r4b-metadata-types
              r4b-special-purpose-datatypes))
+
+(def r4b-service-types
+  "This is special set of types that are not represented in FHIR in no way,
+  but are needed for SDK generation. Essentially, service schemas are:
+  base types + datatypes - primitive-types."
+  (set/union (set/difference r4b-datatypes r4b-primitive-types)
+             r4b-base-types))
 
 (def r5-base-types
   #{"Base" "Element" "BackboneElement" "DataType" "PrimitiveType" "BackboneType"
@@ -72,6 +89,13 @@
              r5-general-purpose-datatypes
              r5-metadata-types
              r5-special-purpose-datatypes))
+
+(def r5-service-types
+  "This is special set of types that are not represented in FHIR in no way,
+  but are needed for SDK generation. Essentially, service schemas are:
+  base types + datatypes - primitive-types."
+  (set/union (set/difference r5-datatypes r5-primitive-types)
+             r5-base-types))
 
 ;; Predicates
 (defn resource-type-pred [rt]   (fn [schema] (= rt (:resourceType schema))))
@@ -162,3 +186,13 @@
 
 (defn base-package? [schema]
   (contains? #{"hl7.fhir.r4.core" "hl7.fhir.r4b.core" "hl7.fhir.r5.core"} (:package schema)))
+
+(defmulti service-type? :fhir-version)
+(defmethod service-type? "hl7.fhir.r4.core"  [schema] (contains? r4-service-types  (:id schema)))
+(defmethod service-type? "hl7.fhir.r4b.core" [schema] (contains? r4b-service-types (:id schema)))
+(defmethod service-type? "hl7.fhir.r5.core"  [schema] (contains? r5-service-types  (:id schema)))
+
+(defmulti service-type-element? (fn [package _element] package))
+(defmethod service-type-element? "hl7.fhir.r4.core"  [_ {:keys [type]}] (contains? r4-service-types  type))
+(defmethod service-type-element? "hl7.fhir.r4b.core" [_ {:keys [type]}] (contains? r4b-service-types type))
+(defmethod service-type-element? "hl7.fhir.r5.core"  [_ {:keys [type]}] (contains? r5-service-types  type))
