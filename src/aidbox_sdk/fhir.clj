@@ -191,8 +191,10 @@
 (defmethod service-type? "hl7.fhir.r4.core"  [schema] (contains? r4-service-types  (:id schema)))
 (defmethod service-type? "hl7.fhir.r4b.core" [schema] (contains? r4b-service-types (:id schema)))
 (defmethod service-type? "hl7.fhir.r5.core"  [schema] (contains? r5-service-types  (:id schema)))
+(defmethod service-type? :default [_] false)
 
 (defmulti service-type-element? (fn [package _element] package))
 (defmethod service-type-element? "hl7.fhir.r4.core"  [_ {:keys [type]}] (contains? r4-service-types  type))
 (defmethod service-type-element? "hl7.fhir.r4b.core" [_ {:keys [type]}] (contains? r4b-service-types type))
 (defmethod service-type-element? "hl7.fhir.r5.core"  [_ {:keys [type]}] (contains? r5-service-types  type))
+(defmethod service-type-element? :default [_ _] false)
