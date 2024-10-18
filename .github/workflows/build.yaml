@@ -93,4 +93,5 @@ jobs:
           name: build-${{ matrix.os }}
           path: |
             ./aidbox-sdk-*.zip
+            ./aidbox-sdk.jar
             ./aidbox-sdk-${{ matrix.os }}.exe
