@@ -232,7 +232,11 @@
                                                  (map generate-class (:backbone-elements ir-schema)))]})})
          ir-schemas))
 
-  (generate-sdk-files [_ _] (generator/prepare-sdk-files :typescript))
+  (generate-sdk-files [_ _]
+    (generator/prepare-sdk-files
+     :typescript
+     ["index.ts" "eslint.config.mjs" "http-client.ts" "package.json"
+      "package-lock.json" "tsconfig.json" "types/index.ts"]))
 
   (generate-valuesets [_ vs-schemas]
     (->> vs-schemas

@@ -142,9 +142,9 @@
 
 (defn retrieve-valuesets [fhir-versions]
   (let [fhir-version->value-set-file
-        {"hl7.fhir.r4.core"  "resources/r4-value-sets.edn"
-         "hl7.fhir.r4b.core" "resources/r4b-value-sets.edn"
-         "hl7.fhir.r5.core"  "resources/r5-value-sets.edn"}]
+        {"hl7.fhir.r4.core"  (io/resource "r4-value-sets.edn")
+         "hl7.fhir.r4b.core" (io/resource "r4b-value-sets.edn")
+         "hl7.fhir.r5.core"  (io/resource "r5-value-sets.edn")}]
     (reduce (fn [acc fhir-version]
               (let [valueset (walk/keywordize-keys
                               (edn/read-string
@@ -153,3 +153,4 @@
                 (assoc acc fhir-version valueset)))
             {}
             fhir-versions)))
+

@@ -272,7 +272,10 @@
                                                 (map generate-class (:backbone-elements ir-schema)))])})
          constraint-ir-schemas))
 
-  (generate-sdk-files [_ _] (generator/prepare-sdk-files :python))
+  (generate-sdk-files [_ _]
+    (generator/prepare-sdk-files
+     :python [".env.tpl" "pylintrc.toml" "setup.py" "aidbox/py.typed"
+              "aidbox/__init__.py"]))
 
   (generate-valuesets [_ vs-schemas]))
 

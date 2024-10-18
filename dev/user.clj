@@ -154,7 +154,6 @@
 
   ;; (re-)run server
   (do (require '[mock-server.main :as server])
-      (mock-server)
       (def mock-server (server/run)))
 
   ;; stop server

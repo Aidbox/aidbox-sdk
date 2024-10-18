@@ -334,7 +334,8 @@
          constrained-ir-schemas))
 
   (generate-sdk-files [_ ir-schemas]
-    (let [common-sdk-files (generator/prepare-sdk-files :dotnet)
+    (let [files-list ["Aidbox.csproj" "Api.cs" "Client.cs"]
+          common-sdk-files (generator/prepare-sdk-files :dotnet files-list)
           utils (generate-utils-namespace ir-schemas)]
       (conj common-sdk-files {:path (io/file "Utils.cs") :content utils})))
 
