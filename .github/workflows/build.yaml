@@ -82,10 +82,15 @@ jobs:
         run: |
           make compile-native-image project_dir=${{ github.workspace }} jar_path=aidbox-sdk.jar image_name=aidbox-sdk-${{ matrix.os }}
           chmod +x aidbox-sdk-${{ matrix.os }}
-          zip aidbox-sdk-${{ matrix.os }}.zip aidbox-sdk-${{ matrix.os }}
+
+          if [[ "${{ matrix.os }}" == "macos-latest" || "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            zip aidbox-sdk-${{ matrix.os }}.zip aidbox-sdk-${{ matrix.os }}
+          fi
 
       - name: Upload amd64 binary artifact
         uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.os }}
-          path: ./aidbox-sdk-*.zip
+          path: |
+            ./aidbox-sdk-*.zip
+            ./aidbox-sdk-${{ matrix.os }}.exe
