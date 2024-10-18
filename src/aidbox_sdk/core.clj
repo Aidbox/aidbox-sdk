@@ -45,26 +45,6 @@
   (doseq [{:keys [path content]} files]
     (save-to-file! (io/file output-dir path) content)))
 
-(defn value-sets [all-schemas]
-  (let [fhir-version->value-set-file
-        {"hl7.fhir.r4.core" "resources/r4-value-sets.edn"
-         "hl7.fhir.r4b.core" "resources/r4b-value-sets.edn"
-         "hl7.fhir.r5.core" "resources/r5-value-sets.edn"}
-        used-fhir-versions (->> all-schemas (map :fhir-version) distinct)]
-    (reduce (fn [acc fhir-version]
-              (let [value-set (walk/keywordize-keys
-                               (edn/read-string
-                                (slurp
-                                 (get fhir-version->value-set-file fhir-version))))
-                    prepared (->> value-set
-                                  (map #(hash-map
-                                         :name (:name %)
-                                         :values (map :code (-> % :expansion :contains))))
-                                  (remove #(> (count (:value %)) 20)))]
-                (assoc acc fhir-version prepared)))
-            {}
-            used-fhir-versions)))
-
 ;;
 ;;
 
