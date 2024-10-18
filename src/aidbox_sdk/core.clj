@@ -10,7 +10,8 @@
    [aidbox-sdk.generator.python :as python]
    [aidbox-sdk.generator.typescript :as typescript]
    [aidbox-sdk.schema :as importer]
-   [clojure.java.io :as io]))
+   [clojure.java.io :as io]
+   [clojure.edn :as edn]))
 
 ;; Need for GraalVM
 (set! *warn-on-reflection* true)
@@ -44,6 +45,26 @@
   (doseq [{:keys [path content]} files]
     (save-to-file! (io/file output-dir path) content)))
 
+(defn value-sets [all-schemas]
+  (let [fhir-version->value-set-file
+        {"hl7.fhir.r4.core" "resources/r4-value-sets.edn"
+         "hl7.fhir.r4b.core" "resources/r4b-value-sets.edn"
+         "hl7.fhir.r5.core" "resources/r5-value-sets.edn"}
+        used-fhir-versions (->> all-schemas (map :fhir-version) distinct)]
+    (reduce (fn [acc fhir-version]
+              (let [value-set (walk/keywordize-keys
+                               (edn/read-string
+                                (slurp
+                                 (get fhir-version->value-set-file fhir-version))))
+                    prepared (->> value-set
+                                  (map #(hash-map
+                                         :name (:name %)
+                                         :values (map :code (-> % :expansion :contains))))
+                                  (remove #(> (count (:value %)) 20)))]
+                (assoc acc fhir-version prepared)))
+            {}
+            used-fhir-versions)))
+
 ;;
 ;;
 
@@ -60,6 +81,11 @@
         all-schemas (importer/retrieve (importer/resource input)
                                        {:auth (:auth-token options)
                                         :exit (:exit options)})
+        ;; valuesets
+        used-fhir-versions      (->> all-schemas (map :fhir-version) distinct)
+        vs-schemas              (importer/retrieve-valuesets used-fhir-versions)
+        converted-vs-schemas    (converter/convert-valusets vs-schemas)
+        available-valuesets     (converter/available-valuesets converted-vs-schemas)
 
         base-type?       (every-pred fhir/fhir-schema? fhir/base-type?)
         datatype?        (every-pred fhir/fhir-schema? fhir/datatype? (complement fhir/primitive-type?))
@@ -80,10 +106,11 @@
                                            (fhir/backbone-element? %)))
                                      all-schemas)
 
-        ir-schemas              (converter/convert fhir-schemas)
-        base-ir-schemas         (converter/convert base-schemas)
-        datatype-ir-schemas     (converter/convert datatype-schemas)
-        resource-ir-schemas     (converter/convert resource-schemas)
+        ir-schemas              (converter/convert fhir-schemas available-valuesets)
+        base-ir-schemas         (converter/convert base-schemas available-valuesets)
+        datatype-ir-schemas     (converter/convert datatype-schemas available-valuesets)
+        resource-ir-schemas     (converter/convert resource-schemas available-valuesets)
+
         search-param-ir-schemas (converter/convert-search-params search-param-schemas
                                                                  fhir-schemas)
         constraint-ir-schemas   (converter/apply-constraints
@@ -117,6 +144,9 @@
 
     (println "Generating common SDK files")
     (save-files! (generator/generate-sdk-files generator' ir-schemas))
+
+    (println "Generating valuesets")
+    (save-files! (generator/generate-valuesets generator' converted-vs-schemas))
 
     (println "Finished succesfully!")
     (println "Output dir: " (.getAbsolutePath output-dir))))

@@ -10,8 +10,11 @@
   (:import
    [aidbox_sdk.generator CodeGenerator]))
 
-(defn package->directory "Generates directory name from package name.
+(def reserved-names #{"RequestPriority"})
+(def reserved-name-suffix "_")
 
+(defn package->directory
+  "Generates directory name from package name.
   Example:
   hl7.fhir.r4.core -> hl7-fhir-r4-core"
   [x]
@@ -68,7 +71,10 @@
 (defn class-name
   "Generate class name from schema resource name."
   [resource-name]
-  (->pascal-case resource-name))
+  (let [name' (->pascal-case resource-name)]
+    (if (contains? reserved-names name')
+      (str name' "_")
+      name')))
 
 (defn generate-polymorphic-property [{:keys [name required choices]}]
   (let [type (->> choices
@@ -92,8 +98,14 @@
             (format "%s%s: Meta;" name optional))
 
           :else
-          (let [type' (if (= "BackboneElement" type)
+          (let [type' (cond
+                        (= "BackboneElement" type)
                         (->backbone-type element)
+
+                        (:valueset element)
+                        (str "vs." (class-name (:valueset element)))
+
+                        :else
                         (->lang-type (:type element)))
                 primitive-type? (fhir/primitive-element? fhir-version element)]
             (str (str (->camel-case name) optional ": " type' (when array "[]") ";")
@@ -155,16 +167,22 @@
 
 (defn generate-deps
   "Takes an IR schema generates import declarations."
-  [{:keys [deps package fhir-version] :as ir-schema}]
+  [ir-schema]
   (let [relative-path (if (fhir/base-package? ir-schema)
                         "./"
-                        (str "../" (package->directory (:fhir-version ir-schema)) "/"))]
-    (->> (:deps ir-schema)
-         (map class-name)
-         (map (fn [d] {:module (str relative-path d) :members [d]}))
-         (map (fn [{:keys [module members]}]
-                (if (seq members) (format "import { %s } from \"%s\";" (str/join ", " members) module) (format "import * as %s from \"%s\";" (path->name module) module))))
-         (str/join "\n"))))
+                        (str "../" (package->directory (:fhir-version ir-schema)) "/"))
+        valueset-dep (when (fhir/base-package? ir-schema)
+                       "import * as vs from \"./valuesets\"")]
+    (str (->> (:deps ir-schema)
+              (map class-name)
+              (map (fn [d] {:module (str relative-path d) :members [d]}))
+              (map (fn [{:keys [module members]}]
+                     (if (seq members) (format "import { %s } from \"%s\";" (str/join ", " members) module) (format "import * as %s from \"%s\";" (path->name module) module))))
+              (str/join "\n"))
+         (when valueset-dep
+           (str
+            "\n"
+            valueset-dep)))))
 
 (defn generate-module
   [& {:keys [deps classes]
@@ -214,6 +232,20 @@
                                                  (map generate-class (:backbone-elements ir-schema)))]})})
          ir-schemas))
 
-  (generate-sdk-files [_ _] (generator/prepare-sdk-files :typescript)))
+  (generate-sdk-files [_ _] (generator/prepare-sdk-files :typescript))
+
+  (generate-valuesets [_ vs-schemas]
+    (->> vs-schemas
+         (map (fn [[fhir-version schemas]]
+                {:path (io/file (package->directory fhir-version) "valuesets.ts")
+                 :content
+                 (->> schemas
+                      (mapv (fn [vs]
+                              (let [type-name (class-name (:name vs))
+                                    values (->> (:values vs)
+                                                (map #(format "\"%s\"" %))
+                                                (str/join " | "))]
+                                (str "export type " type-name " = " values ";"))))
+                      (str/join "\n"))})))))
 
 (def generator (->TypeScriptCodeGenerator))

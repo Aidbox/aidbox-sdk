@@ -30,6 +30,17 @@
      :headers {"Content-Type" "application/json"}
      :body (slurp (io/file "resources/aidbox_schemas/r4/schemas.json"))}
 
+    "/r4b/fhir-packages"
+    {:status 200
+     :headers {"Content-Type" "application/json"}
+     :body (slurp (io/file "resources/aidbox_schemas/r4/fhir-packages.json"))}
+
+    "/r4b/fhir-packages/hl7.fhir.r4b.core%234.3.0/schemas"
+    {:status 200
+     :headers {"Content-Type" "application/json"}
+     :body (slurp (io/file "resources/aidbox_schemas/r4/schemas.json"))}
+
+
     ;; else
     (not-found)))
 

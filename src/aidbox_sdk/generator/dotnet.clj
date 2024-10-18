@@ -336,6 +336,8 @@
   (generate-sdk-files [_ ir-schemas]
     (let [common-sdk-files (generator/prepare-sdk-files :dotnet)
           utils (generate-utils-namespace ir-schemas)]
-      (conj common-sdk-files {:path (io/file "Utils.cs") :content utils}))))
+      (conj common-sdk-files {:path (io/file "Utils.cs") :content utils})))
+
+  (generate-valuesets [_ vs-schemas]))
 
 (def generator (->DotNetCodeGenerator))

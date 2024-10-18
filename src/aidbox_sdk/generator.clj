@@ -20,4 +20,5 @@
   (generate-resource-module [this ir-schema])
   (generate-search-params [this ir-schemas])
   (generate-constraints [this ir-schemas])
-  (generate-sdk-files [this ir-schemas]))
+  (generate-sdk-files [this ir-schemas])
+  (generate-valuesets [this vs-schemas]))

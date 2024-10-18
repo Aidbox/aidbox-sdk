@@ -3,7 +3,10 @@
             [aidbox-sdk.generator.helpers :refer [rand-int-between parse-json]]
             [clj-http.lite.client :as http.client]
             [clojure.java.io :as io]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [clojure.walk :as walk]
+            [clojure.data.json :as json]
+            [clojure.edn :as edn]))
 
 (defn get-packages-from-directory
   "Returns all packages in the given directory, including files in subdirectories. "
@@ -130,10 +133,23 @@
                           (exit 1)
                           []))]
     (->> fhir-packages
-         ;; TODO using pmap for side effects is questionable
          (map (fn [package]
                 (let [base-package-name (get-fhir-version package)
                       schemas (fetch-n-parse (extract-link package) opts)]
                   (println "Downloading schemas for:" (extract-name package))
                   (map #(enrich-schema-with-fhir-version % base-package-name)  schemas))))
          (flatten))))
+
+(defn retrieve-valuesets [fhir-versions]
+  (let [fhir-version->value-set-file
+        {"hl7.fhir.r4.core"  "resources/r4-value-sets.edn"
+         "hl7.fhir.r4b.core" "resources/r4b-value-sets.edn"
+         "hl7.fhir.r5.core"  "resources/r5-value-sets.edn"}]
+    (reduce (fn [acc fhir-version]
+              (let [valueset (walk/keywordize-keys
+                              (edn/read-string
+                               (slurp
+                                (get fhir-version->value-set-file fhir-version))))]
+                (assoc acc fhir-version valueset)))
+            {}
+            fhir-versions)))

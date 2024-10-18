@@ -60,6 +60,27 @@
                   words)]
       (str/join "-" words))))
 
+;;
+;; Valuesets
+;;
+
+(defn convert-valusets [raw-valuesets]
+  (update-vals raw-valuesets
+               (fn [vs]
+                 (->> vs
+                      (map (fn [valueset]
+                             {:name (url->resource-name (:url valueset))
+                              :url (:url valueset)
+                              :values (map :code (-> valueset :expansion :contains))}))
+                      (remove #(> (count (:values %)) 20))))))
+
+(defn available-valuesets [converted-valuesets]
+  (update-vals converted-valuesets (fn [vs] (set (map :url vs)))))
+
+;;
+;;
+;;
+
 (defn flatten-backbones [backbone-elements accumulator]
   (reduce (fn [acc item]
             (concat (flatten-backbones (:backbone-elements item) acc)
@@ -144,7 +165,7 @@
                 v
                 (.contains required (name k)))
      :type     (:type v)
-
+     :valueset (:valueset v)
      :choice-option (boolean (:choiceOf v))}))
 
 (defn- get-typings-and-imports [parent-name required data]
@@ -281,12 +302,26 @@
 (defn resolve-dependencies [schemas]
   (map #(assoc % :deps (collect-dependencies %)) schemas))
 
+(defn resolve-valuesets [schema available-valuesets]
+  (let [available-valuesets (get available-valuesets (:fhir-version schema))]
+    (update schema
+            :elements
+            (fn [elements]
+              (update-vals
+               elements
+               (fn [element]
+                 (if (and (= (:type element) "code")
+                          (contains? available-valuesets (:valueSet (:binding element))))
+                   (assoc element :valueset (url->resource-name (:valueSet (:binding element))))
+                   element)))))))
+
 ;;
 ;; Convert main function
 ;;
 
-(defn convert [schemas]
+(defn convert [schemas available-valuesets]
   (->> schemas
+       (map #(resolve-valuesets % available-valuesets))
        (map resolve-element-references)
        (compile-elements)
        (combine-elements)
