@@ -149,7 +149,7 @@
               (let [valueset (walk/keywordize-keys
                               (edn/read-string
                                (slurp
-                                (get fhir-version->value-set-file fhir-version))))]
+                                (get fhir-version->value-set-file fhir-version "resources/r5-value-sets.edn"))))]
                 (assoc acc fhir-version valueset)))
             {}
             fhir-versions)))
