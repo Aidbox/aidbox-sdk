@@ -3,6 +3,7 @@
    [aidbox-sdk.fixtures :as fixt]
    [aidbox-sdk.generator :as sut]
    [aidbox-sdk.generator.typescript :refer [generator] :as gen.typescript]
+   [matcho.core :refer [match]]
    [clojure.java.io :as io]
    [clojure.string :as str]
    [clojure.test :refer [deftest is testing use-fixtures]]))
@@ -11,7 +12,7 @@
 
 (deftest test-generate-deps
   (testing "import for base package"
-    (is (= "import { Bundle } from \"./Bundle\";\nimport * as vs from \"./valuesets\""
+    (is (= "import { Bundle } from \"./Bundle\";"
            (gen.typescript/generate-deps {:package "hl7.fhir.r4.core"
                                           :deps #{"Bundle"}}))))
 
@@ -106,28 +107,30 @@
 
 (deftest test-generate-class
   (testing "base"
-    (is (= (str/join "\n" ["export type Patient = DomainResource & {"
-                           "    address?: Address[];"
-                           "    managingOrganization?: Reference;"
-                           "    name?: HumanName[];"
-                           "    birthDate?: string;"
-                           "    _birthDate: Element;"
-                           "    multipleBirth?: boolean | number;"
-                           "    deceased?: string | boolean;"
-                           "    photo?: Attachment[];"
-                           "    link?: PatientLink[];"
-                           "    active?: boolean;"
-                           "    _active: Element;"
-                           "    communication?: PatientCommunication[];"
-                           "    identifier?: Identifier[];"
-                           "    telecom?: ContactPoint[];"
-                           "    generalPractitioner?: Reference[];"
-                           "    gender?: string;"
-                           "    _gender: Element;"
-                           "    maritalStatus?: CodeableConcept;"
-                           "    contact?: PatientContact[];"
-                           "};"])
-           (gen.typescript/generate-class (fixt/get-data :patient-ir-schema)))))
+    (match
+     (str/split-lines
+      (gen.typescript/generate-class (fixt/get-data :patient-ir-schema)))
+      ["export type Patient = DomainResource & {"
+       "    address?: Address[];"
+       "    managingOrganization?: Reference;"
+       "    name?: HumanName[];"
+       "    birthDate?: string;"
+       "    _birthDate?: Element;"
+       "    multipleBirth?: boolean | number;"
+       "    deceased?: string | boolean;"
+       "    photo?: Attachment[];"
+       "    link?: PatientLink[];"
+       "    active?: boolean;"
+       "    _active?: Element;"
+       "    communication?: PatientCommunication[];"
+       "    identifier?: Identifier[];"
+       "    telecom?: ContactPoint[];"
+       "    generalPractitioner?: Reference[];"
+       "    gender?: AdministrativeGender;"
+       "    _gender?: Element;"
+       "    maritalStatus?: CodeableConcept;"
+       "    contact?: PatientContact[];"
+       "};"]))
 
   (testing "empty elements"
     (is (= "export type Base = {};"
@@ -143,49 +146,51 @@
                                            :deps #{}}))))
 
   (testing "with inner classes"
-    (is (= (str/join "\n" ["export type PatientLink = BackboneElement & {"
-                           "    type: string;"
-                           "    other: Reference;"
-                           "};"
-                           ""
-                           "export type PatientCommunication = BackboneElement & {"
-                           "    language: CodeableConcept;"
-                           "    preferred?: boolean;"
-                           "};"
-                           ""
-                           "export type PatientContact = BackboneElement & {"
-                           "    name?: HumanName;"
-                           "    gender?: string;"
-                           "    period?: Period;"
-                           "    address?: Address;"
-                           "    telecom?: ContactPoint[];"
-                           "    organization?: Reference;"
-                           "    relationship?: CodeableConcept[];"
-                           "};"
-                           ""
-                           "export type Patient = DomainResource & {"
-                           "    address?: Address[];"
-                           "    managingOrganization?: Reference;"
-                           "    name?: HumanName[];"
-                           "    birthDate?: string;"
-                           "    _birthDate: Element;"
-                           "    multipleBirth?: boolean | number;"
-                           "    deceased?: string | boolean;"
-                           "    photo?: Attachment[];"
-                           "    link?: PatientLink[];"
-                           "    active?: boolean;"
-                           "    _active: Element;"
-                           "    communication?: PatientCommunication[];"
-                           "    identifier?: Identifier[];"
-                           "    telecom?: ContactPoint[];"
-                           "    generalPractitioner?: Reference[];"
-                           "    gender?: string;"
-                           "    _gender: Element;"
-                           "    maritalStatus?: CodeableConcept;"
-                           "    contact?: PatientContact[];"
-                           "};"])
-           (gen.typescript/generate-class (fixt/get-data :patient-ir-schema)
-                                          (map gen.typescript/generate-class (:backbone-elements (fixt/get-data :patient-ir-schema))))))))
+    (match
+     (str/split-lines
+      (gen.typescript/generate-class (fixt/get-data :patient-ir-schema)
+                                     (map gen.typescript/generate-class (:backbone-elements (fixt/get-data :patient-ir-schema)))))
+      ["export type PatientLink = BackboneElement & {"
+       "    type: string;"
+       "    other: Reference;"
+       "};"
+       ""
+       "export type PatientCommunication = BackboneElement & {"
+       "    language: CodeableConcept;"
+       "    preferred?: boolean;"
+       "};"
+       ""
+       "export type PatientContact = BackboneElement & {"
+       "    name?: HumanName;"
+       "    gender?: string;"
+       "    period?: Period;"
+       "    address?: Address;"
+       "    telecom?: ContactPoint[];"
+       "    organization?: Reference;"
+       "    relationship?: CodeableConcept[];"
+       "};"
+       ""
+       "export type Patient = DomainResource & {"
+       "    address?: Address[];"
+       "    managingOrganization?: Reference;"
+       "    name?: HumanName[];"
+       "    birthDate?: string;"
+       "    _birthDate?: Element;"
+       "    multipleBirth?: boolean | number;"
+       "    deceased?: string | boolean;"
+       "    photo?: Attachment[];"
+       "    link?: PatientLink[];"
+       "    active?: boolean;"
+       "    _active?: Element;"
+       "    communication?: PatientCommunication[];"
+       "    identifier?: Identifier[];"
+       "    telecom?: ContactPoint[];"
+       "    generalPractitioner?: Reference[];"
+       "    gender?: AdministrativeGender;"
+       "    _gender?: Element;"
+       "    maritalStatus?: CodeableConcept;"
+       "    contact?: PatientContact[];"
+       "};"])))
 
 #_(deftest test-generate-datatypes
     (is
@@ -195,11 +200,61 @@
         (sut/generate-datatypes generator [fixtures/coding-ir-schema]))))
 
 (deftest test-generate-resources
-  (is
-   (= {:path (io/file "hl7-fhir-r4-core/Patient.ts"),
-       :content
-       "import { Address } from \"./Address\";\nimport { Attachment } from \"./Attachment\";\nimport { Period } from \"./Period\";\nimport { CodeableConcept } from \"./CodeableConcept\";\nimport { ContactPoint } from \"./ContactPoint\";\nimport { HumanName } from \"./HumanName\";\nimport { DomainResource } from \"./DomainResource\";\nimport { Reference } from \"./Reference\";\nimport { Identifier } from \"./Identifier\";\nimport { BackboneElement } from \"./BackboneElement\";\nimport * as vs from \"./valuesets\"\n\nexport type PatientLink = BackboneElement & {\n    type: string;\n    other: Reference;\n};\n\nexport type PatientCommunication = BackboneElement & {\n    language: CodeableConcept;\n    preferred?: boolean;\n};\n\nexport type PatientContact = BackboneElement & {\n    name?: HumanName;\n    gender?: string;\n    period?: Period;\n    address?: Address;\n    telecom?: ContactPoint[];\n    organization?: Reference;\n    relationship?: CodeableConcept[];\n};\n\nexport type Patient = DomainResource & {\n    address?: Address[];\n    managingOrganization?: Reference;\n    name?: HumanName[];\n    birthDate?: string;\n    _birthDate: Element;\n    multipleBirth?: boolean | number;\n    deceased?: string | boolean;\n    photo?: Attachment[];\n    link?: PatientLink[];\n    active?: boolean;\n    _active: Element;\n    communication?: PatientCommunication[];\n    identifier?: Identifier[];\n    telecom?: ContactPoint[];\n    generalPractitioner?: Reference[];\n    gender?: string;\n    _gender: Element;\n    maritalStatus?: CodeableConcept;\n    contact?: PatientContact[];\n};"}
-      (sut/generate-resource-module generator (fixt/get-data :patient-ir-schema)))))
+  (match
+   (str/split-lines (:content (sut/generate-resource-module generator (fixt/get-data :patient-ir-schema))))
+    ["import { Address } from \"./Address\";"
+     "import { Attachment } from \"./Attachment\";"
+     "import { Period } from \"./Period\";"
+     "import { CodeableConcept } from \"./CodeableConcept\";"
+     "import { ContactPoint } from \"./ContactPoint\";"
+     "import { HumanName } from \"./HumanName\";"
+     "import { DomainResource } from \"./DomainResource\";"
+     "import { Reference } from \"./Reference\";"
+     "import { Identifier } from \"./Identifier\";"
+     "import { BackboneElement } from \"./BackboneElement\";"
+     "import { AdministrativeGender } from \"./valuesets\""
+     ""
+     "export type PatientLink = BackboneElement & {"
+     "    type: string;"
+     "    other: Reference;"
+     "};"
+     ""
+     "export type PatientCommunication = BackboneElement & {"
+     "    language: CodeableConcept;"
+     "    preferred?: boolean;"
+     "};"
+     ""
+     "export type PatientContact = BackboneElement & {"
+     "    name?: HumanName;"
+     "    gender?: string;"
+     "    period?: Period;"
+     "    address?: Address;"
+     "    telecom?: ContactPoint[];"
+     "    organization?: Reference;"
+     "    relationship?: CodeableConcept[];"
+     "};"
+     ""
+     "export type Patient = DomainResource & {"
+     "    address?: Address[];"
+     "    managingOrganization?: Reference;"
+     "    name?: HumanName[];"
+     "    birthDate?: string;"
+     "    _birthDate?: Element;"
+     "    multipleBirth?: boolean | number;"
+     "    deceased?: string | boolean;"
+     "    photo?: Attachment[];"
+     "    link?: PatientLink[];"
+     "    active?: boolean;"
+     "    _active?: Element;"
+     "    communication?: PatientCommunication[];"
+     "    identifier?: Identifier[];"
+     "    telecom?: ContactPoint[];"
+     "    generalPractitioner?: Reference[];"
+     "    gender?: AdministrativeGender;"
+     "    _gender?: Element;"
+     "    maritalStatus?: CodeableConcept;"
+     "    contact?: PatientContact[];"
+     "};"]))
 
 #_(deftest test-generate-search-params
     (is
