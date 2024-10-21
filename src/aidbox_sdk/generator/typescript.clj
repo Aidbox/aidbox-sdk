@@ -103,14 +103,14 @@
                         (->backbone-type element)
 
                         (:valueset element)
-                        (str "vs." (class-name (:valueset element)))
+                        (class-name (:valueset element))
 
                         :else
                         (->lang-type (:type element)))
                 primitive-type? (fhir/primitive-element? fhir-version element)]
             (str (str (->camel-case name) optional ": " type' (when array "[]") ";")
                  (when primitive-type?
-                   (str "\n" u/indent "_" (->camel-case name) ": Element;")))))))
+                   (str "\n" u/indent "_" (->camel-case name) "?: Element;")))))))
 
 (defn generate-class
   "Generates TypeScript type from IR (intermediate representation) schema."
@@ -131,6 +131,7 @@
                         (remove nil?)
                         (map u/add-indent)
                         (str/join "\n"))]
+
     (str
      (when (seq inner-classes)
        (str (str/join "\n\n" inner-classes) "\n\n"))
@@ -171,18 +172,28 @@
   (let [relative-path (if (fhir/base-package? ir-schema)
                         "./"
                         (str "../" (package->directory (:fhir-version ir-schema)) "/"))
-        valueset-dep (when (fhir/base-package? ir-schema)
-                       "import * as vs from \"./valuesets\"")]
+        valueset-deps (when (and (fhir/base-package? ir-schema)
+                                 (seq (:valueset-deps ir-schema)))
+                        (format "import { %s } from \"./valuesets\""
+                                (->> (:valueset-deps ir-schema)
+                                     (map class-name)
+                                     (str/join ", "))))]
     (str (->> (:deps ir-schema)
               (map class-name)
               (map (fn [d] {:module (str relative-path d) :members [d]}))
               (map (fn [{:keys [module members]}]
-                     (if (seq members) (format "import { %s } from \"%s\";" (str/join ", " members) module) (format "import * as %s from \"%s\";" (path->name module) module))))
+                     (if (seq members)
+                       (format "import { %s } from \"%s\";"
+                               (str/join ", " members)
+                               module)
+                       (format "import * as %s from \"%s\";"
+                               (path->name module)
+                               module))))
               (str/join "\n"))
-         (when valueset-dep
+         (when valueset-deps
            (str
             "\n"
-            valueset-dep)))))
+            valueset-deps)))))
 
 (defn generate-module
   [& {:keys [deps classes]

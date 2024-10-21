@@ -153,6 +153,7 @@
    :array false,
    :required false,
    :value "string",
+   :valueset "administrative-gender"
    :type "code",
    :choice-option false}
   {:name "maritalStatus",
@@ -259,6 +260,7 @@
    :base "BackboneElement"
    :name "Patient_Contact"}],
  :base "http://hl7.org/fhir/StructureDefinition/DomainResource",
+ :valueset-deps #{"administrative-gender"}
  :deps
  #{"Address"
    "Attachment"

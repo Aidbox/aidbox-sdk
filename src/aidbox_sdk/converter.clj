@@ -280,27 +280,37 @@
 (defn resolve-choices [schemas]
   (map resolve-schema-choices schemas))
 
-(defn collect-dependencies [schema]
-  (let [primitive-element? (partial fhir/primitive-element? (:fhir-version schema))]
+(defn collect-dependencies
+  "Returns the set of dependencies for the provided schema."
+  [schema]
+  (let [primitive-element? (partial fhir/primitive-element? (:fhir-version schema))
+        backbones-elements (->> (:backbone-elements schema)
+                                (map :elements)
+                                flatten)
+        all-elements       (into (:elements schema) backbones-elements)
+        types              (->> all-elements
+                                (remove primitive-element?)
+                                (map :type))]
     (set/union
      (cond-> #{}
        (:base-resource-name schema) (conj (:base-resource-name schema))
        (fhir/constraint? schema)    (conj "Meta"))
-     (->> (:elements schema)
-          (remove primitive-element?)
-          (map :type)
-          (remove nil?)
-          set)
-     (->> (:backbone-elements schema)
-          (map :elements)
-          flatten
-          (remove primitive-element?)
-          (map :type)
-          (remove nil?)
-          set))))
+     (set (remove nil? types)))))
+
+(defn collect-valueset-dependencies
+  [schema]
+  (let [backbones-elements (->> (:backbone-elements schema)
+                                (map :elements)
+                                flatten)
+        all-elements       (into (:elements schema) backbones-elements)
+        valusets           (map :valueset all-elements)]
+    (set (remove nil? valusets))))
 
 (defn resolve-dependencies [schemas]
-  (map #(assoc % :deps (collect-dependencies %)) schemas))
+  (map #(-> %
+            (assoc :deps (collect-dependencies %))
+            (assoc :valueset-deps (collect-valueset-dependencies %)))
+       schemas))
 
 (defn resolve-valuesets [schema available-valuesets]
   (let [available-valuesets (get available-valuesets (:fhir-version schema))]

@@ -98,12 +98,16 @@
 
 (deftest test-convert
   (testing "convert resource"
-    (match (sut/convert [fixtures/patient-fhir-schema] #{})
+    (match (sut/convert [fixtures/patient-fhir-schema]
+                        {"hl7.fhir.r4.core"
+                         #{"http://hl7.org/fhir/ValueSet/administrative-gender"}})
+
       [fixtures/patient-ir-schema]))
 
   (testing "convert constraint"
-    (is (= [(fixt/get-data :organization-preferred-contact-ir-schema)]
-           (sut/convert [(fixt/get-data :organization-preferred-contact-fhir-schema)] #{})))))
+    (match
+     (sut/convert [(fixt/get-data :organization-preferred-contact-fhir-schema)] #{})
+      [(fixt/get-data :organization-preferred-contact-ir-schema)])))
 
 (deftest test-apply-constraints
   (testing "constraints"
@@ -133,9 +137,25 @@
      {:url "http://hl7.org/fhir/StructureDefinition/SampledData",
       :base "http://hl7.org/fhir/StructureDefinition/Element"}]))
 
+(deftest test-collect-dependencies
+  (match
+   (sut/collect-dependencies (fixt/get-data :patient-ir-schema))
+    #{"Address"
+      "Attachment"
+      "Period"
+      "CodeableConcept"
+      "ContactPoint"
+      "HumanName"
+      "DomainResource"
+      "Reference"
+      "Identifier"
+      "BackboneElement"}))
+
 (comment
   (fixt/load-data!)
 
   @fixt/data
+
+  (keys @fixt/data)
 
   ::close)
