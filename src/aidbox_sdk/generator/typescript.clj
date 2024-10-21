@@ -10,6 +10,7 @@
   (:import
    [aidbox_sdk.generator CodeGenerator]))
 
+
 (def reserved-names #{"RequestPriority"})
 (def reserved-name-suffix "_")
 
@@ -85,7 +86,7 @@
     (str name (when-not required "?") ": " type ";")))
 
 (defn ->backbone-type [element]
-  (str/replace (str (:base element) (uppercase-first-letter (:name element))) #"[_-]" ""))
+  (str/replace (str (:base element) (->pascal-case (:name element))) #"[_-]" ""))
 
 (defn generate-property [{:keys [name array required type choices profile fhir-version] :as element}]
   (let [optional (if required "" "?")]
