@@ -11,6 +11,7 @@
    [aidbox_sdk.generator CodeGenerator]))
 
 (def reserved-names #{"RequestPriority"})
+(def valuset-exception #{"SubscriptionStatus"})
 (def reserved-name-suffix "_")
 
 (defn package->directory
@@ -24,10 +25,6 @@
   (io/file "datatypes.ts"))
 
 (defn resource-file-path [ir-schema]
-  (io/file (package->directory (:package ir-schema))
-           (str (->pascal-case (:resource-name ir-schema)) ".ts")))
-
-(defn constraint-file-path [ir-schema name]
   (io/file (package->directory (:package ir-schema))
            (str (->pascal-case (:resource-name ir-schema)) ".ts")))
 
@@ -76,6 +73,12 @@
       (str name' "_")
       name')))
 
+(defn valueset-name [type-name]
+  (let [name' (class-name type-name)]
+    (if (contains? valuset-exception name')
+      (str name' "VS")
+      name')))
+
 (defn generate-polymorphic-property [{:keys [name required choices]}]
   (let [type (->> choices
                   (map :type)
@@ -85,7 +88,7 @@
     (str name (when-not required "?") ": " type ";")))
 
 (defn ->backbone-type [element]
-  (str/replace (str (:base element) (uppercase-first-letter (:name element))) #"[_-]" ""))
+  (str/replace (str (:base element) (->pascal-case (:name element))) #"[_-]" ""))
 
 (defn generate-property [{:keys [name array required type choices profile fhir-version] :as element}]
   (let [optional (if required "" "?")]
@@ -103,7 +106,7 @@
                         (->backbone-type element)
 
                         (:valueset element)
-                        (class-name (:valueset element))
+                        (valueset-name (:valueset element))
 
                         :else
                         (->lang-type (:type element)))
@@ -176,7 +179,7 @@
                                  (seq (:valueset-deps ir-schema)))
                         (format "import { %s } from \"./valuesets\""
                                 (->> (:valueset-deps ir-schema)
-                                     (map class-name)
+                                     (map valueset-name)
                                      (str/join ", "))))]
     (str (->> (:deps ir-schema)
               (map class-name)
@@ -256,7 +259,7 @@
                  :content
                  (->> schemas
                       (mapv (fn [vs]
-                              (let [type-name (class-name (:name vs))
+                              (let [type-name (valueset-name (:name vs))
                                     values (->> (:values vs)
                                                 (map #(format "\"%s\"" %))
                                                 (str/join " | "))]

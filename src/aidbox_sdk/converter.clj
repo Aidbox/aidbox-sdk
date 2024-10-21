@@ -364,7 +364,9 @@
                        (->pascal-case (url->resource-name base)))
                :elements (->> (resolve-elements search-params-schemas (:id schema))
                               (map (fn [el] {:type "string" :name el})))}))
-       (remove #(empty? (:elements %)))))
+       (remove #(and
+                 (not= (:name %) "Base")
+                 (empty? (:elements %))))))
 
 ;;
 ;; Constraints
