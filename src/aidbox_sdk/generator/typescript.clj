@@ -21,15 +21,13 @@
   [x]
   (str/replace x #"[\.#]" "-"))
 
-(defn datatypes-file-path []
-  (io/file "datatypes.ts"))
-
 (defn resource-file-path [ir-schema]
-  (io/file (package->directory (:package ir-schema))
+  (io/file "types"
+           (package->directory (:package ir-schema))
            (str (->pascal-case (:resource-name ir-schema)) ".ts")))
 
 (defn search-param-filepath [ir-schema]
-  (io/file "search" (str (:name ir-schema) "SearchParameters.ts")))
+  (io/file "types" "search" (str (:name ir-schema) "SearchParameters.ts")))
 
 (defn ->lang-type [fhir-type]
   (case fhir-type
@@ -250,12 +248,14 @@
     (generator/prepare-sdk-files
      :typescript
      ["index.ts" "eslint.config.mjs" "http-client.ts" "package.json"
-      "package-lock.json" "tsconfig.json" "types/index.ts"]))
+      "package-lock.json" "tsconfig.json" "types/index.ts"
+      "types/workflow/SystemCheckOutWorkflow.ts" "types/workflow/index.ts"
+      "types/task/SystemSendMessage.ts" "types/task/index.ts"]))
 
   (generate-valuesets [_ vs-schemas]
     (->> vs-schemas
          (map (fn [[fhir-version schemas]]
-                {:path (io/file (package->directory fhir-version) "valuesets.ts")
+                {:path (io/file "types" (package->directory fhir-version) "valuesets.ts")
                  :content
                  (->> schemas
                       (mapv (fn [vs]
