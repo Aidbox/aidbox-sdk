@@ -1,5 +1,3 @@
-import base64 from '@juanelas/base64';
-
 import {
   HttpClientInstance,
   httpClient as http,
@@ -8,61 +6,69 @@ import {
   Options,
   NormalizedOptions,
   ResponsePromise,
-} from './http-client';
+} from "./http-client";
 import {
   TaskDefinitionsMap,
   WorkflowDefinitionsMap,
   ResourceTypeMap,
   SearchParams,
   SubsSubscription,
-} from './types';
+} from "./types";
 
 export { HTTPError };
 
 export function decode(str: string): string {
-  return base64.decode(str, true).toString();
+  if (typeof window == "undefined") {
+    return Buffer.from(str, "base64").toString();
+  } else {
+    return atob(str);
+  }
 }
 
 export function encode(str: string): string {
-  return base64.encode(str);
+  if (typeof window == "undefined") {
+    return Buffer.from(str).toString("base64");
+  } else {
+    return btoa(str);
+  }
 }
 
 export const sleep = (ms: number) =>
   new Promise((resolve) => setTimeout(resolve, ms));
 export const buildResourceUrl = (resource: string, id?: string) =>
-  ['fhir', resource, id && id].filter(Boolean).join('/');
+  ["fhir", resource, id && id].filter(Boolean).join("/");
 
 type PartialResourceBody<T extends keyof ResourceTypeMap> = Partial<
-  Omit<ResourceTypeMap[T], 'id' | 'meta'>
+  Omit<ResourceTypeMap[T], "id" | "meta">
 >;
 
 type SetOptional<T, K extends keyof T> = Pick<Partial<T>, K> & Omit<T, K>;
 
 export type UnnecessaryKeys =
-  | 'contained'
-  | 'extension'
-  | 'modifierExtension'
-  | '_id'
-  | 'meta'
-  | 'implicitRules'
-  | '_implicitRules'
-  | 'language'
-  | '_language';
+  | "contained"
+  | "extension"
+  | "modifierExtension"
+  | "_id"
+  | "meta"
+  | "implicitRules"
+  | "_implicitRules"
+  | "language"
+  | "_language";
 
-type Dir = 'asc' | 'desc';
+type Dir = "asc" | "desc";
 
-export type PrefixWithArray = 'eq' | 'ne';
+export type PrefixWithArray = "eq" | "ne";
 
 export type Prefix =
-  | 'eq'
-  | 'ne'
-  | 'gt'
-  | 'lt'
-  | 'ge'
-  | 'le'
-  | 'sa'
-  | 'eb'
-  | 'ap';
+  | "eq"
+  | "ne"
+  | "gt"
+  | "lt"
+  | "ge"
+  | "le"
+  | "sa"
+  | "eb"
+  | "ap";
 
 export type ExecuteQueryResponseWrapper<T> = {
   data: T;
@@ -80,7 +86,7 @@ export type CreateQueryParams = {
 export type CreateQueryBody = {
   params?: Record<string, CreateQueryParams>;
   query: string;
-  'count-query': string;
+  "count-query": string;
 };
 
 type Link = { relation: string; url: string };
@@ -92,9 +98,9 @@ export type BaseResponseResources<T extends keyof ResourceTypeMap> = {
   total: number;
   link: Link[];
   entry?: { resource: ResourceTypeMap[T] }[];
-  'query-timeout': number;
-  'query-time': number;
-  'query-sql': (string | number)[];
+  "query-timeout": number;
+  "query-time": number;
+  "query-sql": (string | number)[];
 };
 
 export type BaseResponseResource<T extends keyof ResourceTypeMap> =
@@ -118,9 +124,9 @@ type ChangeFields<T, R> = Omit<T, keyof R> & R;
 type SubscriptionParams = Omit<
   ChangeFields<
     SubsSubscription,
-    { channel: Omit<SubsSubscription['channel'], 'type'> }
+    { channel: Omit<SubsSubscription["channel"], "type"> }
   >,
-  'resourceType'
+  "resourceType"
 > & { id: string };
 
 export type LogData = {
@@ -143,7 +149,7 @@ export interface R<T> {
 }
 
 export class E<T> extends Error {
-  public response: R<T>['response'];
+  public response: R<T>["response"];
   public request: Request;
   public options: NormalizedOptions;
 
@@ -154,14 +160,14 @@ export class E<T> extends Error {
     options: NormalizedOptions,
   ) {
     const code =
-      response.status || response.status === 0 ? response.status : '';
-    const title = response.statusText || '';
+      response.status || response.status === 0 ? response.status : "";
+    const title = response.statusText || "";
     const status = `${code} ${title}`.trim();
-    const reason = status ? `status code ${status}` : 'an unknown error';
+    const reason = status ? `status code ${status}` : "an unknown error";
 
     super(`Request failed with ${reason}`);
 
-    this.name = 'HTTPError';
+    this.name = "HTTPError";
     this.response = {
       status: response.status,
       headers: response.headers,
@@ -207,9 +213,9 @@ class Task {
 
   async cancel(id: string) {
     const response = await this.client
-      .post('rpc', {
+      .post("rpc", {
         json: {
-          method: 'awf.task/cancel',
+          method: "awf.task/cancel",
           params: { id },
         },
       })
@@ -221,15 +227,15 @@ class Task {
   async start(id: string, executionId: string) {
     try {
       return this.client
-        .post('rpc', {
+        .post("rpc", {
           json: {
-            method: 'awf.task/start',
+            method: "awf.task/start",
             params: { id, execId: executionId },
           },
         })
         .json<TasksBatch>();
     } catch (error: any) {
-      if (error.name === 'HTTPError') {
+      if (error.name === "HTTPError") {
         const errorJson = await error.response.json();
         console.dir(errorJson, { depth: 5 });
       }
@@ -238,9 +244,9 @@ class Task {
 
   async complete(id: string, executionId: string, payload: unknown) {
     return this.client
-      .post('rpc', {
+      .post("rpc", {
         json: {
-          method: 'awf.task/success',
+          method: "awf.task/success",
           params: { id, execId: executionId, result: payload },
         },
       })
@@ -250,15 +256,15 @@ class Task {
   async fail(id: string, executionId: string, payload: unknown) {
     try {
       return this.client
-        .post('rpc', {
+        .post("rpc", {
           json: {
-            method: 'awf.task/fail',
+            method: "awf.task/fail",
             params: { id, execId: executionId, result: payload },
           },
         })
         .json<TasksBatch>();
     } catch (error: any) {
-      if (error.name === 'HTTPError') {
+      if (error.name === "HTTPError") {
         const errorJson = await error.response.json();
         console.dir(errorJson, { depth: 5 });
       }
@@ -267,12 +273,12 @@ class Task {
 
   private execute<K extends keyof TaskDefinitionsMap>(
     definition: K,
-    params: TaskDefinitionsMap[K]['params'],
+    params: TaskDefinitionsMap[K]["params"],
   ): Promise<TasksBatch> {
     return this.client
-      .post('rpc', {
+      .post("rpc", {
         json: {
-          method: 'awf.task/create-and-execute',
+          method: "awf.task/create-and-execute",
           params: { definition, params },
         },
       })
@@ -289,16 +295,16 @@ class Task {
 
   async pendingTasks(definition?: keyof TaskDefinitionsMap): Promise<number> {
     const params = new URLSearchParams({
-      _count: '0',
-      '.status': 'ready',
-      'definition-not': 'awf.workflow/decision-task',
+      _count: "0",
+      ".status": "ready",
+      "definition-not": "awf.workflow/decision-task",
     });
     if (definition) {
-      params.append('definition', definition);
-      params.delete('definition-not');
+      params.append("definition", definition);
+      params.delete("definition-not");
     }
     return this.client
-      .get('AidboxTask', {
+      .get("AidboxTask", {
         searchParams: params,
       })
       .json<{ total: number }>()
@@ -307,11 +313,11 @@ class Task {
 
   async pendingDecisions() {
     return this.client
-      .get('AidboxTask', {
+      .get("AidboxTask", {
         searchParams: new URLSearchParams({
-          _count: '0',
-          '.status': 'ready',
-          definition: 'awf.workflow/decision-task',
+          _count: "0",
+          ".status": "ready",
+          definition: "awf.workflow/decision-task",
         }),
       })
       .json<{ total: number }>()
@@ -320,10 +326,10 @@ class Task {
 
   async history(id: string) {
     return this.client
-      .post('rpc', {
+      .post("rpc", {
         json: {
-          method: 'awf.task/status',
-          params: { id, 'include-log?': true },
+          method: "awf.task/status",
+          params: { id, "include-log?": true },
         },
       })
       .json<{
@@ -334,10 +340,10 @@ class Task {
 
   async inProgress() {
     return this.client
-      .get('AidboxTask', {
+      .get("AidboxTask", {
         searchParams: new URLSearchParams({
-          _count: '0',
-          '.status': 'in-progress',
+          _count: "0",
+          ".status": "in-progress",
         }),
       })
       .json<{ total: number }>()
@@ -354,7 +360,7 @@ class Task {
         const result = await handler(task);
         await this.complete(task.id, task.execId, result);
       } catch (error: any) {
-        if (error.name === 'HTTPError') {
+        if (error.name === "HTTPError") {
           const errorJson = await error.response.json();
           console.dir(errorJson, { depth: 5 });
           await this.fail(task.id, task.execId, errorJson);
@@ -372,9 +378,9 @@ class Task {
     options: WorkerOptions,
   ) {
     const tasksBatch = await this.client
-      .post('rpc', {
+      .post("rpc", {
         json: {
-          method: 'awf.task/poll',
+          method: "awf.task/poll",
           params: { ...params, maxBatchSize: options.batchSize },
         },
       })
@@ -395,7 +401,7 @@ class Task {
     }
   }
 
-  implement<K extends keyof Omit<TaskDefinitionsMap, 'awf.task/wait'>>(
+  implement<K extends keyof Omit<TaskDefinitionsMap, "awf.task/wait">>(
     name: K,
     handler: TaskHandler<K>,
     options: WorkerOptions = {},
@@ -450,32 +456,32 @@ class Workflow {
   ) {
     return (params: TaskMeta<DecisionInput>) =>
       handler(params, {
-        complete: (result: WorkflowDefinitionsMap[W]['result']) => ({
-          action: 'awf.workflow.action/complete-workflow',
+        complete: (result: WorkflowDefinitionsMap[W]["result"]) => ({
+          action: "awf.workflow.action/complete-workflow",
           result,
         }),
         execute: <T extends keyof TaskDefinitionsMap>(params: {
           definition: T;
-          params: TaskDefinitionsMap[T]['params'];
+          params: TaskDefinitionsMap[T]["params"];
         }) => ({
-          action: 'awf.workflow.action/schedule-task',
-          'task-request': {
+          action: "awf.workflow.action/schedule-task",
+          "task-request": {
             definition: params.definition,
             params: params.params,
           },
         }),
-        fail: (error: any) => ({ action: 'awf.workflow.action/fail', error }),
+        fail: (error: any) => ({ action: "awf.workflow.action/fail", error }),
       });
   }
 
   execute<K extends keyof WorkflowDefinitionsMap>(
     definition: K,
-    params: WorkflowDefinitionsMap[K]['params'],
+    params: WorkflowDefinitionsMap[K]["params"],
   ): Promise<TasksBatch> {
     return this.client
-      .post('rpc', {
+      .post("rpc", {
         json: {
-          method: 'awf.workflow/create-and-execute',
+          method: "awf.workflow/create-and-execute",
           params: { definition, params },
         },
       })
@@ -484,9 +490,9 @@ class Workflow {
 
   async terminate(id: string) {
     return this.client
-      .post('rpc', {
+      .post("rpc", {
         json: {
-          method: 'awf.workflow/cancel',
+          method: "awf.workflow/cancel",
           params: { id },
         },
       })
@@ -496,10 +502,10 @@ class Workflow {
 
   async inProgress() {
     return this.client
-      .get('AidboxWorkflow', {
+      .get("AidboxWorkflow", {
         searchParams: new URLSearchParams({
-          _count: '0',
-          '.status': 'in-progress',
+          _count: "0",
+          ".status": "in-progress",
         }),
       })
       .json<{ total: number }>()
@@ -508,10 +514,10 @@ class Workflow {
 
   async history(id: string) {
     return this.client
-      .post('rpc', {
+      .post("rpc", {
         json: {
-          method: 'awf.workflow/status',
-          params: { id, 'include-activities?': true },
+          method: "awf.workflow/status",
+          params: { id, "include-activities?": true },
         },
       })
       .json<WorkflowHistoryRpc>()
@@ -527,27 +533,27 @@ export interface TokenStorage {
 const resourceOwnerAuthorization =
   (httpclient: HttpClientInstance, auth: ResourceOwnerAuthorization) =>
   async ({ username, password }: { username: string; password: string }) => {
-    if (typeof auth.storage.set === 'function') {
-      await auth.storage.set('');
+    if (typeof auth.storage.set === "function") {
+      await auth.storage.set("");
     }
 
     const response = await httpclient
-      .post('auth/token', {
+      .post("auth/token", {
         json: {
           username,
           password,
           client_id: auth.client.id,
           client_secret: auth.client.secret,
-          grant_type: 'password',
+          grant_type: "password",
         },
       })
       .json<{
         access_token: string;
-        token_type: 'Bearer';
+        token_type: "Bearer";
         userinfo: { email: string; id: string };
       }>();
 
-    if (typeof auth.storage.set === 'function') {
+    if (typeof auth.storage.set === "function") {
       await auth.storage.set(response.access_token);
     }
 
@@ -561,11 +567,11 @@ const resourceOwnerLogout =
   };
 
 type BasicAuthorization = {
-  method: 'basic';
+  method: "basic";
   credentials: { username: string; password: string };
 };
 type ResourceOwnerAuthorization = {
-  method: 'resource-owner';
+  method: "resource-owner";
   client: { id: string; secret: string };
   storage: TokenStorage;
 };
@@ -573,13 +579,13 @@ type ResourceOwnerAuthorization = {
 function isBasic(
   params: BasicAuthorization | ResourceOwnerAuthorization,
 ): params is BasicAuthorization {
-  return params.method === 'basic';
+  return params.method === "basic";
 }
 
 function isResourceOwner(
   params: BasicAuthorization | ResourceOwnerAuthorization,
 ): params is ResourceOwnerAuthorization {
-  return params.method === 'resource-owner';
+  return params.method === "resource-owner";
 }
 
 export class Client<T extends BasicAuthorization | ResourceOwnerAuthorization> {
@@ -598,7 +604,7 @@ export class Client<T extends BasicAuthorization | ResourceOwnerAuthorization> {
             if (isBasic(config.auth)) {
               const { username, password } = config.auth.credentials;
               request.headers.set(
-                'Authorization',
+                "Authorization",
                 `Basic ${encode(`${username}:${password}`)}`,
               );
             }
@@ -606,7 +612,7 @@ export class Client<T extends BasicAuthorization | ResourceOwnerAuthorization> {
             if (isResourceOwner(config.auth)) {
               const token = config.auth.storage.get();
               if (token)
-                request.headers.set('Authorization', `Bearer ${token}`);
+                request.headers.set("Authorization", `Bearer ${token}`);
             }
           },
         ],
@@ -626,15 +632,15 @@ export class Client<T extends BasicAuthorization | ResourceOwnerAuthorization> {
         ...this.config.auth,
         signIn: resourceOwnerAuthorization(this.client, this.config.auth),
         signUp: () => {
-          console.log('TBD');
+          console.log("TBD");
         },
         signOut: () => {
-          console.log('TBD');
+          console.log("TBD");
         },
       };
     }
 
-    throw new Error('');
+    throw new Error("");
   }
 
   // переделать на reduce и добавить полей
@@ -680,7 +686,7 @@ export class Client<T extends BasicAuthorization | ResourceOwnerAuthorization> {
       resourceName: T,
       input: SetOptional<
         ResourceTypeMap[T] & { resourceType: string },
-        'resourceType'
+        "resourceType"
       >,
     ): Promise<BaseResponseResource<T>> => {
       return this.client
@@ -699,8 +705,8 @@ export class Client<T extends BasicAuthorization | ResourceOwnerAuthorization> {
   };
 
   async rpc<T = any>(method: string, params: unknown): Promise<T> {
-    const response = await this.client.post('rpc', {
-      method: 'POST',
+    const response = await this.client.post("rpc", {
+      method: "POST",
       json: { method, params },
     });
 
@@ -741,7 +747,7 @@ export class Client<T extends BasicAuthorization | ResourceOwnerAuthorization> {
         json: {
           status,
           trigger,
-          channel: { ...channel, type: 'rest-hook' },
+          channel: { ...channel, type: "rest-hook" },
         },
       });
       return response.json<SubsSubscription>();
@@ -754,12 +760,12 @@ export class Client<T extends BasicAuthorization | ResourceOwnerAuthorization> {
       ...(params?.map((value: unknown) => value?.toString()) ?? []),
     ];
 
-    const response = await this.client.post('$sql', { json: body });
+    const response = await this.client.post("$sql", { json: body });
     return response.json<T>();
   }
 
   async sendLog(data: LogData): Promise<void> {
-    await this.client.post('$loggy', { json: data });
+    await this.client.post("$loggy", { json: data });
   }
 }
 
@@ -798,8 +804,8 @@ export class GetResources<
     if (Array.isArray(value)) {
       const val = value as SP[];
       if (prefix) {
-        if (prefix === 'eq') {
-          this.searchParamsObject.append(key.toString(), val.join(','));
+        if (prefix === "eq") {
+          this.searchParamsObject.append(key.toString(), val.join(","));
           return this;
         }
 
@@ -810,65 +816,65 @@ export class GetResources<
         return this;
       }
 
-      const queryValues = val.join(',');
+      const queryValues = val.join(",");
       this.searchParamsObject.append(key.toString(), queryValues);
 
       return this;
     }
-    const queryValue = `${prefix ?? ''}${value}`;
+    const queryValue = `${prefix ?? ""}${value}`;
 
     this.searchParamsObject.append(key.toString(), queryValue);
     return this;
   }
 
   contained(
-    contained: boolean | 'both',
-    containedType?: 'container' | 'contained',
+    contained: boolean | "both",
+    containedType?: "container" | "contained",
   ) {
-    this.searchParamsObject.set('_contained', contained.toString());
+    this.searchParamsObject.set("_contained", contained.toString());
 
     if (containedType) {
-      this.searchParamsObject.set('_containedType', containedType);
+      this.searchParamsObject.set("_containedType", containedType);
     }
 
     return this;
   }
 
   count(value: number) {
-    this.searchParamsObject.set('_count', value.toString());
+    this.searchParamsObject.set("_count", value.toString());
 
     return this;
   }
 
   elements(args: ElementsParams<T, R>) {
-    const queryValue = args.join(',');
+    const queryValue = args.join(",");
 
-    this.searchParamsObject.set('_elements', queryValue);
+    this.searchParamsObject.set("_elements", queryValue);
 
     return this;
   }
 
-  summary(type: boolean | 'text' | 'data' | 'count') {
-    this.searchParamsObject.set('_summary', type.toString());
+  summary(type: boolean | "text" | "data" | "count") {
+    this.searchParamsObject.set("_summary", type.toString());
 
     return this;
   }
 
   sort(key: SortKey<T>, dir: Dir) {
-    const existedSortParams = this.searchParamsObject.get('_sort');
+    const existedSortParams = this.searchParamsObject.get("_sort");
 
     if (existedSortParams) {
       const newSortParams = `${existedSortParams},${
-        dir === 'asc' ? '-' : ''
+        dir === "asc" ? "-" : ""
       }${key.toString()}`;
 
-      this.searchParamsObject.set('_sort', newSortParams);
+      this.searchParamsObject.set("_sort", newSortParams);
       return this;
     }
 
     this.searchParamsObject.set(
-      '_sort',
-      dir === 'asc' ? `-${key.toString()}` : key.toString(),
+      "_sort",
+      dir === "asc" ? `-${key.toString()}` : key.toString(),
     );
 
     return this;
@@ -897,18 +903,18 @@ export class GetResources<
 }
 
 type EventType =
-  | 'awf.workflow.event/workflow-init'
-  | 'awf.workflow.event/task-completed';
-type TaskStatus = 'requested' | 'in-progress';
-type RequesterType = 'AidboxWorkflow';
+  | "awf.workflow.event/workflow-init"
+  | "awf.workflow.event/task-completed";
+type TaskStatus = "requested" | "in-progress";
+type RequesterType = "AidboxWorkflow";
 
 interface TaskMeta<T> {
   id: string;
   execId: string;
   definition: string;
   params: T;
-  'workflow-definition': string;
-  resourceType: 'AidboxTask';
+  "workflow-definition": string;
+  resourceType: "AidboxTask";
   status: TaskStatus;
   requester: { id: string; resourceType: RequesterType };
   meta: { lastUpdated: string; createdAt: string; versionId: string };
@@ -919,7 +925,7 @@ type WorkerOptions = {
   batchSize?: number;
 };
 
-type TaskInput = TaskDefinitionsMap[keyof TaskDefinitionsMap]['params'];
+type TaskInput = TaskDefinitionsMap[keyof TaskDefinitionsMap]["params"];
 type DecisionInput = { event: EventType };
 
 interface TasksBatch {
@@ -934,13 +940,13 @@ interface AidboxWorkflow {
   requester: { id: string; resourceType: string };
   retryCount: number;
   execId: string;
-  status: 'created' | 'in-progress' | 'done';
-  outcome?: 'succeeded' | 'failed' | 'canceled';
+  status: "created" | "in-progress" | "done";
+  outcome?: "succeeded" | "failed" | "canceled";
   outcomeReason?: {
     type:
-      | 'awf.task/failed-due-to-in-progress-timeout'
-      | 'awf.workflow/failed-by-executor'
-      | 'awf.executor/unknown-error';
+      | "awf.task/failed-due-to-in-progress-timeout"
+      | "awf.workflow/failed-by-executor"
+      | "awf.executor/unknown-error";
     message: string;
     data?: any;
   };
@@ -962,26 +968,26 @@ interface WorkflowHistoryRpc {
 }
 
 interface WorkflowActions<K extends keyof WorkflowDefinitionsMap> {
-  complete: (params: WorkflowDefinitionsMap[K]['result']) => {
-    action: 'awf.workflow.action/complete-workflow';
-    result: WorkflowDefinitionsMap[K]['result'];
+  complete: (params: WorkflowDefinitionsMap[K]["result"]) => {
+    action: "awf.workflow.action/complete-workflow";
+    result: WorkflowDefinitionsMap[K]["result"];
   };
   execute: <T extends keyof TaskDefinitionsMap>(params: {
     definition: T;
-    params: TaskDefinitionsMap[T]['params'];
+    params: TaskDefinitionsMap[T]["params"];
   }) => {
-    action: 'awf.workflow.action/schedule-task';
-    'task-request': { definition: T; params: TaskDefinitionsMap[T]['params'] };
+    action: "awf.workflow.action/schedule-task";
+    "task-request": { definition: T; params: TaskDefinitionsMap[T]["params"] };
   };
   fail: (params: unknown) => {
-    action: 'awf.workflow.action/fail';
+    action: "awf.workflow.action/fail";
     error: unknown;
   };
 }
 
-type TaskHandler<K extends keyof Omit<TaskDefinitionsMap, 'awf.task/wait'>> = (
-  params: TaskMeta<TaskDefinitionsMap[K]['params']>,
-) => Promise<TaskDefinitionsMap[K]['result']> | TaskDefinitionsMap[K]['result'];
+type TaskHandler<K extends keyof Omit<TaskDefinitionsMap, "awf.task/wait">> = (
+  params: TaskMeta<TaskDefinitionsMap[K]["params"]>,
+) => Promise<TaskDefinitionsMap[K]["result"]> | TaskDefinitionsMap[K]["result"];
 
 type WorkflowHandler<K extends keyof WorkflowDefinitionsMap> = (
   params: TaskMeta<DecisionInput>,
@@ -993,13 +999,13 @@ type BundleRequestEntry<T = ResourceTypeMap[keyof ResourceTypeMap]> = {
   resource?: T;
 };
 
-export type HTTPMethod = 'POST' | 'PATCH' | 'PUT' | 'GET';
+export type HTTPMethod = "POST" | "PATCH" | "PUT" | "GET";
 
 export class Bundle {
   entry: BundleRequestEntry[];
-  type: 'batch' | 'transaction';
+  type: "batch" | "transaction";
 
-  constructor(type: 'batch' | 'transaction' = 'transaction') {
+  constructor(type: "batch" | "transaction" = "transaction") {
     this.type = type;
     this.entry = [];
   }
@@ -1021,9 +1027,9 @@ export class Bundle {
     });
   }
 
-  toJSON(): ResourceTypeMap['Bundle'] {
+  toJSON(): ResourceTypeMap["Bundle"] {
     return {
-      resourceType: 'Bundle',
+      resourceType: "Bundle",
       type: this.type,
       entry: this.entry,
     };
@@ -1031,7 +1037,7 @@ export class Bundle {
 
   toString() {
     return JSON.stringify({
-      resourceType: 'Bundle',
+      resourceType: "Bundle",
       type: this.type,
       entry: this.entry,
     });
