@@ -11,7 +11,8 @@
         "build": "tsc",
         "format": "prettier --write '**/*.ts'",
         "lint": "npx eslint --quiet .",
-        "test": "ts-node test.ts"
+        "test": "ts-node test.ts",
+        "create-tarball": "npm i && npm run build && cp ./package.json ./lib && cd lib && npm pack --pack-destination ./.."
     },
     "keywords": [],
     "author": "",
