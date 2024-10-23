@@ -1,8 +1,7 @@
 (ns aidbox-sdk.generator.typescript
   (:require
    [aidbox-sdk.generator :as generator]
-   [aidbox-sdk.generator.helpers :refer [->pascal-case uppercase-first-letter
-                                         ->camel-case]]
+   [aidbox-sdk.generator.helpers :refer [->pascal-case ->camel-case]]
    [aidbox-sdk.generator.utils :as u]
    [clojure.java.io :as io]
    [clojure.string :as str]
@@ -12,7 +11,6 @@
 
 (def reserved-names #{"RequestPriority"})
 (def valuset-exception #{"SubscriptionStatus"})
-(def reserved-name-suffix "_")
 
 (defn package->directory
   "Generates directory name from package name.
@@ -205,6 +203,33 @@
        (flatten)
        (str/join "\n\n")))
 
+(defn index-exports [schemas]
+  (let [names (->> schemas
+                   (remove fhir/primitive-type?)
+                   (remove fhir/extension?)
+                   (remove fhir/logical?)
+                   (map (fn [schema] (class-name (:resource-name schema))))
+                   sort)]
+    (conj (mapv (fn [class-name']
+                  (format "import { %s } from './%s';" class-name' class-name'))
+                names)
+          (format "export { %s };" (str/join ", " names)))))
+
+(defn resource-type-map [schemas]
+  (flatten ["export type ResourceTypeMap = {"
+            (u/add-indent "User: Record<string, any>;")
+            (->> schemas
+                 (remove fhir/primitive-type?)
+                 (remove fhir/extension?)
+                 (remove fhir/logical?)
+                 (map (fn [schema] (class-name (:resource-name schema))))
+                 sort
+                 (map (fn [name']
+                        (format "%s: %s;" name' name')))
+                 (map u/add-indent))
+            "};"
+            "export type ResourceType = keyof ResourceTypeMap;"]))
+
 (defrecord TypeScriptCodeGenerator []
   CodeGenerator
   (generate-datatypes [_ ir-schemas]
@@ -227,7 +252,8 @@
     (map (fn [ir-schema]
            {:path (search-param-filepath ir-schema)
             :content (generate-module
-                      :deps (generate-deps {:package "hl7.fhir.r4.core" :deps (map #(format "%sSearchParameters" %) (:deps ir-schema))})
+                      :deps (generate-deps {:package "hl7.fhir.r4.core"
+                                            :deps (map #(format "%sSearchParameters" %) (:deps ir-schema))})
                       :classes [(generate-class
                                  {:name (format "%sSearchParameters" (:name ir-schema))
                                   :base (when (:base ir-schema)
@@ -244,13 +270,24 @@
                                                  (map generate-class (:backbone-elements ir-schema)))]})})
          ir-schemas))
 
-  (generate-sdk-files [_ _]
-    (generator/prepare-sdk-files
-     :typescript
-     ["index.ts" "eslint.config.mjs" "http-client.ts" "package.json"
-      "package-lock.json" "tsconfig.json" "types/index.ts"
-      "types/workflow/SystemCheckOutWorkflow.ts" "types/workflow/index.ts"
-      "types/task/SystemSendMessage.ts" "types/task/index.ts"]))
+  (generate-sdk-files [_ ir-schemas]
+
+    (let [packages (group-by :package ir-schemas)
+          package-indexes (for [[package schemas] packages]
+                            {:path (io/file "types"
+                                            (package->directory package)
+                                            "index.ts")
+                             :content (str/join "\n" (into (index-exports schemas)
+                                                           (resource-type-map schemas)))})
+
+          common-sdk-files (generator/prepare-sdk-files
+                            :typescript
+                            ["index.ts" "eslint.config.mjs" "http-client.ts" "package.json"
+                             "package-lock.json" "tsconfig.json" "types/index.ts"
+                             "types/workflow/SystemCheckOutWorkflow.ts" "types/workflow/index.ts"
+                             "types/task/SystemSendMessage.ts" "types/task/index.ts"])]
+
+      (into common-sdk-files package-indexes)))
 
   (generate-valuesets [_ vs-schemas]
     (->> vs-schemas
