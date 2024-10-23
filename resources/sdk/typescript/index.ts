@@ -566,11 +566,11 @@ const resourceOwnerLogout =
     auth.storage.set(undefined);
   };
 
-type BasicAuthorization = {
+export type BasicAuthorization = {
   method: "basic";
   credentials: { username: string; password: string };
 };
-type ResourceOwnerAuthorization = {
+export type ResourceOwnerAuthorization = {
   method: "resource-owner";
   client: { id: string; secret: string };
   storage: TokenStorage;
