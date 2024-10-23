@@ -174,7 +174,7 @@
                                         (= (:name %) "resource"))
                                  (-> %
                                      (assoc :type "T")
-                                     (assoc :service-type false))
+                                     (assoc :service-type? false))
                                  %)))
         properties  (->> elements
                          (map generate-property)
