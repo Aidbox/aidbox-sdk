@@ -128,7 +128,9 @@
                         (map generate-property)
                         (flatten)
                         (remove nil?)
-                        ((fn [props] (if (contains? (set (map :name (:elements ir-schema))) "resourceType")
+                        ((fn [props] (if (or
+                                         (fhir/base-type? ir-schema)
+                                         (contains? (set (map :name (:elements ir-schema))) "resourceType"))
                                        props
                                        (conj props (format "resourceType: '%s'" class-name')))))
                         (map u/add-indent)
