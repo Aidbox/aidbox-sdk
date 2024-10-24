@@ -141,9 +141,7 @@
        "};"]))
 
   (testing "empty elements"
-    (is (= "export type Base = {
-    resourceType: 'Base'
-};"
+    (is (= "export type Base = {};"
            (gen.typescript/generate-class {:package "hl7.fhir.r5.core",
                                            :derivation nil,
                                            :type "Base",
@@ -162,19 +160,16 @@
                                      (map gen.typescript/generate-class (:backbone-elements (fixt/get-data :patient-ir-schema)))))
 
       ["export type PatientLink = BackboneElement & {"
-       "    resourceType: 'PatientLink'"
        "    type: string;"
        "    other: Reference;"
        "};"
        ""
        "export type PatientCommunication = BackboneElement & {"
-       "    resourceType: 'PatientCommunication'"
        "    language: CodeableConcept;"
        "    preferred?: boolean;"
        "};"
        ""
        "export type PatientContact = BackboneElement & {"
-       "    resourceType: 'PatientContact'"
        "    name?: HumanName;"
        "    gender?: string;"
        "    period?: Period;"
@@ -237,19 +232,16 @@
      "import { AdministrativeGender } from './valuesets';"
      ""
      "export type PatientLink = BackboneElement & {"
-     "    resourceType: 'PatientLink'"
      "    type: string;"
      "    other: Reference;"
      "};"
      ""
      "export type PatientCommunication = BackboneElement & {"
-     "    resourceType: 'PatientCommunication'"
      "    language: CodeableConcept;"
      "    preferred?: boolean;"
      "};"
      ""
      "export type PatientContact = BackboneElement & {"
-     "    resourceType: 'PatientContact'"
      "    name?: HumanName;"
      "    gender?: string;"
      "    period?: Period;"
