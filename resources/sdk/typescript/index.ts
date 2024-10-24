@@ -1032,7 +1032,7 @@ export class Bundle {
       resourceType: "Bundle",
       type: this.type,
       entry: this.entry,
-    };
+    } as any;
   }
 
   toString() {

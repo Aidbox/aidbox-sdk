@@ -6,6 +6,7 @@
 ;; Base Types and Datatypes
 
 (def r4-base-types #{"Element" "Resource" "DomainResource"
+                     "DataType"
                      ;; NOTE: technically `Bundle` is not a base type,
                      ;; but it's here for a reason.
                      "Bundle"})
