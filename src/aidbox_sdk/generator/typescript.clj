@@ -230,6 +230,12 @@
             "};"
             "export type ResourceType = keyof ResourceTypeMap;"]))
 
+(defn generate-types-index [packages]
+  (into ["export * from './workflow';"
+         "export * from './task';"]
+        (for [pkg packages]
+          (format "export * from './%s';" (package->directory pkg)))))
+
 (defrecord TypeScriptCodeGenerator []
   CodeGenerator
   (generate-datatypes [_ ir-schemas]
@@ -274,20 +280,24 @@
 
     (let [packages (group-by :package ir-schemas)
           package-indexes (for [[package schemas] packages]
-                            {:path (io/file "types"
-                                            (package->directory package)
-                                            "index.ts")
+                            {:path (io/file "types" (package->directory package) "index.ts")
                              :content (str/join "\n" (into (index-exports schemas)
                                                            (resource-type-map schemas)))})
-
+          types-index      [{:path (io/file "types" "index.ts")
+                             :content (str/join "\n" (generate-types-index (keys packages)))}]
           common-sdk-files (generator/prepare-sdk-files
                             :typescript
-                            ["index.ts" "eslint.config.mjs" "http-client.ts" "package.json"
-                             "package-lock.json" "tsconfig.json" "types/index.ts"
-                             "types/workflow/SystemCheckOutWorkflow.ts" "types/workflow/index.ts"
-                             "types/task/SystemSendMessage.ts" "types/task/index.ts"])]
-
-      (into common-sdk-files package-indexes)))
+                            ["index.ts"
+                             "eslint.config.mjs"
+                             "http-client.ts"
+                             "package.json"
+                             "package-lock.json"
+                             "tsconfig.json"
+                             "types/workflow/SystemCheckOutWorkflow.ts"
+                             "types/workflow/index.ts"
+                             "types/task/SystemSendMessage.ts"
+                             "types/task/index.ts"])]
+      (into (into common-sdk-files package-indexes) types-index)))
 
   (generate-valuesets [_ vs-schemas]
     (->> vs-schemas
