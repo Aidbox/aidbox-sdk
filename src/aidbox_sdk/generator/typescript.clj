@@ -130,6 +130,7 @@
                         (remove nil?)
                         ((fn [props] (if (or
                                          (fhir/base-type? ir-schema)
+                                         (not (fhir/resource? ir-schema))
                                          (contains? (set (map :name (:elements ir-schema))) "resourceType"))
                                        props
                                        (conj props (format "resourceType: '%s'" class-name')))))
