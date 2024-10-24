@@ -123,7 +123,7 @@
                                     (:name ir-schema)
                                     ""))
         properties (->> (:elements ir-schema)
-                        (remove #(:choice-option %))
+                        (remove #(:choices %))
                         (map #(assoc % :fhir-version (:fhir-version ir-schema)))
                         (map generate-property)
                         (flatten)
