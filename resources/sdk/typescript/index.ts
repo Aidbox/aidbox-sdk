@@ -685,6 +685,41 @@ export class Client<T extends BasicAuthorization | ResourceOwnerAuthorization> {
         .post(buildResourceUrl(''), { json: data })
         .json<Bundle>();
     },
+    conditionalUpdate: <T extends keyof ResourceTypeMap>(
+      resourceName: T, 
+      search: string,
+      input: PartialResourceBody<T> 
+    ) => {
+      return this.client
+        .patch(`${buildResourceUrl(resourceName)}?${search}`, { json: input })
+        .json<BaseResponseResource<T>>();
+    },
+    conditionalCreate: <T extends keyof ResourceTypeMap>(
+      resourceName: T, 
+      search: string,
+      input: PartialResourceBody<T> 
+    ) => {
+      return this.client
+        .post(`${buildResourceUrl(resourceName)}?${search}`, { json: input })
+        .json<BaseResponseResource<T>>();
+    },
+    conditionalOverride: <T extends keyof ResourceTypeMap>(
+      resourceName: T, 
+      search: string,
+      input: PartialResourceBody<T> 
+    ) => {
+      return this.client
+        .put(`${buildResourceUrl(resourceName)}?${search}`, { json: input })
+        .json<BaseResponseResource<T>>();
+    },
+    conditionalDelete: <T extends keyof ResourceTypeMap>(
+      resourceName: T,
+      search: string
+    ) => {
+      return this.client
+        .delete(`${buildResourceUrl(resourceName)}?${search}`)
+        .json<BaseResponseResource<T>>();
+    },
     search: this.search,
     list: this.search,
     get: async <T extends keyof ResourceTypeMap>(
@@ -695,43 +730,35 @@ export class Client<T extends BasicAuthorization | ResourceOwnerAuthorization> {
         .get(buildResourceUrl(resourceName, id))
         .json<BaseResponseResource<T>>();
     },
-    delete: async <T extends keyof ResourceTypeMap>(
+    delete: <T extends keyof ResourceTypeMap>(
       resourceName: T,
       id: string,
-    ): Promise<BaseResponseResource<T>> => {
-      return new SearchResources<T>((searchParams: URLSearchParams) => {
-        return this.client
-          .delete(buildResourceUrl(resourceName, id), { searchParams });
-      }, resourceName)
+    ) => {
+      return this.client
+        .delete(buildResourceUrl(resourceName, id));
     },
-    update: async <T extends keyof ResourceTypeMap>(
+    update: <T extends keyof ResourceTypeMap>(
       resourceName: T,
       id: string,
       input: PartialResourceBody<T>,
-    ): Promise<BaseResponseResource<T>> => {
-      return new SearchResources<T>((searchParams: URLSearchParams) => {
-        return this.client
-          .patch(buildResourceUrl(resourceName, id), { json: input, searchParams });
-      }, resourceName)
+    ) => {
+      return this.client
+        .patch(buildResourceUrl(resourceName, id), { json: input });
     },
-    create: async <T extends keyof ResourceTypeMap>(
+    create: <T extends keyof ResourceTypeMap>(
       resourceName: T,
       input: SetOptional<ResourceTypeMap[T] & { resourceType: string }, 'resourceType'>,
-    ): Promise<BaseResponseResource<T>> => {
-      return new SearchResources<T>((searchParams: URLSearchParams) => {
-        return this.client
-          .post(buildResourceUrl(resourceName), { json: input, searchParams });
-      }, resourceName)
+    ) => {
+      return this.client
+        .post(buildResourceUrl(resourceName), { json: input });
     },
-    override: async <T extends keyof ResourceTypeMap>(
+    override: <T extends keyof ResourceTypeMap>(
       resourceName: T,
       id: string,
       input: PartialResourceBody<T>,
-    ): Promise<BaseResponseResource<T>> => {
-      return new SearchResources<T>((searchParams: URLSearchParams) => {
-        return this.client
-          .put(buildResourceUrl(resourceName, id), { json: input, searchParams });
-      }, resourceName)
+    ) => {
+      return this.client
+        .put(buildResourceUrl(resourceName, id), { json: input });
     },
   };
 
