@@ -904,6 +904,12 @@ export class GetResources<
     return this;
   }
 
+  page(value: number) {
+    this.searchParamsObject.set("_page", value.toString());
+
+    return this;
+  }
+
   elements(args: ElementsParams<T, R>) {
     const queryValue = args.join(",");
 
