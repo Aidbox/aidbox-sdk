@@ -949,7 +949,7 @@ export class GetResources<
       | ((value: BaseResponseResources<T>) => PromiseLike<TResult1> | TResult1)
       | undefined
       | null,
-    _onrejected?:
+    onrejected?:
       | ((reason: unknown) => PromiseLike<TResult2> | TResult2)
       | undefined
       | null,
@@ -958,11 +958,11 @@ export class GetResources<
       .get(buildResourceUrl(this.resourceName), {
         searchParams: this.searchParamsObject,
       })
-      .then((response: any) => {
+      .then((response) => {
         return onfulfilled
-          ? onfulfilled(response.json())
+          ? response.json<BaseResponseResources<T>>().then((data) => onfulfilled(data))
           : (response.json() as TResult1);
-      });
+      }, onrejected);
   }
 }
 
