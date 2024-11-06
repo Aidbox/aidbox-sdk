@@ -680,10 +680,10 @@ export class Client<T extends BasicAuthorization | ResourceOwnerAuthorization> {
   }
 
   resource = {
-    processBundle: (data: Bundle): Promise<Bundle> => {
+    processBundle: (data: ResourceTypeMap['Bundle']): Promise<ResourceTypeMap['Bundle']> => {
       return this.client
         .post(buildResourceUrl(''), { json: data })
-        .json<Bundle>();
+        .json<ResourceTypeMap['Bundle']>();
     },
     conditionalUpdate: <T extends keyof ResourceTypeMap>(
       resourceName: T, 
