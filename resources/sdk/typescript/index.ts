@@ -676,7 +676,7 @@ export class Client<T extends BasicAuthorization | ResourceOwnerAuthorization> {
   }
 
   resource = {
-    processBundle: (data: ProcessableBundle): Promise<ResourceTypeMap['Bundle']> => {
+    processBundle: (data: ResourceTypeMap['Bundle']): Promise<ResourceTypeMap['Bundle']> => {
       return this.client
         .post(buildResourceUrl(''), { json: data })
         .json<ResourceTypeMap['Bundle']>();
