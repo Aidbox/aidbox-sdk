@@ -345,12 +345,18 @@
 ;; Search Params
 ;;
 
+(defn distinct-by [key-fn coll]
+  (reduce (fn [acc item]
+            (if (some #(= (key-fn %) (key-fn item)) acc)
+              acc
+              (conj acc item)))
+          []
+          coll))
+
 (defn resolve-elements [schemas resource]
   (->> schemas
        (filter #(contains? (set (:base %)) resource))
-       (map :code)
-       (distinct)
-       (sort)))
+       (distinct-by :code)))
 
 (defn convert-search-params [search-params-schemas all-schemas]
   (->> all-schemas
@@ -363,7 +369,9 @@
                :base (when-let [base (:base schema)]
                        (->pascal-case (url->resource-name base)))
                :elements (->> (resolve-elements search-params-schemas (:id schema))
-                              (map (fn [el] {:type "string" :name el})))}))
+                              (map (fn [el] {:type "string"
+                                             :name (:code el)
+                                             :target (:target el)})))}))
        (remove #(and
                  (not= (:name %) "Base")
                  (empty? (:elements %))))))
