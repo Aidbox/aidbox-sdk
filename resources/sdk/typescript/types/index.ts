@@ -14,7 +14,7 @@ export interface SubsSubscription {
 export interface ResourceTypeMap {
   'placeholder-1': object;
   'placeholder-2': object;
-  "Bundle": object,
+  "Bundle": { entry?: [] },
   "Patient": object
 }
 

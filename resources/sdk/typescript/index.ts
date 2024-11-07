@@ -89,14 +89,13 @@ export type CreateQueryBody = {
   "count-query": string;
 };
 
-type Link = { relation: string; url: string };
-
+// TODO: change to FHIR Bundle
 export type BaseResponseResources<T extends keyof ResourceTypeMap> = {
   meta: { versionId: string };
   type: string;
   resourceType: string;
   total: number;
-  link: Link[];
+  link: { relation: string; url: string }[];
   entry?: { resource: ResourceTypeMap[T] }[];
   "query-timeout": number;
   "query-time": number;
@@ -581,6 +580,8 @@ const resourceOwnerLogout =
     auth.storage.set(undefined);
   };
 
+export type ProcessableBundle = Omit<ResourceTypeMap['Bundle'], 'type'> & { type: 'batch' | 'transaction' }
+
 export type BasicAuthorization = {
   method: "basic";
   credentials: { username: string; password: string };
@@ -668,97 +669,85 @@ export class Client<T extends BasicAuthorization | ResourceOwnerAuthorization> {
     head: request(this.client.head),
   });
 
-  
-
-  // request = <T extends keyof ResourceTypeMap>(params: RequestWithData<T> | RequestWithoutData<T>) => {
-
-  // }
-
-
   private search = <T extends keyof ResourceTypeMap>(resourceName: T) => {
-    return new GetResources(this.client, resourceName);
+    return new GetResources((searchParams: URLSearchParams) => {
+      return this.client.get(buildResourceUrl(resourceName), { searchParams })
+    }, resourceName);
   }
 
   resource = {
-    processBundle: (data: ResourceTypeMap['Bundle']): Promise<ResourceTypeMap['Bundle']> => {
+    processBundle: (data: ProcessableBundle): Promise<ResourceTypeMap['Bundle']> => {
       return this.client
         .post(buildResourceUrl(''), { json: data })
         .json<ResourceTypeMap['Bundle']>();
     },
     conditionalUpdate: <T extends keyof ResourceTypeMap>(
       resourceName: T, 
-      search: string,
       input: PartialResourceBody<T> 
     ) => {
-      return this.client
-        .patch(`${buildResourceUrl(resourceName)}?${search}`, { json: input })
-        .json<BaseResponseResource<T>>();
+      return new FindBeforeAction((searchParams: URLSearchParams) => {
+        return this.client.patch(buildResourceUrl(resourceName), { json: input, searchParams })
+      }, resourceName)
     },
     conditionalCreate: <T extends keyof ResourceTypeMap>(
       resourceName: T, 
-      search: string,
       input: PartialResourceBody<T> 
     ) => {
-      return this.client
-        .post(`${buildResourceUrl(resourceName)}?${search}`, { json: input })
-        .json<BaseResponseResource<T>>();
+      return new FindBeforeAction((searchParams: URLSearchParams) => {
+        return this.client.post(buildResourceUrl(resourceName), { json: input, searchParams })
+      }, resourceName)
     },
     conditionalOverride: <T extends keyof ResourceTypeMap>(
       resourceName: T, 
-      search: string,
       input: PartialResourceBody<T> 
     ) => {
-      return this.client
-        .put(`${buildResourceUrl(resourceName)}?${search}`, { json: input })
-        .json<BaseResponseResource<T>>();
+      return new FindBeforeAction((searchParams: URLSearchParams) => {
+        return this.client.put(buildResourceUrl(resourceName), { json: input, searchParams })
+      }, resourceName)
     },
-    conditionalDelete: <T extends keyof ResourceTypeMap>(
-      resourceName: T,
-      search: string
-    ) => {
-      return this.client
-        .delete(`${buildResourceUrl(resourceName)}?${search}`)
-        .json<BaseResponseResource<T>>();
+    // TODO: no body in response if resource doesn't exist -> lead to parsing error
+    conditionalDelete: <T extends keyof ResourceTypeMap>(resourceName: T) => {
+      return new FindBeforeAction((searchParams: URLSearchParams) => {
+        return this.client.delete(buildResourceUrl(resourceName), { searchParams })
+      }, resourceName)
     },
     search: this.search,
     list: this.search,
-    get: async <T extends keyof ResourceTypeMap>(
-      resourceName: T,
-      id: string,
-    ): Promise<BaseResponseResource<T>> => {
+    get: async <T extends keyof ResourceTypeMap>(resourceName: T, id: string): Promise<ResourceTypeMap[T]> => {
       return this.client
         .get(buildResourceUrl(resourceName, id))
-        .json<BaseResponseResource<T>>();
+        .json<ResourceTypeMap[T]>();
     },
-    delete: <T extends keyof ResourceTypeMap>(
-      resourceName: T,
-      id: string,
-    ) => {
+    delete: <T extends keyof ResourceTypeMap>(resourceName: T, id: string): Promise<ResourceTypeMap[T]> => {
       return this.client
-        .delete(buildResourceUrl(resourceName, id));
+        .delete(buildResourceUrl(resourceName, id))
+        .json<ResourceTypeMap[T]>();
     },
     update: <T extends keyof ResourceTypeMap>(
       resourceName: T,
       id: string,
       input: PartialResourceBody<T>,
-    ) => {
+    ): Promise<ResourceTypeMap[T]> => {
       return this.client
-        .patch(buildResourceUrl(resourceName, id), { json: input });
+        .patch(buildResourceUrl(resourceName, id), { json: input })
+        .json<ResourceTypeMap[T]>();
     },
     create: <T extends keyof ResourceTypeMap>(
       resourceName: T,
       input: SetOptional<ResourceTypeMap[T] & { resourceType: string }, 'resourceType'>,
     ) => {
       return this.client
-        .post(buildResourceUrl(resourceName), { json: input });
+        .post(buildResourceUrl(resourceName), { json: input })
+        .json<ResourceTypeMap[T]>();
     },
     override: <T extends keyof ResourceTypeMap>(
       resourceName: T,
       id: string,
       input: PartialResourceBody<T>,
-    ) => {
+    ): Promise<ResourceTypeMap[T]> => {
       return this.client
-        .put(buildResourceUrl(resourceName, id), { json: input });
+        .put(buildResourceUrl(resourceName, id), { json: input })
+        .json<ResourceTypeMap[T]>();
     },
   };
 
@@ -827,19 +816,16 @@ export class Client<T extends BasicAuthorization | ResourceOwnerAuthorization> {
   }
 }
 
-export class GetResources<
-  T extends keyof ResourceTypeMap,
-  R extends ResourceTypeMap[T],
-> implements PromiseLike<BaseResponseResources<T>>
+export class GetResources<T extends keyof ResourceTypeMap> implements PromiseLike<BaseResponseResources<T>>
 {
-  private searchParamsObject: URLSearchParams;
+  protected searchParamsObject: URLSearchParams;
   resourceName: T;
-  client: HttpClientInstance;
+  fun: (params: URLSearchParams) => ResponsePromise;
 
-  constructor(client: HttpClientInstance, resourceName: T) {
+  constructor(fun: (params: URLSearchParams) => ResponsePromise, resourceName: T) {
     this.searchParamsObject = new URLSearchParams();
     this.resourceName = resourceName;
-    this.client = client;
+    this.fun = fun;
   }
 
   where<
@@ -857,32 +843,40 @@ export class GetResources<
   where<
     K extends keyof SearchParams[T],
     SP extends SearchParams[T][K],
-    PR extends SP extends number ? Prefix : never,
   >(key: K | string, value: SP | SP[], prefix?: Prefix | never): this {
-    if (Array.isArray(value)) {
-      const val = value as SP[];
-      if (prefix) {
-        if (prefix === "eq") {
-          this.searchParamsObject.append(key.toString(), val.join(","));
-          return this;
-        }
-
-        val.forEach((item) => {
-          this.searchParamsObject.append(key.toString(), `${prefix}${item}`);
-        });
-
-        return this;
-      }
-
-      const queryValues = val.join(",");
-      this.searchParamsObject.append(key.toString(), queryValues);
-
+    if (!Array.isArray(value)) {
+      this.searchParamsObject.append(key.toString(), `${prefix || ''}${value}`);
       return this;
     }
-    const queryValue = `${prefix ?? ""}${value}`;
 
-    this.searchParamsObject.append(key.toString(), queryValue);
-    return this;
+    if (prefix && prefix === 'eq') {
+      this.searchParamsObject.append(key.toString(), value.join(','));
+      return this;
+    }
+    
+    if (prefix) {
+      value.forEach((item) => this.searchParamsObject.append(key.toString(), `${prefix}${item}`));
+      return this;
+    }
+    
+    this.searchParamsObject.append(key.toString(), value.join(','));
+    return this;  
+  }
+
+  async then<TResult1 = BaseResponseResources<T>, TResult2 = never>(
+    onfulfilled?: ((value: BaseResponseResources<T>) => PromiseLike<TResult1> | TResult1),
+    onrejected?: ((reason: unknown) => PromiseLike<TResult2> | TResult2)
+  ): Promise<TResult1 | TResult2> {
+    return this.fun(this.searchParamsObject)
+      .then((response) => {
+        return onfulfilled
+          ? response.json<BaseResponseResources<T>>().then((data) => onfulfilled(data))
+          : response.json();
+      }, onrejected);
+  }
+  
+  async catch(onRejected: (reason: unknown) => Promise<unknown>) {
+    return this.then(undefined, onRejected);
   }
 
   contained(
@@ -910,7 +904,7 @@ export class GetResources<
     return this;
   }
 
-  elements(args: ElementsParams<T, R>) {
+  elements(args: ElementsParams<T, ResourceTypeMap[T]>) {
     const queryValue = args.join(",");
 
     this.searchParamsObject.set("_elements", queryValue);
@@ -943,26 +937,69 @@ export class GetResources<
 
     return this;
   }
+}
 
-  then<TResult1 = BaseResponseResources<T>, TResult2 = never>(
-    onfulfilled?:
-      | ((value: BaseResponseResources<T>) => PromiseLike<TResult1> | TResult1)
-      | undefined
-      | null,
-    onrejected?:
-      | ((reason: unknown) => PromiseLike<TResult2> | TResult2)
-      | undefined
-      | null,
-  ): PromiseLike<TResult1 | TResult2> {
-    return this.client
-      .get(buildResourceUrl(this.resourceName), {
-        searchParams: this.searchParamsObject,
-      })
+export class FindBeforeAction<T extends keyof ResourceTypeMap> implements PromiseLike<BaseResponseResource<T>>
+{
+  protected searchParamsObject: URLSearchParams;
+  resourceName: T;
+  fun: (params: URLSearchParams) => ResponsePromise;
+
+  constructor(fun: (params: URLSearchParams) => ResponsePromise, resourceName: T) {
+    this.searchParamsObject = new URLSearchParams();
+    this.resourceName = resourceName;
+    this.fun = fun;
+  }
+
+  where<
+    K extends keyof SearchParams[T],
+    SP extends SearchParams[T][K],
+    PR extends PrefixWithArray,
+  >(key: K | string, value: SP | SP[], prefix?: PR): this;
+
+  where<
+    K extends keyof SearchParams[T],
+    SP extends SearchParams[T][K],
+    PR extends Exclude<Prefix, PrefixWithArray>,
+  >(key: K | string, value: SP, prefix?: PR): this;
+
+  where<
+    K extends keyof SearchParams[T],
+    SP extends SearchParams[T][K],
+  >(key: K | string, value: SP | SP[], prefix?: Prefix | never): this {
+    if (!Array.isArray(value)) {
+      this.searchParamsObject.append(key.toString(), `${prefix || ''}${value}`);
+      return this;
+    }
+
+    if (prefix && prefix === 'eq') {
+      this.searchParamsObject.append(key.toString(), value.join(','));
+      return this;
+    }
+    
+    if (prefix) {
+      value.forEach((item) => this.searchParamsObject.append(key.toString(), `${prefix}${item}`));
+      return this;
+    }
+    
+    this.searchParamsObject.append(key.toString(), value.join(','));
+    return this;  
+  }
+
+  async then<TResult1 = BaseResponseResource<T>, TResult2 = never>(
+    onfulfilled?: ((value: BaseResponseResource<T>) => PromiseLike<TResult1> | TResult1),
+    onrejected?: ((reason: unknown) => PromiseLike<TResult2> | TResult2)
+  ): Promise<TResult1 | TResult2> {
+    return this.fun(this.searchParamsObject)
       .then((response) => {
         return onfulfilled
-          ? response.json<BaseResponseResources<T>>().then((data) => onfulfilled(data))
-          : (response.json() as TResult1);
+          ? response.json<BaseResponseResource<T>>().then((data) => onfulfilled(data))
+          : response.json();
       }, onrejected);
+  }
+  
+  async catch(onRejected: (reason: unknown) => Promise<unknown>) {
+    return this.then(undefined, onRejected);
   }
 }
 
