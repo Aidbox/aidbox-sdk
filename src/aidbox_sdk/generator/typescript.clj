@@ -230,7 +230,7 @@
                    (map (fn [schema] (class-name (:resource-name schema))))
                    sort)]
     (flatten ["export const resourceList: readonly ResourceType[] = ["
-              (map #(str u/indent "" \" % "\",") names)
+              (map #(str u/indent "'" % "',") names)
               "];"])))
 
 (defn resource-type-map [schemas]
